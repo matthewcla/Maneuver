@@ -27,6 +27,8 @@
             --radar-white: #FFFFFF;
             --radar-faint-green: rgba(0, 255, 0, 0.5);
             --radar-faint-white: rgba(255, 255, 255, 0.5);
+            /* fallback for dynamic 100vh calculation */
+            --vh: 1vh;
         }
         /* Ensure the canvas is responsive and has a cursor pointer for interaction */
         canvas {
@@ -40,7 +42,9 @@
         }
         /* Ensure the main content area fills the viewport height */
         .main-content {
+             /* default 100vh plus dynamic fix for mobile browsers */
              height: 100vh;
+             height: calc(var(--vh, 1vh) * 100);
         }
         
         /* Button Styling */
@@ -351,6 +355,22 @@ We may suspend or terminate your access to the Services immediately and without 
             const windDataDisplay = document.getElementById('wind-data-display');
             const maneuverTitle = document.getElementById('maneuver-title'); // Get the new title element
             const simClock = document.getElementById('sim-clock');
+
+            // --- 100vh Correction for Mobile Browsers ---
+            function adjustViewportHeight() {
+                const diff = Math.abs(window.innerHeight - document.documentElement.clientHeight);
+                if (diff > 20) {
+                    const vh = window.innerHeight * 0.01;
+                    document.documentElement.style.setProperty('--vh', `${vh}px`);
+                    console.log('Adjusted viewport height for mobile UI');
+                } else {
+                    document.documentElement.style.removeProperty('--vh');
+                }
+            }
+            adjustViewportHeight();
+            window.addEventListener('resize', adjustViewportHeight);
+
+
 
             // --- Configuration ---
             const radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
