@@ -1165,6 +1165,10 @@ function updateWindDataDisplay() {
                 
                 tracks.push(newTrack);
                 selectedTrackId = newId;
+
+                calculateAllData(newTrack);
+                updatePanelsAndRedraw();
+                markSceneDirty();
             }
 
             function dropTrack() {
@@ -1179,6 +1183,9 @@ function updateWindDataDisplay() {
                     } else {
                         selectedTrackId = null;
                     }
+			
+                    updatePanelsAndRedraw();
+                    markSceneDirty();
                 }
             }
             
@@ -1216,9 +1223,9 @@ function updateWindDataDisplay() {
                     }
                     tracks.push(otherTrack);
                 }
-                
+                isSimulationRunning = true;                
                 initialize();
-                isSimulationRunning = true; 
+                markSceneDirty();
             }
 
 
