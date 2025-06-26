@@ -647,6 +647,8 @@ function updateWindDataDisplay() {
                     drawCPAIndicator(center, radius);
                 }
                 if (selectedTrackId !== null) {
+                    const track = tracks.find(t => t.id === selectedTrackId);
+                    if (track) drawBearingLine(center, radius, track);
                     drawSelectionIndicator(center, radius, selectedTrackId, radarWhite, 1.5);
                 }
                 if (hoveredTrackId !== null && hoveredTrackId !== selectedTrackId) {
@@ -751,6 +753,19 @@ function updateWindDataDisplay() {
                 ctx.beginPath();
                 ctx.moveTo(center, center);
                 ctx.lineTo(cpaX, cpaY);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawBearingLine(center, radius, track) {
+                const { x, y } = getTargetCoords(center, radius, track);
+                ctx.save();
+                ctx.strokeStyle = radarWhite;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 4]);
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(x, y);
                 ctx.stroke();
                 ctx.restore();
             }
