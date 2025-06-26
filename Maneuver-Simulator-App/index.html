@@ -69,23 +69,28 @@
 </head>
 <body class="bg-black text-white overflow-hidden">
 
-	<div id="mobile-blocker"
-     style="display:none;
-            position:fixed;inset:0;
-            background:#000;
-            color:#0f0;
-            font-family:'Share Tech Mono',monospace;
-            font-size:clamp(1rem,4vw,1.75rem);
-            line-height:1.4;
-            text-align:center;
-            padding:2rem;
-            z-index:9999;">
-  Maneuver is currently<br>
-  <strong>not compatible with<br>
-  cell-phone browsers.</strong><br><br>
-  Please open this page<br>
-  on a laptop, desktop,<br>
-  or tablet.
+<div id="mobile-blocker"
+     style="
+        /* overlay covers the whole viewport */
+        position:fixed; inset:0;
+        background:#000; color:#0f0;
+        z-index:9999;
+
+        /* center the message block */
+        display:flex; align-items:center; justify-content:center;
+
+        /* text styling */
+        font-family:'Share Tech Mono',monospace;
+        font-size:clamp(1rem,4vw,1.75rem);
+        line-height:1.4; text-align:center;
+        padding:2rem;
+
+        /* hidden by default – JS toggles to 'flex' */
+        display:none;
+     ">
+  Maneuver is currently not compatible with cell-phone browsers.
+  Please open this page on a laptop, desktop, or tablet.
+  Questions? >> AheadFlank.ai@gmail.com
 </div>
 
 <script>
