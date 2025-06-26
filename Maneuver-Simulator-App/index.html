@@ -7,6 +7,21 @@
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        // Mobile viewport height fix
+        (function () {
+            function setVh() {
+                const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                document.documentElement.style.setProperty('--vh', `${height * 0.01}px`);
+            }
+            setVh();
+            window.addEventListener('resize', setVh);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setVh);
+            }
+        })();
+    </script>
     
     <!-- Google Fonts for digital-style typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -357,20 +372,15 @@ We may suspend or terminate your access to the Services immediately and without 
             const simClock = document.getElementById('sim-clock');
 
             // --- 100vh Correction for Mobile Browsers ---
-            function adjustViewportHeight() {
-                const diff = Math.abs(window.innerHeight - document.documentElement.clientHeight);
-                if (diff > 20) {
-                    const vh = window.innerHeight * 0.01;
-                    document.documentElement.style.setProperty('--vh', `${vh}px`);
-                    console.log('Adjusted viewport height for mobile UI');
-                } else {
-                    document.documentElement.style.removeProperty('--vh');
-                }
+            // handled early in <head>; just listen again in case of state changes
+            function updateViewportUnit() {
+                const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                document.documentElement.style.setProperty('--vh', `${height * 0.01}px`);
             }
-            adjustViewportHeight();
-            window.addEventListener('resize', adjustViewportHeight);
-
-
+            window.addEventListener('resize', updateViewportUnit);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', updateViewportUnit);
+            }
 
             // --- Configuration ---
             const radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
