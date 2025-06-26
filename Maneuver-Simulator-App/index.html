@@ -69,6 +69,51 @@
 </head>
 <body class="bg-black text-white overflow-hidden">
 
+	<div id="mobile-blocker"
+     style="display:none;
+            position:fixed;inset:0;
+            background:#000;
+            color:#0f0;
+            font-family:'Share Tech Mono',monospace;
+            font-size:clamp(1rem,4vw,1.75rem);
+            line-height:1.4;
+            text-align:center;
+            padding:2rem;
+            z-index:9999;">
+  Maneuver is currently<br>
+  <strong>not compatible with<br>
+  cell-phone browsers.</strong><br><br>
+  Please open this page<br>
+  on a laptop, desktop,<br>
+  or tablet.
+</div>
+
+<script>
+	/* ✧✧✧ 2️⃣  DEVICE-GUARD SCRIPT ✧✧✧ */
+	(function () {
+	  const PHONE_MAX_WIDTH = 768;        // px – treat ≤ 768 px CSS width as “phone”
+	  const blocker    = document.getElementById('mobile-blocker');
+	  const root       = document.documentElement;   // <html> – your whole app
+	
+	  function isPhoneSized () {
+	    return window.innerWidth <= PHONE_MAX_WIDTH;
+	  }
+	
+	  function isPhoneUserAgent () {
+	    return /Android|iPhone|iPod|Mobile|IEMobile|BlackBerry/i.test(navigator.userAgent);
+	  }
+	
+	  function updateBlocker () {
+	    const phone = isPhoneSized() || isPhoneUserAgent();
+	    blocker.style.display = phone ? 'flex' : 'none';
+	    root.style.overflow   = phone ? 'hidden' : '';   // stop scroll underneath
+	  }
+	
+	  updateBlocker();                // on first load
+	  window.addEventListener('resize', updateBlocker);
+	})();
+</script>
+	
     <main class="flex flex-row main-content relative">
         <!-- Maneuver Title in the upper left corner -->
         <div id="maneuver-title" class="absolute top-4 text-radar-green font-bold tracking-wide" style="font-size: 1.95rem; left: 10px;">
