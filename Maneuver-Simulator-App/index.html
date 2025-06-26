@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
     
     <style>
         
@@ -65,6 +66,10 @@
         }
         .wind-value   { font-size: 150%; }  /* 1.5 × current size */
         .wind-label   { font-size: inherit; }/* unchanged */
+        #sim-clock {
+            font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
+            font-size: 2.25rem;
+        }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -295,20 +300,23 @@ We may suspend or terminate your access to the Services immediately and without 
             <canvas id="radarCanvas"></canvas>
         </div>
 
-        <!-- Right Pane: Data Panels -->
-        <div id="data-pane" class="flex-shrink-0 p-4 flex flex-col justify-start gap-8 overflow-y-auto text-radar-green">
-            <!-- OwnShip Data -->
-            <div>
-                <p class="font-bold tracking-wide data-title">OwnShip</p>
-                <div class="mt-2 pl-2 flex flex-col gap-1">
-                    <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
+        <!-- Right Pane -->
+        <div id="right-pane" class="flex flex-col justify-between flex-shrink-0 pt-4 pr-4 pl-4 pb-0 text-radar-green">
+            <div id="sim-clock" class="text-center">00:00:00</div>
+            <div id="data-pane" class="flex flex-col gap-8 overflow-y-auto">
+                <!-- OwnShip Data -->
+                <div>
+                    <p class="font-bold tracking-wide data-title">OwnShip</p>
+                    <div class="mt-2 pl-2 flex flex-col gap-1">
+                        <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
+                    </div>
                 </div>
+                <!-- Data Panels for selected track will be dynamically inserted here -->
+                <div id="track-data-container"></div>
+                <div id="rm-data-container"></div>
+                <div id="cpa-data-container"></div>
             </div>
-            <!-- Data Panels for selected track will be dynamically inserted here -->
-            <div id="track-data-container"></div>
-            <div id="rm-data-container"></div>
-            <div id="cpa-data-container"></div>
         </div>
     </main>
 
@@ -341,6 +349,7 @@ We may suspend or terminate your access to the Services immediately and without 
             const cpaDataContainer = document.getElementById('cpa-data-container');
             const windDataDisplay = document.getElementById('wind-data-display');
             const maneuverTitle = document.getElementById('maneuver-title'); // Get the new title element
+            const simClock = document.getElementById('sim-clock');
 
             // --- Configuration ---
             const radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
@@ -364,9 +373,11 @@ We may suspend or terminate your access to the Services immediately and without 
             let dragType = null;
             let lastMousePos = { x: 0, y: 0 };
             let lastTimestamp = 0;
-	    let lastDomUpdate  = 0;
-	    const DOM_UPDATE_INTERVAL = 200;    // ms (~5 FPS for panels)
-	    let sceneDirty = true;              // mark when something really changed
+            let lastDomUpdate  = 0;
+            const DOM_UPDATE_INTERVAL = 200;    // ms (~5 FPS for panels)
+            let sceneDirty = true;              // mark when something really changed
+
+            let simulationElapsed = 0;          // seconds of simulated time
             
             // --- Weather Data ---
             let trueWind = { 
@@ -642,6 +653,9 @@ We may suspend or terminate your access to the Services immediately and without 
 
                 btnFf.className = `control-btn p-2 ${simulationSpeed > 1 ? 'selected' : 'unselected'}`;
                 btnRev.className = `control-btn p-2 ${simulationSpeed < 1 ? 'selected' : 'unselected'}`;
+            }
+            function updateSimClock() {
+                simClock.textContent = formatTime(simulationElapsed / 3600);
             }
 
             // --- Drawing Functions ---
@@ -1060,14 +1074,15 @@ function updateWindDataDisplay() {
 
 
 	    function gameLoop(timestamp) {
-	        const deltaTime = (timestamp - lastTimestamp) || 0;
-	        lastTimestamp = timestamp;
+		    
+                const deltaTime = (timestamp - lastTimestamp) || 0;
+                lastTimestamp = timestamp;
 	
 	        // --- simulation math --------------------------------------------------
 	            if (isSimulationRunning) {
 	            
-                    updatePhysics(deltaTime / 1000);
-	            sceneDirty = true;
+                    simulationElapsed += (deltaTime / 1000) * Math.abs(simulationSpeed);
+                    sceneDirty = true;
 		}
 	
 	      // --- draw canvas only when needed -------------------------------------
@@ -1082,10 +1097,11 @@ function updateWindDataDisplay() {
 	       // --- update DOM at low frequency --------------------------------------
 		 if (timestamp - lastDomUpdate >= DOM_UPDATE_INTERVAL) {
 		
-		 updateOwnShipPanel();
-		 updateDataPanels();      // ← now *without* scaleUI inside
-		 updateButtonStyles();
-		 lastDomUpdate = timestamp;
+                updateOwnShipPanel();
+                updateDataPanels();      // ← now *without* scaleUI inside
+                updateButtonStyles();
+                updateSimClock();
+                lastDomUpdate = timestamp;
 		}
 	
 		requestAnimationFrame(gameLoop);
@@ -1190,9 +1206,11 @@ function updateWindDataDisplay() {
             }
             
             // --- Scenario Setup Function ---
-            function setupRandomScenario() {
+           function setupRandomScenario() {
                 ownShip = { course: 90, speed: 12, id: 'ownShip', x: 0, y: 0 };
                 tracks = [];
+                simulationElapsed = 0;
+                updateSimClock();
                 const numTracks = Math.floor(Math.random() * 6) + 3; // 3 to 8 tracks
 
                 // --- Create the primary collision risk track (must give way) ---
@@ -1232,6 +1250,8 @@ function updateWindDataDisplay() {
             // --- Initial Setup ---
             function initialize() {
                 // This function is now also used to reset scenarios
+                simulationElapsed = 0;
+                updateSimClock();
                 if (tracks.length > 0) {
                     tracks.forEach(track => {
                         // Calculate absolute position based on bearing/range from ownship's current position
