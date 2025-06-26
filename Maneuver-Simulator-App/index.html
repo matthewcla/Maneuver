@@ -32,6 +32,7 @@
         canvas {
             display: block;
             cursor: pointer;
+            touch-action: none; /* enable custom touch gestures */
         }
         /* Helper class for green text color */
         .text-radar-green {
@@ -314,8 +315,8 @@ We may suspend or terminate your access to the Services immediately and without 
                 </div>
                 <!-- Data Panels for selected track will be dynamically inserted here -->
                 <div id="track-data-container"></div>
-                <div id="rm-data-container"></div>
                 <div id="cpa-data-container"></div>
+                <div id="rm-data-container"></div>
             </div>
         </div>
     </main>
@@ -950,7 +951,7 @@ function updateWindDataDisplay() {
                 return null;
             }
             
-            function handleMouseMove(e) {
+            function handlePointerMove(e) {
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
@@ -1032,7 +1033,7 @@ function updateWindDataDisplay() {
                 lastMousePos = { x: mouseX, y: mouseY };
             }
             
-            function handleMouseDown(e) {
+            function handlePointerDown(e) {
                 if (e.button !== 0) return; 
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
@@ -1049,7 +1050,7 @@ function updateWindDataDisplay() {
                 }
             }
 
-            function handleMouseUp() { 
+            function handlePointerUp() {
                 draggedItemId = null; 
                 dragType = null; 
             }
@@ -1292,10 +1293,18 @@ function updateWindDataDisplay() {
 
 
             // --- Event Listeners ---
-            canvas.addEventListener('mousedown', handleMouseDown);
-            canvas.addEventListener('mouseup', handleMouseUp);
-            canvas.addEventListener('mouseleave', handleMouseUp);
-            canvas.addEventListener('mousemove', handleMouseMove);
+            if (window.PointerEvent) {
+                canvas.addEventListener('pointerdown', handlePointerDown);
+                canvas.addEventListener('pointerup', handlePointerUp);
+                canvas.addEventListener('pointerleave', handlePointerUp);
+                canvas.addEventListener('pointercancel', handlePointerUp);
+                canvas.addEventListener('pointermove', handlePointerMove);
+            } else {
+                canvas.addEventListener('mousedown', handlePointerDown);
+                canvas.addEventListener('mouseup', handlePointerUp);
+                canvas.addEventListener('mouseleave', handlePointerUp);
+                canvas.addEventListener('mousemove', handlePointerMove);
+            }
 	    window.addEventListener('resize', () => {
 	        scaleUI();
 	        sceneDirty = true;    // size change requires re‑draw
