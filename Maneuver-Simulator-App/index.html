@@ -570,6 +570,7 @@ function updateWindDataDisplay() {
                 const endX = startX - Math.cos(windFromAngle) * arrowLength;
                 const endY = startY + Math.sin(windFromAngle) * arrowLength; // Y-axis inverted
                 trueWind.arrowEndpoint = {x: endX, y: endY}; 
+		    
 	/* --------- draw “W” label and solid true‑wind arrow (restored code) --- */
 	ctx.save();
 	ctx.strokeStyle = radarFaintGreen;
@@ -916,6 +917,7 @@ function updateWindDataDisplay() {
                     if (item.id !== 'ownShip' && item.id !== 'trueWind') {
                         selectedTrackId = item.id;
                     }
+                    markSceneDirty();
                 }
             }
 
