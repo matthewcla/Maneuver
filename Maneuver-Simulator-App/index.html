@@ -962,8 +962,9 @@ function updateWindDataDisplay() {
 
             // --- UI Scaling Function ---
             function scaleUI() {
-                const baseHeight = 900;
-                const scaleFactor = Math.max(0.7, Math.min(1.5, window.innerHeight / baseHeight));
+                const baseDim = 900;
+                const viewportMin = Math.min(window.innerWidth, window.innerHeight);
+                const scaleFactor = Math.max(0.7, Math.min(1.5, viewportMin / baseDim));
 
                 const size = Math.min(radarContainer.clientWidth, radarContainer.clientHeight) * 0.9;
                 canvas.width = size;
