@@ -102,7 +102,7 @@
         z-index:9999;
 
         /* center the message block */
-        display:flex; align-items:center; justify-content:center;
+        align-items:center; justify-content:center;
 
         /* text styling */
         font-family:'Share Tech Mono',monospace;
@@ -316,7 +316,6 @@ We may suspend or terminate your access to the Services immediately and without 
         <!-- Center Pane: Radar Display -->
 	<div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative" style="margin-left: 25px;">
             <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
-            <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
             <canvas id="radarCanvas"></canvas>
         </div>
 
@@ -412,7 +411,7 @@ We may suspend or terminate your access to the Services immediately and without 
             
             // --- Weather Data ---
             let trueWind = { 
-                direction: 070, // Wind FROM 070 (North East)
+                direction: 70, // Wind FROM 070 (North East)
                 speed: 15,      // at 15 kts
                 wPos: {x: 0, y: 0}, // Position of 'W' symbol for dragging direction
                 arrowEndpoint: {x: 0, y: 0} // End of arrow for dragging speed
@@ -459,12 +458,6 @@ We may suspend or terminate your access to the Services immediately and without 
 
 	/** mark the canvas dirty when interactive state changes */
 	function markSceneDirty() { sceneDirty = true; }
-
-	/* Hook the diff helper wherever you formerly used textContent ------ */
-	function updateOwnShipPanel() {
-	    setText('ownship-crs', `${formatBearing(ownShip.course)} T`);
-	    setText('ownship-spd', `${ownShip.speed.toFixed(1)} KTS`);
-	}
 
 	/* …same pattern for other setText calls inside updateDataPanels() */
 	
@@ -1129,7 +1122,7 @@ function updateWindDataDisplay() {
 		 if (timestamp - lastDomUpdate >= DOM_UPDATE_INTERVAL) {
 		
                 updateOwnShipPanel();
-                updateDataPanels();      // ← now *without* scaleUI inside
+                updateDataPanels();      
                 updateButtonStyles();
                 updateSimClock();
                 lastDomUpdate = timestamp;
