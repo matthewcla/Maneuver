@@ -65,25 +65,6 @@
         }
         .wind-value   { font-size: 150%; }  /* 1.5 × current size */
         .wind-label   { font-size: inherit; }/* unchanged */
-
-        /* Position the radar canvas at the bottom layer */
-        #radar-container {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-        }
-
-        #radarCanvas {
-            width: 100%;
-            height: 100%;
-        }
-
-        #button-bar,
-        #data-pane,
-        #maneuver-title {
-            position: relative;
-            z-index: 10;
-        }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -194,7 +175,7 @@
         </div>
 
         <!-- Center Pane: Radar Display -->
-        <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">
+	<div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative" style="margin-left: 25px;">
             <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
             <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
             <canvas id="radarCanvas"></canvas>
