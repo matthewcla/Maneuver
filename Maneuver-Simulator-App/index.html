@@ -1201,11 +1201,11 @@ function updateWindDataDisplay() {
                 buttons.forEach(btn => {
                     btn.style.fontSize = `${0.75 * scaleFactor}rem`;
                     btn.style.padding = `${0.5 * scaleFactor}rem ${0.25 * scaleFactor}rem`;
-                
-		prepareStaticStyles();
-                markSceneDirty();
-
                 });
+		    
+                // Update drawing styles once per resize
+                prepareStaticStyles();
+                markSceneDirty();
 
                 const largeButtonFontSize = 2.25;
                 btnAddTrack.style.fontSize = `${largeButtonFontSize * scaleFactor}rem`;
@@ -1442,8 +1442,16 @@ function updateWindDataDisplay() {
                markSceneDirty();         // ← forces the canvas to redraw
                scaleUI();                // reposition wind display when toggled
             });
-            btnRmv.addEventListener('click', () => { showRelativeMotion = !showRelativeMotion; });
-            btnCpa.addEventListener('click', () => { showCPAInfo = !showCPAInfo; });
+            btnRmv.addEventListener('click', () => {
+               showRelativeMotion = !showRelativeMotion;
+               markSceneDirty();
+               updatePanelsAndRedraw();
+            });
+            btnCpa.addEventListener('click', () => {
+               showCPAInfo = !showCPAInfo;
+               markSceneDirty();
+               updatePanelsAndRedraw();
+            });
             btnPlayPause.addEventListener('click', () => { 
                 isSimulationRunning = !isSimulationRunning; 
                 simulationSpeed = 1;
