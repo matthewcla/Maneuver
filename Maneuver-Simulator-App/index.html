@@ -297,10 +297,13 @@ We may suspend or terminate your access to the Services immediately and without 
 	
     <main class="flex flex-row items-center main-content relative">
         <!-- Maneuver Title in the upper left corner -->
-	<div id="maneuver-title" class="absolute top-4 text-radar-green font-bold tracking-wide" 
-	     style="font-size: 2.05rem; left: 10px; z-index: 20;">
-	    Mnvr.
-	</div>
+        <div id="maneuver-title" class="absolute top-4 text-radar-green font-bold tracking-wide"
+             style="font-size: 2.05rem; left: 10px; z-index: 20;">
+            Mnvr.
+        </div>
+        <!-- Wind Data moved to top layer -->
+        <div id="wind-data-display"
+             class="absolute left-1/2 -translate-x-1/2 text-center text-radar-green z-20"></div>
 
         <!-- Left Pane: Vertical Button Bar -->
         <div id="button-bar" class="p-2 flex flex-col items-center gap-2 justify-end flex-shrink-0">
@@ -352,8 +355,7 @@ We may suspend or terminate your access to the Services immediately and without 
         </div>
 
         <!-- Center Pane: Radar Display -->
-        <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">	
-            <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
+        <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">
             <canvas id="radarCanvas"></canvas>
         </div>
 
@@ -1202,6 +1204,8 @@ function updateWindDataDisplay() {
                 const dataValueFontSize = 1.5;
                 windDataDisplay.style.fontSize = `${(dataValueFontSize / 2) * scaleFactor}rem`;
                 windDataDisplay.style.padding = `${10 * scaleFactor}px`;
+                windDataDisplay.style.left = '50%';
+                windDataDisplay.style.transform = 'translateX(-50%)';
 
                 const dividers = document.querySelectorAll('#button-bar > .border-t');
                 dividers.forEach(div => {
@@ -1213,6 +1217,7 @@ function updateWindDataDisplay() {
                 dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
                 const gapWidth = 40;
+                windDataDisplay.style.top = `${gapWidth / 2}px`;
                 const leftWidth = buttonBar.offsetWidth;
                 const rightWidth = rightPane.offsetWidth;
                 const availableWidth = window.innerWidth - leftWidth - rightWidth - gapWidth * 2;
