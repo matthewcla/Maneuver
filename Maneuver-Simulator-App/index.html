@@ -412,6 +412,14 @@ We may suspend or terminate your access to the Services immediately and without 
             const simClock = document.getElementById('sim-clock');
             const mainContainer = document.querySelector('main.main-content');
 
+		            // Keep wind data aligned whenever the main container resizes
+            if (window.ResizeObserver) {
+                const mainResizeObserver = new ResizeObserver(() => {
+                    scaleUI();
+                });
+                mainResizeObserver.observe(mainContainer);
+            }
+
             // --- 100vh Correction for Mobile Browsers ---
             // handled early in <head>; just listen again in case of state changes
             function updateViewportUnit() {
