@@ -112,7 +112,7 @@
         .wind-label   { font-size: inherit; }/* unchanged */
         #sim-clock {
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-            font-size: 3.0rem;
+            font-size: 3.00rem;
         }
         /* Make the radar container circular and centered */
         #radar-container {
@@ -412,31 +412,6 @@ We may suspend or terminate your access to the Services immediately and without 
             const simClock = document.getElementById('sim-clock');
             const mainContainer = document.querySelector('main.main-content');
 
-	   // Create static markup for the data panels so we can update text
-            trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
-                <div class="mt-2 pl-2 flex flex-col gap-1">
-                    <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value text-right"></span></div>
-                </div>`;
-
-            rmDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Relative Motion</p>
-                <div class="mt-2 pl-2 flex flex-col gap-1">
-                    <div class="flex justify-between items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-right"></span></div>
-                </div>`;
-
-            cpaDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">CPA</p>
-                <div class="mt-2 pl-2 flex flex-col gap-1">
-                    <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-right"></span></div>
-                    <div class="flex justify-between items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-right"></span></div>
-                </div>`;
-
 		            // Keep wind data aligned whenever the main container resizes
             if (window.ResizeObserver) {
                 const mainResizeObserver = new ResizeObserver(() => {
@@ -471,11 +446,7 @@ We may suspend or terminate your access to the Services immediately and without 
                 { id: 4, initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
                 { id: 5, initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
             ];
-
-	    const trackPool = [];
-            updateCourseCache(ownShip);
-            tracks.forEach(updateCourseCache);
-		
+            
             let selectedTrackId = 1;
             let hoveredTrackId = null;
             let draggedItemId = null;
@@ -485,15 +456,6 @@ We may suspend or terminate your access to the Services immediately and without 
             let lastDomUpdate  = 0;
             const DOM_UPDATE_INTERVAL = 200;    // ms (~5 FPS for panels)
             let sceneDirty = true;              // mark when something really changed
-
-	    // Offscreen canvas for static radar elements
-            const staticCanvas = document.createElement('canvas');
-            const staticCtx = staticCanvas.getContext('2d');
-            let staticDirty = true;
-
-            // Spatial index for hit detection
-            const GRID_SIZE = 100;
-            let trackGrid = new Map();
 
             let simulationElapsed = 0;          // seconds of simulated time
             
@@ -569,15 +531,6 @@ We may suspend or terminate your access to the Services immediately and without 
             const toDegrees = (radians) => (radians * 180 / Math.PI + 360) % 360;
             const bearingToCanvasAngle = (bearing) => (450 - bearing) % 360;
             const canvasAngleToBearing = (angle) => (450 - angle) % 360;
-            
-	    function updateCourseCache(vessel) {
-                vessel.courseRad = toRadians(vessel.course);
-                vessel.courseSin = Math.sin(vessel.courseRad);
-                vessel.courseCos = Math.cos(vessel.courseRad);
-                vessel.canvasCourseRad = toRadians(bearingToCanvasAngle(vessel.course));
-                vessel.canvasSin = Math.sin(vessel.canvasCourseRad);
-                vessel.canvasCos = Math.cos(vessel.canvasCourseRad);
-            }
 
 
             function updatePanelsAndRedraw() {
@@ -637,8 +590,9 @@ We may suspend or terminate your access to the Services immediately and without 
                 const trueWindVelX = trueWind.speed * Math.cos(trueWindRad);
                 const trueWindVelY = trueWind.speed * Math.sin(trueWindRad);
 
-                const ownShipVelX = ownShip.speed * ownShip.canvasCos;
-                const ownShipVelY = ownShip.speed * ownShip.canvasSin;
+                const ownShipRad = toRadians(bearingToCanvasAngle(ownShip.course));
+                const ownShipVelX = ownShip.speed * Math.cos(ownShipRad);
+                const ownShipVelY = ownShip.speed * Math.sin(ownShipRad);
 
                 const relWindVelX = trueWindVelX - ownShipVelX;
                 const relWindVelY = trueWindVelY - ownShipVelY;
@@ -659,15 +613,16 @@ We may suspend or terminate your access to the Services immediately and without 
                 
                 // Get bearing from ownship to track. atan2(x, y) for bearing from North.
                 track.bearing = (toDegrees(Math.atan2(dx, dy)) + 360) % 360;
-                track.bearingRadCanvas = toRadians(bearingToCanvasAngle(track.bearing));
-		     
+                
                 // Ownship vector
-                const ownShipVelX = ownShip.speed * ownShip.canvasCos;
-                const ownShipVelY = ownShip.speed * ownShip.canvasSin;
+                const ownShipCanvasAngle = toRadians(bearingToCanvasAngle(ownShip.course));
+                const ownShipVelX = ownShip.speed * Math.cos(ownShipCanvasAngle);
+                const ownShipVelY = ownShip.speed * Math.sin(ownShipCanvasAngle);
                 
                 // Target vector
-                const targetVelX = track.speed * track.canvasCos;
-                const targetVelY = track.speed * track.canvasSin;
+                const targetCourseCanvasAngle = toRadians(bearingToCanvasAngle(track.course));
+                const targetVelX = track.speed * Math.cos(targetCourseCanvasAngle);
+                const targetVelY = track.speed * Math.sin(targetCourseCanvasAngle);
                 
                 // Relative vector
                 const relVelX = targetVelX - ownShipVelX;
@@ -678,8 +633,9 @@ We may suspend or terminate your access to the Services immediately and without 
                 track.rmVector = { x: relVelX, y: relVelY, speed: relSpeed, bearing: canvasAngleToBearing(relVectorCanvasAngle) };
                 
                 // CPA Calculation
-                const targetPosX = track.range * Math.cos(track.bearingRadCanvas);
-                const targetPosY = track.range * Math.sin(track.bearingRadCanvas);
+                const targetPosCanvasAngle = toRadians(bearingToCanvasAngle(track.bearing));
+                const targetPosX = track.range * Math.cos(targetPosCanvasAngle);
+                const targetPosY = track.range * Math.sin(targetPosCanvasAngle);
 
                 const dotProduct = (targetPosX * relVelX) + (targetPosY * relVelY);
                 if (relSpeed < 0.001) {
@@ -720,34 +676,42 @@ We may suspend or terminate your access to the Services immediately and without 
             }
 
             // --- UI Update Functions ---
-            function updateOwnShipPanel() {
-                setText('ownship-crs', `${formatBearing(ownShip.course)} T`);
-                setText('ownship-spd', `${ownShip.speed.toFixed(1)} KTS`);
+            function updateOwnShipPanel() { 
+                document.getElementById('ownship-crs').textContent = `${formatBearing(ownShip.course)} T`; 
+                document.getElementById('ownship-spd').textContent = `${ownShip.speed.toFixed(1)} KTS`; 
             }
-		
+            
             function updateDataPanels() {
                 const selectedTrack = tracks.find(t => t.id === selectedTrackId);
 
                 // Always display track data, or placeholders if no track is selected
-                setText('track-id', selectedTrack ? selectedTrack.id : '--');
-                setText('track-brg', selectedTrack ? `${formatBearing(selectedTrack.bearing)} T` : '--');
-                setText('track-rng', selectedTrack ? `${selectedTrack.range.toFixed(2)} NM` : '--');
-                setText('track-crs', selectedTrack ? `${formatBearing(selectedTrack.course)} T` : '--');
-                setText('track-spd', selectedTrack ? `${selectedTrack.speed.toFixed(1)} KTS` : '--');
+                trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK ${selectedTrack ? selectedTrack.id : '--'}</p>
+                    <div class="mt-2 pl-2 flex flex-col gap-1">
+                        <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span class="data-value text-right">${selectedTrack ? formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span class="data-value text-right">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span class="data-value text-right">${selectedTrack ? formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span class="data-value text-right">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
+                    </div>`;
 
                 // Display relative motion data, or placeholders if toggled off or no track selected
                 const showRM = selectedTrack && showRelativeMotion;
-                setText('rm-dir', showRM ? selectedTrack.rm.dir : '--');
-                setText('rm-spd', showRM ? selectedTrack.rm.spd : '--');
-                setText('rm-rate', showRM ? selectedTrack.rm.rate : '--');
-                setText('rm-angle', showRM ? selectedTrack.rm.angle : '--');
-                setText('rm-aspect', showRM ? selectedTrack.rm.aspect : '--');
+                rmDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Relative Motion</p>
+                    <div class="mt-2 pl-2 flex flex-col gap-1">
+                        <div class="flex justify-between items-baseline"><span class="data-label">Direction RM</span><span class="data-value text-right">${showRM ? selectedTrack.rm.dir : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Spd RM</span><span class="data-value text-right">${showRM ? selectedTrack.rm.spd : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Brg Rate</span><span class="data-value text-right">${showRM ? selectedTrack.rm.rate : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Tgt Angle</span><span class="data-value text-right">${showRM ? selectedTrack.rm.angle : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Aspect</span><span class="data-value text-right">${showRM ? selectedTrack.rm.aspect : '--'}</span></div>
+                    </div>`;
                 
                 // Display CPA data, or placeholders if toggled off, no track selected, or CPA has passed
                 const showCPA = selectedTrack && showCPAInfo && !selectedTrack.hasPassedCPA;
-                setText('cpa-brg', showCPA ? selectedTrack.cpa.brg : '--');
-                setText('cpa-rng', showCPA ? selectedTrack.cpa.range : '--');
-                setText('cpa-time', showCPA ? selectedTrack.cpa.time : '--');
+                cpaDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">CPA</p>
+                    <div class="mt-2 pl-2 flex flex-col gap-1">
+                        <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.brg : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
+                        <div class="flex justify-between items-baseline"><span class="data-label">Time</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
+                    </div>`;
 
                 scaleUI();
             }
@@ -765,7 +729,7 @@ We may suspend or terminate your access to the Services immediately and without 
                 btnRev.className = `control-btn p-2 ${simulationSpeed < 1 ? 'selected' : 'unselected'}`;
             }
             function updateSimClock() {
-                setText('sim-clock', formatTime(simulationElapsed / 3600));
+                simClock.textContent = formatTime(simulationElapsed / 3600);
             }
 
             // --- Drawing Functions ---
@@ -864,18 +828,10 @@ function updateWindDataDisplay() {
                 if (size === 0) return;
                 const center = size / 2;
                 const radius = size / 2 * 0.9;
-
-                if (staticDirty || staticCanvas.width !== size) {
-                    staticCanvas.width = size;
-                    staticCanvas.height = size;
-                    staticCtx.fillStyle = '#000000';
-                    staticCtx.fillRect(0, 0, size, size);
-                    drawRangeRings(center, radius, staticCtx);
-                    drawRangeLabels(center, radius, staticCtx);
-                    staticDirty = false;
-                }
-
-                ctx.drawImage(staticCanvas, 0, 0);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, size, size);
+                drawRangeRings(center, radius);
+                drawRangeLabels(center, radius);
                 
                 if (showWeather) {
                     drawWeatherInfo(center, radius);
@@ -901,32 +857,10 @@ function updateWindDataDisplay() {
                 if (hoveredTrackId !== null && hoveredTrackId !== selectedTrackId) {
                     drawSelectionIndicator(center, radius, hoveredTrackId, radarFaintWhite, 1);
                 }
-                buildTrackGrid(center, radius);
             }
-
-		                function drawRangeRings(center, radius, context = ctx) {
-                context.strokeStyle = radarFaintGreen;
-                context.lineWidth = 0.9;
-                context.beginPath();
-                context.arc(center, center, radius, 0, 2 * Math.PI);
-                context.stroke();
-                for (let i = 1; i < 3; i++) {
-                    context.beginPath();
-                    context.arc(center, center, radius * (i / 3), 0, 2 * Math.PI);
-                    context.stroke();
-                }
-            }
-            function drawRangeLabels(center, radius, context = ctx) {
-                context.fillStyle = radarGreen;
-                context.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`;
-                context.textAlign = 'left';
-                context.textBaseline = 'middle';
-                for (let i = 1; i <= 3; i++) {
-                    const ringRadius = radius * (i / 3);
-                    const range = maxRange * (i / 3);
-                    context.fillText(range.toFixed(1), center + ringRadius + 5, center);
-                }
-            }    
+            
+            function drawRangeRings(center, radius) { ctx.strokeStyle = radarFaintGreen; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(center, center, radius, 0, 2 * Math.PI); ctx.stroke(); for (let i = 1; i < 3; i++) { ctx.beginPath(); ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI); ctx.stroke(); } }
+            function drawRangeLabels(center, radius) { ctx.fillStyle = radarGreen; ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; for (let i = 1; i <= 3; i++) { const ringRadius = radius * (i / 3); const range = maxRange * (i / 3); ctx.fillText(range.toFixed(1), center + ringRadius + 5, center); } }
             function drawOwnShipIcon(center, radius) {
                 ctx.strokeStyle = radarGreen;
                 ctx.lineWidth = 1.4;
@@ -937,8 +871,9 @@ function updateWindDataDisplay() {
                 const timeInHours = vectorTimeInMinutes / 60;
                 const pixelsPerNm = radius / maxRange;
                 const vectorDistPixels = ownShip.speed * timeInHours * pixelsPerNm;
-                const endX = center + vectorDistPixels * ownShip.canvasCos;
-                const endY = center - vectorDistPixels * ownShip.canvasSin;
+                const courseAngle = toRadians(bearingToCanvasAngle(ownShip.course));
+                const endX = center + vectorDistPixels * Math.cos(courseAngle);
+                const endY = center - vectorDistPixels * Math.sin(courseAngle); 
                 ownShip.vectorEndpoint = { x: endX, y: endY };
                 ctx.beginPath();
                 ctx.moveTo(center, center);
@@ -946,27 +881,13 @@ function updateWindDataDisplay() {
                 ctx.stroke();
             }
             
-            function getTargetCoords(center, radius, track) {
-                const angleRad = track.bearingRadCanvas;
-                const distOnCanvas = (track.range / maxRange) * radius;
-                const x = center + distOnCanvas * Math.cos(angleRad);
+            function getTargetCoords(center, radius, track) { 
+                const angleRad = toRadians(bearingToCanvasAngle(track.bearing)); 
+                const distOnCanvas = (track.range / maxRange) * radius; 
+                const x = center + distOnCanvas * Math.cos(angleRad); 
                 const y = center - distOnCanvas * Math.sin(angleRad); // Invert Y-axis
                 return { x, y }; 
             }
-
-            function buildTrackGrid(center, radius) {
-                trackGrid.clear();
-                for (const track of tracks) {
-                    const { x, y } = getTargetCoords(center, radius, track);
-                    track.screenX = x;
-                    track.screenY = y;
-                    const gx = Math.floor(x / GRID_SIZE);
-                    const gy = Math.floor(y / GRID_SIZE);
-                    const key = `${gx},${gy}`;
-                    if (!trackGrid.has(key)) trackGrid.set(key, []);
-                    trackGrid.get(key).push(track);
-                }
-            }	
 
             function drawTarget(center, radius, track) {
                 const { x, y } = getTargetCoords(center, radius, track);
@@ -977,8 +898,9 @@ function updateWindDataDisplay() {
                 const timeInHours = vectorTimeInMinutes / 60;
                 const pixelsPerNm = radius / maxRange;
                 const vectorDistPixels = track.speed * timeInHours * pixelsPerNm;
-                const endX = x + vectorDistPixels * track.canvasCos;
-                const endY = y - vectorDistPixels * track.canvasSin;
+                const courseAngle = toRadians(bearingToCanvasAngle(track.course));
+                const endX = x + vectorDistPixels * Math.cos(courseAngle);
+                const endY = y - vectorDistPixels * Math.sin(courseAngle); 
                 track.vectorEndpoint = { x: endX, y: endY };
                 ctx.beginPath();
                 ctx.moveTo(x, y);
@@ -1071,22 +993,13 @@ function updateWindDataDisplay() {
                     }
                 }
 
-                // --- Check for track icon hits first using spatial grid ---
-                const cx = Math.floor(mouseX / GRID_SIZE);
-                const cy = Math.floor(mouseY / GRID_SIZE);
-                for (let dx = -1; dx <= 1; dx++) {
-                    for (let dy = -1; dy <= 1; dy++) {
-                        const cell = trackGrid.get(`${cx+dx},${cy+dy}`);
-                        if (!cell) continue;
-                        for (const track of cell) {
-                            const x = track.screenX;
-                            const y = track.screenY;
-                            const size = Math.max(11, radius * 0.038) * 1.5;
-                            if (mouseX > x - size/2 && mouseX < x + size/2 &&
-                                mouseY > y - size/2 && mouseY < y + size/2) {
-                                return {type: 'icon', id: track.id};
-                            }
-                        }
+                // --- Check for track icon hits first ---
+                for (const track of tracks) {
+                    const {x, y} = getTargetCoords(center, radius, track);
+                    const size = Math.max(11, radius * 0.038) * 1.5;
+                    if (mouseX > x - size/2 && mouseX < x + size/2 &&
+                        mouseY > y - size/2 && mouseY < y + size/2) {
+                        return {type: 'icon', id: track.id};
                     }
                 }
 
@@ -1097,7 +1010,7 @@ function updateWindDataDisplay() {
 
                     const startPt = (vessel.id === 'ownShip')
                         ? {x: center, y: center}
-                        : {x: vessel.screenX, y: vessel.screenY};
+                        : getTargetCoords(center, radius, vessel);
                     
                     const distFromStart = Math.hypot(mouseX - startPt.x, mouseY - startPt.y);
                     if (distFromStart < minVecPickDistance) continue;
@@ -1183,7 +1096,6 @@ function updateWindDataDisplay() {
                     const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
                     
                     vessel.course = newCourse;
-                    updateCourseCache(vessel);
                     if (vessel.id !== 'ownShip') {
                         vessel.speed = Math.max(2, newSpeed);
                     } else {
@@ -1225,15 +1137,15 @@ function updateWindDataDisplay() {
                 // nautical miles moved per frame
                 const timeMultiplier = (deltaTime / 3600000) * simulationSpeed;
                 const ownShipDist = ownShip.speed * timeMultiplier;
-                ownShip.x += ownShipDist * ownShip.courseSin;
-                ownShip.y += ownShipDist * ownShip.courseCos;
+                ownShip.x += ownShipDist * Math.sin(toRadians(ownShip.course));
+                ownShip.y += ownShipDist * Math.cos(toRadians(ownShip.course));
                 
                 tracks.forEach(track => {
                     if (draggedItemId === track.id) return;
                     
                     const dist = track.speed * timeMultiplier;
-                    track.x += dist * track.courseSin;
-                    track.y += dist * track.courseCos;
+                    track.x += dist * Math.sin(toRadians(track.course));
+                    track.y += dist * Math.cos(toRadians(track.course));
                 });
             }
 
@@ -1337,7 +1249,6 @@ function updateWindDataDisplay() {
                 const size = Math.min(availableWidth, availableHeight);
                 canvas.width = size;
                 canvas.height = size;
-                staticDirty = true;
 
                canvas.style.width = `${size}px`;
                 canvas.style.height = `${size}px`;
@@ -1369,17 +1280,17 @@ function updateWindDataDisplay() {
                     newId++;
                 }
 
-                const newTrack = trackPool.pop() || {};
-                newTrack.id = newId;
-                newTrack.initialBearing = Math.random() * 360;
-                newTrack.initialRange = maxRange * (0.1 + Math.random() * 0.8);
-                newTrack.course = Math.random() * 360;
-                newTrack.speed = 2 + Math.random() * 13;
+                const newTrack = {
+                    id: newId,
+                    initialBearing: Math.random() * 360,
+                    initialRange: maxRange * (0.1 + Math.random() * 0.8),
+                    course: Math.random() * 360,
+                    speed: 2 + Math.random() * 13
+                };
 
                 newTrack.x = ownShip.x + newTrack.initialRange * Math.sin(toRadians(newTrack.initialBearing));
                 newTrack.y = ownShip.y + newTrack.initialRange * Math.cos(toRadians(newTrack.initialBearing));
-		updateCourseCache(newTrack); 
-		    
+                
                 tracks.push(newTrack);
                 selectedTrackId = newId;
 
@@ -1393,8 +1304,7 @@ function updateWindDataDisplay() {
 
                 const trackIndex = tracks.findIndex(t => t.id === selectedTrackId);
                 if (trackIndex > -1) {
-                    const removed = tracks.splice(trackIndex, 1)[0];
-                    trackPool.push(removed);
+                    tracks.splice(trackIndex, 1);
                     if (tracks.length > 0) {
                         const newIndex = Math.max(0, trackIndex - 1);
                         selectedTrackId = tracks[newIndex].id;
@@ -1410,39 +1320,37 @@ function updateWindDataDisplay() {
             // --- Scenario Setup Function ---
            function setupRandomScenario() {
                 ownShip = { course: 90, speed: 12, id: 'ownShip', x: 0, y: 0 };
-                updateCourseCache(ownShip);
-                trackPool.push(...tracks);
                 tracks = [];
                 simulationElapsed = 0;
                 updateSimClock();
                 const numTracks = Math.floor(Math.random() * 6) + 3; // 3 to 8 tracks
 
                 // --- Create the primary collision risk track (must give way) ---
-               const riskTrack = trackPool.pop() || {};
-                riskTrack.id = 1;
-                riskTrack.initialBearing = 45 + (Math.random() * 20 - 10); // On starboard bow
-                riskTrack.initialRange = 6 + Math.random() * 2;         // 6-8 NM away
-                riskTrack.course = 315 + (Math.random() * 20 - 10);     // Roughly crossing course
-                riskTrack.speed = 10 + Math.random() * 4;               // Similar speed
-                updateCourseCache(riskTrack);
+                const riskTrack = {
+                    id: 1,
+                    initialBearing: 45 + (Math.random() * 20 - 10), // On starboard bow
+                    initialRange: 6 + Math.random() * 2,         // 6-8 NM away
+                    course: 315 + (Math.random() * 20 - 10),     // Roughly crossing course
+                    speed: 10 + Math.random() * 4                // Similar speed
+                };
                 tracks.push(riskTrack);
                 selectedTrackId = 1;
 
                 // --- Create other background traffic to simulate a mixing bowl ---
                 for (let i = 2; i <= numTracks; i++) {
-                    const otherTrack = trackPool.pop() || {};
-                    otherTrack.id = i;
-                    otherTrack.initialBearing = Math.random() * 360;
-                    otherTrack.initialRange = 3 + Math.random() * (maxRange - 3); // Don't spawn too close
-                    otherTrack.course = Math.random() * 360;
-                    otherTrack.speed = 5 + Math.random() * 10; // 5-15 kts
+                    const otherTrack = {
+                        id: i,
+                        initialBearing: Math.random() * 360,
+                        initialRange: 3 + Math.random() * (maxRange - 3), // Don't spawn too close
+                        course: Math.random() * 360,
+                        speed: 5 + Math.random() * 10 // 5-15 kts
+                    };
                     
                     // A simple check to prevent all tracks from being on a collision course
                     const bearingDiff = Math.abs(otherTrack.initialBearing - otherTrack.course);
                     if (bearingDiff > 160 && bearingDiff < 200) {
                         otherTrack.course = (otherTrack.course + 90) % 360; // Nudge it away
                     }
-                    updateCourseCache(otherTrack);
                     tracks.push(otherTrack);
                 }
                 isSimulationRunning = true;                
@@ -1461,11 +1369,9 @@ function updateWindDataDisplay() {
                         // Calculate absolute position based on bearing/range from ownship's current position
                         track.x = ownShip.x + track.initialRange * Math.sin(toRadians(track.initialBearing));
                         track.y = ownShip.y + track.initialRange * Math.cos(toRadians(track.initialBearing));
-                        updateCourseCache(track);
                     });
                 }
-                updateCourseCache(ownShip);
-		    
+                
                 tracks.forEach(calculateAllData);
                 calculateWindData();
                 
@@ -1510,6 +1416,10 @@ function updateWindDataDisplay() {
                 canvas.addEventListener('mouseleave', handlePointerUp);
                 canvas.addEventListener('mousemove', handlePointerMove);
             }
+	    window.addEventListener('resize', () => {
+	        scaleUI();
+	        sceneDirty = true;    // size change requires re‑draw
+	    });
             
             btnVectorTime.addEventListener('click', () => {
                 const currentIndex = vectorTimes.indexOf(vectorTimeInMinutes);
@@ -1523,8 +1433,6 @@ function updateWindDataDisplay() {
                 const nextIndex = (currentIndex + 1) % rangeScales.length;
                 maxRange = rangeScales[nextIndex];
                 btnRange.textContent = maxRange.toFixed(1);
-                staticDirty = true;
-                markSceneDirty();
             });
 
 	    // Weather toggle
