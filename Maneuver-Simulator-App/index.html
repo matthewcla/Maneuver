@@ -410,6 +410,7 @@ We may suspend or terminate your access to the Services immediately and without 
             const windDataDisplay = document.getElementById('wind-data-display');
             const maneuverTitle = document.getElementById('maneuver-title'); // Get the new title element
             const simClock = document.getElementById('sim-clock');
+            const mainContainer = document.querySelector('main.main-content');
 
             // --- 100vh Correction for Mobile Browsers ---
             // handled early in <head>; just listen again in case of state changes
@@ -1184,6 +1185,9 @@ function updateWindDataDisplay() {
                 const viewportMin = Math.min(window.innerWidth, window.innerHeight);
                 const scaleFactor = Math.max(0.7, Math.min(1.5, viewportMin / baseDim));
 
+                // Scale the simulation clock
+                simClock.style.fontSize = `${2.25 * scaleFactor}rem`;
+
                 buttonBar.style.width = `${60 * scaleFactor}px`;
                 const buttons = document.querySelectorAll('.control-btn');
                 buttons.forEach(btn => {
@@ -1215,7 +1219,10 @@ function updateWindDataDisplay() {
                 dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
                 const gapWidth = 40;
-                windDataDisplay.style.top = `${gapWidth / 2}px`;
+                const clockRect = simClock.getBoundingClientRect();
+                const mainRect = mainContainer.getBoundingClientRect();
+                const windTop = clockRect.top + clockRect.height / 2 - mainRect.top;
+                windDataDisplay.style.top = `${windTop}px`;
                 const leftWidth = buttonBar.offsetWidth;
                 const rightWidth = rightPane.offsetWidth;
                 const availableWidth = window.innerWidth - leftWidth - rightWidth - gapWidth * 2;
@@ -1414,10 +1421,11 @@ function updateWindDataDisplay() {
 
 	    // Weather toggle
 	
-	    btnWind.addEventListener('click', () => {
-	       showWeather = !showWeather;
-	       markSceneDirty();         // ← forces the canvas to redraw
-	    });
+            btnWind.addEventListener('click', () => {
+               showWeather = !showWeather;
+               markSceneDirty();         // ← forces the canvas to redraw
+               scaleUI();                // reposition wind display when toggled
+            });
             btnRmv.addEventListener('click', () => { showRelativeMotion = !showRelativeMotion; });
             btnCpa.addEventListener('click', () => { showCPAInfo = !showCPAInfo; });
             btnPlayPause.addEventListener('click', () => { 
