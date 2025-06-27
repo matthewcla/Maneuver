@@ -723,7 +723,8 @@ We may suspend or terminate your access to the Services immediately and without 
             function updateOwnShipPanel() {
                 setText('ownship-crs', `${formatBearing(ownShip.course)} T`);
                 setText('ownship-spd', `${ownShip.speed.toFixed(1)} KTS`);
-		    
+            }
+		
             function updateDataPanels() {
                 const selectedTrack = tracks.find(t => t.id === selectedTrackId);
 
