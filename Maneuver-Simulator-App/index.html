@@ -1105,7 +1105,10 @@ function updateWindDataDisplay() {
             function updatePhysics(deltaTime) {
                 if (!isSimulationRunning) return;
 
-                const timeMultiplier = deltaTime / 3600 * simulationSpeed;
+                // deltaTime arrives in milliseconds from requestAnimationFrame
+                // Convert to hours so speed values in knots translate to
+                // nautical miles moved per frame
+                const timeMultiplier = (deltaTime / 3600000) * simulationSpeed;
                 const ownShipDist = ownShip.speed * timeMultiplier;
                 ownShip.x += ownShipDist * Math.sin(toRadians(ownShip.course));
                 ownShip.y += ownShipDist * Math.cos(toRadians(ownShip.course));
@@ -1124,7 +1127,10 @@ function updateWindDataDisplay() {
 		    
                 const deltaTime = (timestamp - lastTimestamp) || 0;
                 lastTimestamp = timestamp;
-	
+
+                // Move own ship and tracks
+                updatePhysics(deltaTime);
+		    
 	        // --- simulation math --------------------------------------------------
 	            if (isSimulationRunning) {
 	            
