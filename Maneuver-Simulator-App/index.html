@@ -112,7 +112,7 @@
         .wind-label   { font-size: inherit; }/* unchanged */
         #sim-clock {
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-            font-size: 2.25rem;
+            font-size: 2.75rem;
         }
         /* Make the radar container circular and centered */
         #radar-container {
@@ -1229,8 +1229,7 @@ function updateWindDataDisplay() {
                 const availableHeight = window.innerHeight - gapWidth * 2;
                 const radarCenter = leftWidth + gapWidth + availableWidth / 2;
                 windDataDisplay.style.left = `${radarCenter}px`;
-                windDataDisplay.style.transform = 'translateX(-50%)';
-		    
+                windDataDisplay.style.transform = 'translateX(-50%, -10%)';		    
                 radarContainer.style.width = `${availableWidth}px`;
                 radarContainer.style.height = `${availableHeight}px`;
                 radarContainer.style.marginTop = `${gapWidth}px`;
