@@ -1204,8 +1204,6 @@ function updateWindDataDisplay() {
                 const dataValueFontSize = 1.5;
                 windDataDisplay.style.fontSize = `${(dataValueFontSize / 2) * scaleFactor}rem`;
                 windDataDisplay.style.padding = `${10 * scaleFactor}px`;
-                windDataDisplay.style.left = '50%';
-                windDataDisplay.style.transform = 'translateX(-50%)';
 
                 const dividers = document.querySelectorAll('#button-bar > .border-t');
                 dividers.forEach(div => {
@@ -1222,7 +1220,10 @@ function updateWindDataDisplay() {
                 const rightWidth = rightPane.offsetWidth;
                 const availableWidth = window.innerWidth - leftWidth - rightWidth - gapWidth * 2;
                 const availableHeight = window.innerHeight - gapWidth * 2;
-
+                const radarCenter = leftWidth + gapWidth + availableWidth / 2;
+                windDataDisplay.style.left = `${radarCenter}px`;
+                windDataDisplay.style.transform = 'translate(-50%, -50%)';
+		    
                 radarContainer.style.width = `${availableWidth}px`;
                 radarContainer.style.height = `${availableHeight}px`;
                 radarContainer.style.marginTop = `${gapWidth}px`;
