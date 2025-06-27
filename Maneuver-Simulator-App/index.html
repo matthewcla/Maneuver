@@ -1219,28 +1219,36 @@ function updateWindDataDisplay() {
                 dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
                 const gapWidth = 40;
-                const clockRect = simClock.getBoundingClientRect();
-                const mainRect = mainContainer.getBoundingClientRect();
-                // Align the wind display with the top of the simulation clock
-                const windTop = clockRect.top - mainRect.top;
                 const leftWidth = buttonBar.offsetWidth;
                 const rightWidth = rightPane.offsetWidth;
                 const availableWidth = window.innerWidth - leftWidth - rightWidth - gapWidth * 2;
                 const availableHeight = window.innerHeight - gapWidth * 2;
-                const radarCenter = leftWidth + gapWidth + availableWidth / 2;
-                windDataDisplay.style.left = `${radarCenter}px`;
-                windDataDisplay.style.top = `${windTop}px`;
-                windDataDisplay.style.transform = 'translateX(-50%)';	    
+ 
                 radarContainer.style.width = `${availableWidth}px`;
                 radarContainer.style.height = `${availableHeight}px`;
                 radarContainer.style.marginTop = `${gapWidth}px`;
                 radarContainer.style.marginBottom = `${gapWidth}px`;
 
+		const radarCenter = leftWidth + gapWidth + availableWidth / 2;
+                const clockRect = simClock.getBoundingClientRect();
+                const mainRect = mainContainer.getBoundingClientRect();
+                const windTop = clockRect.top - mainRect.top;
+
+                windDataDisplay.style.left = `${radarCenter}px`;
+                windDataDisplay.style.top = `${windTop}px`;
+                windDataDisplay.style.transform = 'translateX(-50%)';
+
                 const size = Math.min(availableWidth, availableHeight);
                 canvas.width = size;
                 canvas.height = size;
 
-		canvas.style.width = `${size}px`;
+               canvas.style.width = `${size}px`;
+                canvas.style.height = `${size}px`;
+
+                // final alignment after layout changes
+                const cRect = simClock.getBoundingClientRect();
+                const mRect = mainContainer.getBoundingClientRect();
+                windDataDisplay.style.top = `${cRect.top - mRect.top}px`;
                 canvas.style.height = `${size}px`;
 		    
                 // Scale the Maneuver title and other data titles
