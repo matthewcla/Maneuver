@@ -113,14 +113,12 @@
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
             font-size: 2.25rem;
         }
-        /* Make the radar container circular */
+        /* Make the radar container circular and centered */
         #radar-container {
-            width: 600px;
-            height: 600px;
-            border-radius: 100%;
+            border-radius: 50%;
             overflow: hidden;
             position: relative;
-            margin-left: 25px;
+            margin: auto;
         }
     </style>
 </head>
@@ -289,7 +287,7 @@ We may suspend or terminate your access to the Services immediately and without 
   })();
 </script>
 	
-    <main class="flex flex-row main-content relative">
+    <main class="flex flex-row items-center main-content relative">
         <!-- Maneuver Title in the upper left corner -->
 	<div id="maneuver-title" class="absolute top-4 text-radar-green font-bold tracking-wide" 
 	     style="font-size: 2.05rem; left: 10px; z-index: 20;">
