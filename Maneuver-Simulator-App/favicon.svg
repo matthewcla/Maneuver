@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  </style>
+  <rect width="64" height="64" fill="black"/>
+  <text x="32" y="48" text-anchor="middle" font-family="'Share Tech Mono', monospace" font-size="48" fill="#ff3b30">M</text>
+</svg>
