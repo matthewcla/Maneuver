@@ -120,6 +120,11 @@
             position: relative;
             margin: auto;
         }
+        #radarCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -392,6 +397,7 @@ We may suspend or terminate your access to the Services immediately and without 
             // --- UI Elements for Scaling ---
             const buttonBar = document.getElementById('button-bar');
             const radarContainer = document.getElementById('radar-container');
+            const rightPane = document.getElementById('right-pane');
             const dataPane = document.getElementById('data-pane');
             const trackDataContainer = document.getElementById('track-data-container');
             const rmDataContainer = document.getElementById('rm-data-container');
@@ -1173,18 +1179,14 @@ function updateWindDataDisplay() {
                 const viewportMin = Math.min(window.innerWidth, window.innerHeight);
                 const scaleFactor = Math.max(0.7, Math.min(1.5, viewportMin / baseDim));
 
-                const size = Math.min(radarContainer.clientWidth, radarContainer.clientHeight) * 0.9;
-                canvas.width = size;
-                canvas.height = size;
-
                 buttonBar.style.width = `${60 * scaleFactor}px`;
                 const buttons = document.querySelectorAll('.control-btn');
                 buttons.forEach(btn => {
                     btn.style.fontSize = `${0.75 * scaleFactor}rem`;
                     btn.style.padding = `${0.5 * scaleFactor}rem ${0.25 * scaleFactor}rem`;
-		
+                
 		prepareStaticStyles();
-	        markSceneDirty();
+                markSceneDirty();
 
                 });
 
@@ -1206,6 +1208,22 @@ function updateWindDataDisplay() {
                 dataPane.style.width = `${320 * scaleFactor}px`;
                 dataPane.style.padding = `${16 * scaleFactor}px`;
                 dataPane.style.gap = `${32 * scaleFactor}px`;
+
+		const leftWidth = buttonBar.offsetWidth;
+                const rightWidth = rightPane.offsetWidth;
+                const availableWidth = window.innerWidth - leftWidth - rightWidth - 80;
+                const availableHeight = window.innerHeight - 80;
+
+                radarContainer.style.width = `${availableWidth}px`;
+                radarContainer.style.height = `${availableHeight}px`;
+                radarContainer.style.marginLeft = `${40 + (rightWidth - leftWidth) / 2}px`;
+                radarContainer.style.marginRight = `${40 + (leftWidth - rightWidth) / 2}px`;
+                radarContainer.style.marginTop = '40px';
+                radarContainer.style.marginBottom = '40px';
+
+                const size = Math.min(availableWidth, availableHeight);
+                canvas.width = size;
+                canvas.height = size;
 
                 // Scale the Maneuver title and other data titles
                 const titleFontSize = 1.25 * scaleFactor;
