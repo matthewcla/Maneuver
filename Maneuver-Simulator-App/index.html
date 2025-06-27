@@ -113,6 +113,15 @@
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
             font-size: 2.25rem;
         }
+        /* Make the radar container circular */
+        #radar-container {
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            overflow: hidden;
+            position: relative;
+            margin-left: 25px;
+        }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -337,7 +346,7 @@ We may suspend or terminate your access to the Services immediately and without 
         </div>
 
         <!-- Center Pane: Radar Display -->
-	<div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative" style="margin-left: 25px;">
+        <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">	
             <div id="wind-data-display" class="absolute top-0 left-1/2 -translate-x-1/2 text-center text-radar-green z-10"></div>
             <canvas id="radarCanvas"></canvas>
         </div>
