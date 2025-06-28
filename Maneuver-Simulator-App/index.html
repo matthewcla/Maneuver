@@ -531,8 +531,9 @@ Questions?  >>  Aheadflank.ai@gmail.com
             let dragType = null;
             let pendingDragId = null;
             let pendingDragType = null;
+            const DPR = window.devicePixelRatio || 1;
             let pointerDownPos = { x: 0, y: 0 };
-            const dragThreshold = 6; // pixels
+            const dragThreshold = 6 * DPR; // pixels scaled for high DPI
             let lastMousePos = { x: 0, y: 0 };
             let lastTimestamp = 0;
             let lastDomUpdate  = 0;
@@ -1097,8 +1098,8 @@ function updateWindDataDisplay() {
             function getInteractiveItemAt(mouseX, mouseY) {
                 const center = canvas.width / 2;
                 const radius = center * 0.9;
-                const hitTolerance = 15;
-                const minVecPickDistance = 25;
+                const hitTolerance = 15 * DPR;
+                const minVecPickDistance = 25 * DPR;
 
                 if (showWeather) {
                     const distToW = Math.sqrt((mouseX - trueWind.wPos.x)**2 + (mouseY - trueWind.wPos.y)**2);
@@ -1144,8 +1145,8 @@ function updateWindDataDisplay() {
             
             function handlePointerMove(e) {
                 const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
+                const mouseX = (e.clientX - rect.left) * DPR;
+                const mouseY = (e.clientY - rect.top) * DPR;
                 const center = canvas.width / 2;
 		    
                 if (pendingDragId && !draggedItemId) {
@@ -1236,8 +1237,8 @@ function updateWindDataDisplay() {
             function handlePointerDown(e) {
                 if (e.button !== 0 && e.buttons !== undefined && e.buttons !== 1) return;
                 const rect = canvas.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
+                const mouseX = (e.clientX - rect.left) * DPR;
+                const mouseY = (e.clientY - rect.top) * DPR;
                 const item = getInteractiveItemAt(mouseX, mouseY);
                 pointerDownPos = { x: mouseX, y: mouseY };
                 if (item) {
