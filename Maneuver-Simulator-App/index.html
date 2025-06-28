@@ -147,7 +147,7 @@
             transform: translateX(-50%);
         }
         #right-pane {
-            min-width: 0;
+            min-width: 220px; /* prevent the pane from collapsing */
         }
         #help-modal {
             border: 2px solid var(--radar-faint-green);
@@ -441,7 +441,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
         </div>
 	
         <!-- Right Pane -->
-        <div id="right-pane" class="d-flex flex-column justify-content-between flex-shrink-1 pt-4 pr-4 pl-4 pb-0 text-radar-green">
+        <div id="right-pane" class="d-flex flex-column justify-content-between flex-shrink-0 pt-4 pr-4 pl-4 pb-0 text-radar-green">
             <div id="sim-clock" class="text-center">00:00:00</div>
             <div id="data-pane" class="d-flex flex-column gap-8 overflow-auto">
                 <!-- OwnShip Data -->
