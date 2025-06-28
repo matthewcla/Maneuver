@@ -1358,8 +1358,12 @@ function gameLoop(timestamp) {
                 windDataDisplay.style.transform = 'translateX(-50%)';
 
                 const size = Math.min(availableWidth, availableHeight);
-                canvas.style.width = `${size}px`;
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width  = size * dpr;
+                canvas.height = size * dpr;
+                canvas.style.width  = `${size}px`;
                 canvas.style.height = `${size}px`;
+                prepareStaticStyles();
 
                 // final alignment after layout changes
                 const rRect = radarContainer.getBoundingClientRect();
