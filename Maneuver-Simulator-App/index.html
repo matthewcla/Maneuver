@@ -412,13 +412,13 @@ We may suspend or terminate your access to the Services immediately and without 
             const simClock = document.getElementById('sim-clock');
             const mainContainer = document.querySelector('main.main-content');
 
-		            // Keep wind data aligned whenever the main container resizes
-            if (window.ResizeObserver) {
-                const mainResizeObserver = new ResizeObserver(() => {
-                    scaleUI();
-                });
-                mainResizeObserver.observe(mainContainer);
-            }
+            // Keep wind data aligned on viewport changes
+            // Previous implementation used a ResizeObserver on the main
+            // container, but that triggered continuous resize events when
+            // scaleUI() adjusted element sizes. This caused flashing as the
+            // browser hit the "ResizeObserver loop limit". The observer has
+            // been removed and the existing window resize listener handles
+            // real viewport changes instead.
 
             // --- 100vh Correction for Mobile Browsers ---
             // handled early in <head>; just listen again in case of state changes
