@@ -339,6 +339,11 @@ Data Panels
 
         <!-- Left Pane: Vertical Button Bar -->
         <div id="button-bar" class="p-2 flex flex-col items-center gap-2 justify-end flex-shrink-0 ml-[15px]">
+	    <!-- Help Button -->
+            <button id="btn-help" class="control-btn p-2" data-tooltip="Show Instructions">HELP</button>
+
+            <span class="w-full border-t border-gray-600"></span>
+
             <!-- Simulation Controls -->
             <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
                 <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -365,8 +370,8 @@ Data Panels
             <span class="w-full border-t border-gray-600"></span>
             
             <!-- Add/Drop Track and Scenario Buttons -->
-            <button id="btn-add-track" class="control-btn selected" data-tooltip="Add New Track">+</button>
-            <button id="btn-drop-track" class="control-btn selected" data-tooltip="Drop Selected Track">-</button>
+            <button id="btn-add-track" class="control-btn selected p-2" data-tooltip="Add New Track">+</button>
+            <button id="btn-drop-track" class="control-btn selected p-2" data-tooltip="Drop Selected Track">-</button>
             
             <span class="w-full border-t border-gray-600"></span>
 
@@ -385,11 +390,6 @@ Data Panels
             <!-- Button Group 3 -->
             <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range">9.0</button>
         </div>
-	    
-            <span class="w-full border-t border-gray-600"></span>
-
-            <!-- Help Button -->
-            <button id="btn-help" class="control-btn" data-tooltip="Show Instructions">HELP</button>
 	    
         <!-- Center Pane: Radar Display -->
         <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">
