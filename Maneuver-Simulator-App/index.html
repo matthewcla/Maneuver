@@ -142,7 +142,7 @@
             aspect-ratio: 1 / 1;   /* maintain perfect circle */
         }
         #wind-data-display {
-            top: -10px;
+            top: 10px;    /* keep inside wrapper to avoid clipping */
             left: 50%;
             transform: translateX(-50%);
         }
@@ -1393,7 +1393,7 @@ function gameLoop(timestamp) {
 
                 const paddingTop = parseFloat(getComputedStyle(radarWrapper).paddingTop) || 0;
                 const offset = paddingTop + 10;
-                windDataDisplay.style.top = `-${offset}px`;
+                windDataDisplay.style.top = `${offset}px`;
 
                 const size = Math.min(availableWidth, availableHeight);
                 const dpr = window.devicePixelRatio || 1;
@@ -1404,7 +1404,7 @@ function gameLoop(timestamp) {
                 prepareStaticStyles();
 
                 // final alignment after layout changes
-                windDataDisplay.style.top = `-${offset}px`;
+                windDataDisplay.style.top = `${offset}px`;
 		    
                 applyDataPanelFontSizes();
                 
