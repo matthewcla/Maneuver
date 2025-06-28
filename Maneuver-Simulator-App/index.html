@@ -1374,7 +1374,8 @@ function gameLoop(timestamp) {
                     div.style.margin = `${10 * scaleFactor}px 0`;
                 });
 
-                dataPane.style.width = `${320 * scaleFactor}px`;
+                dataPane.style.removeProperty('width');
+                dataPane.style.maxWidth = `${320 * scaleFactor}px`;
                 dataPane.style.padding = `${16 * scaleFactor}px`;
                 dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
