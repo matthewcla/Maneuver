@@ -35,6 +35,10 @@
     <style>
         
         /* Apply the custom font and base styling */
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Share Tech Mono', monospace;
             background-color: #000000;
@@ -1636,6 +1640,9 @@ function gameLoop(timestamp) {
             });
             initialize(); // Initial load of the application
             startGameLoop(); // Start the main loop when ready
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(scaleUI);
+            }
         });
     </script>
     <script>
