@@ -864,9 +864,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
 function updateWindDataDisplay() {
     if (!showWeather) {
         windDataDisplay.innerHTML = '';
+        windDataDisplay.style.display = 'none';
         return;
     }
 
+    windDataDisplay.style.display = 'block';
+	
     const trueDir = formatBearing(trueWind.direction);
     const trueSpd = trueWind.speed.toFixed(0);
     const trueHtml =
