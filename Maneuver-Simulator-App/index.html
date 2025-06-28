@@ -128,6 +128,24 @@
             border-radius: 50%;
             aspect-ratio: 1 / 1;   /* maintain perfect circle */
         }
+        #help-modal {
+            border: 2px solid var(--radar-faint-green);
+            position: fixed;
+        }
+        #help-close-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        #help-scroll-hint {
+            position: absolute;
+            bottom: 0.25rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--radar-faint-green);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="bg-black text-white overflow-hidden">
@@ -260,29 +278,32 @@ We may suspend or terminate your access to the Services immediately and without 
         font-family:'Share Tech Mono',monospace;
         resize:both;
      ">
-  <pre style="white-space:pre-wrap; max-width:60ch;">
-Maneuver Simulator Tutorial
+  <button id="help-close-btn" class="control-btn selected">CLOSE</button>
+  <pre style="white-space:pre-wrap; max-width:60ch; margin-top:2rem;">
+**Maneuver Simulator Tutorial**
+	  
+Questions?  >>  Aheadflank.ai@gmail.com
 
-Radar Display
-- The circular radar shows your ship at the center.
-- Click or tap a track to select it.
-- Change the course or speed of your ship, or a track by dragging and dropping the tip of it's vector.
-- Change the bearing, range of a track by dragging and dropping the track symbol.
-- When enabled, change the direction of True Wind by dragging and dropping the "W" symbol.
-- When enabled, change the speed of True Wind by dragging and dropping the tip of it's vector.
+//Radar Display
+> The circular radar shows your ship at the center.
+> Click or tap a track to select it.
+> Change the course or speed of your ship, or a track by dragging and dropping the tip of it's vector.
+> Change the bearing, range of a track by dragging and dropping the track symbol.
+> When enabled, change the direction of True Wind by dragging and dropping the "W" symbol.
+> When enabled, change the speed of True Wind by dragging and dropping the tip of it's vector.
 
-Track Controls
-- Play/Pause starts or stops the scenario.
-- Fast Forward and Rewind cycle simulation speed.
-- + / - add or drop tracks.
-- WIND, RM V and CPA toggle wind, relative motion vectors/data and CPA data.
-- Vector Time cycles 5/15/30 min and Range cycles radar range.
+//Track Controls
+> Play/Pause starts or stops the scenario.
+> Fast Forward and Rewind cycle simulation speed.
+> + / - add or drop tracks.
+> WIND, RM V and CPA toggle wind, relative motion vectors/data and CPA data.
+> Vector Time cycles 5/15/30 min and Range cycles radar range.
 
-Data Panels
-- Right side panels show own ship, selected track, relative motion and CPA.
-  Panels update as the simulation runs.
+//Data Panels
+> Right side panels show own ship, selected track, relative motion and CPA.
+> Panels update as the simulation runs.
   </pre>
-  <button id="help-close-btn" class="control-btn selected" style="margin-top:1rem;">CLOSE</button>
+  <div id="help-scroll-hint">&#x25BC; SCROLL &#x25BC;</div>
 </div>
 	
 <script>
