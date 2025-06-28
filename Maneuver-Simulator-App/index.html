@@ -1590,11 +1590,13 @@ function gameLoop(timestamp) {
                showWeather = !showWeather;
                markSceneDirty();         // ← forces the canvas to redraw
                scaleUI();                // reposition wind display when toggled
+               updateWindDataDisplay();  // ensure wind text updates immediately
             });
             btnRmv.addEventListener('click', () => {
                showRelativeMotion = !showRelativeMotion;
                markSceneDirty();
                updatePanelsAndRedraw();
+               updateWindDataDisplay();  // refresh relative wind text
             });
             btnCpa.addEventListener('click', () => {
                showCPAInfo = !showCPAInfo;
