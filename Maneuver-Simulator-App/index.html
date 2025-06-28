@@ -428,9 +428,11 @@ Questions?  >>  Aheadflank.ai@gmail.com
         </div>
 	    
         <!-- Center Pane: Radar Display -->
-        <div id="radar-container" class="flex-grow-1 p-4 d-flex align-items-center justify-content-center position-relative">
+        <div id="radar-wrapper" class="flex-grow-1 p-4 d-flex align-items-center justify-content-center position-relative">
             <div id="wind-data-display" class="position-absolute start-50 translate-middle-x text-center text-radar-green" style="z-index: 20;"></div>
-            <canvas id="radarCanvas"></canvas>
+            <div id="radar-container" class="d-flex align-items-center justify-content-center position-relative">
+                <canvas id="radarCanvas"></canvas>
+            </div>
         </div>
 	
         <!-- Right Pane -->
@@ -485,6 +487,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             // --- UI Elements for Scaling ---
             const buttonBar = document.getElementById('button-bar');
+            const radarWrapper = document.getElementById('radar-wrapper');
             const radarContainer = document.getElementById('radar-container');
             const rightPane = document.getElementById('right-pane');
             const dataPane = document.getElementById('data-pane');
@@ -1382,7 +1385,8 @@ function gameLoop(timestamp) {
                 radarContainer.style.marginTop = `${gapWidth}px`;
                 radarContainer.style.marginBottom = `${gapWidth}px`;
 
-                const offset = 20 * scaleFactor;
+                const paddingTop = parseFloat(getComputedStyle(radarWrapper).paddingTop) || 0;
+                const offset = paddingTop + 10;
                 windDataDisplay.style.top = `-${offset}px`;
 
                 const size = Math.min(availableWidth, availableHeight);
