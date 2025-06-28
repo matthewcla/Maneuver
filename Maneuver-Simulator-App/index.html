@@ -155,30 +155,6 @@
 </head>
 <body>
 
-<div id="mobile-blocker"
-     style="
-        /* overlay covers the whole viewport */
-        position:fixed; inset:0;
-        background:#000; color:#0f0;
-        z-index:9999;
-
-        /* center the message block */
-        align-items:center; justify-content:center;
-
-        /* text styling */
-        font-family:'Share Tech Mono',monospace;
-        font-size:clamp(1rem,4vw,1.95rem);
-        line-height:1.4; text-align:center;
-        padding:2rem;
-
-        /* hidden by default – JS toggles to 'flex' */
-        display:none;
-     ">
-  Maneuver is currently not compatible with cell-phone browsers. <br> <br>
-  Please open this page on a laptop, desktop, or tablet. <br> <br>
-  Questions? >> AheadFlank.ai@gmail.com
-</div>
-
 	<!-- Terms of Service Modal -->
 <div id="tos-modal"
      style="
@@ -310,34 +286,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
 > Panels update as the simulation runs.
   </pre>
 </div>
-	
-<script>
-	/* ✧✧✧ 2️⃣  DEVICE-GUARD SCRIPT ✧✧✧ */
-	(function () {
-	  const PHONE_MAX_WIDTH = 768;        // px – treat ≤ 768 px CSS width as “phone”
-	  const blocker    = document.getElementById('mobile-blocker');
-	  const root       = document.documentElement;   // <html> – your whole app
-	
-	  function isPhoneSized () {
-	    return window.innerWidth <= PHONE_MAX_WIDTH;
-	  }
-	
-          function isPhoneUserAgent () {
-            const ua = navigator.userAgent;
-            const isTablet = /iPad|Tablet/i.test(ua);
-            if (isTablet) return false;
-            return /Android.*Mobile|iPhone|iPod|IEMobile|BlackBerry/i.test(ua);
-          }
-	
-	  function updateBlocker () {
-	    const phone = isPhoneSized() || isPhoneUserAgent();
-	    blocker.style.display = phone ? 'flex' : 'none';
-	    root.style.overflow   = phone ? 'hidden' : '';   // stop scroll underneath
-	  }
-	
-	  updateBlocker();                // on first load  window.addEventListener('resize', updateBlocker);
-        })();
-</script>
 
 <script>
   // Terms of Service modal logic
