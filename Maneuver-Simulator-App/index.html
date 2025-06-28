@@ -318,9 +318,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	    return window.innerWidth <= PHONE_MAX_WIDTH;
 	  }
 	
-	  function isPhoneUserAgent () {
-	    return /Android|iPhone|iPod|Mobile|IEMobile|BlackBerry/i.test(navigator.userAgent);
-	  }
+          function isPhoneUserAgent () {
+            const ua = navigator.userAgent;
+            const isTablet = /iPad|Tablet/i.test(ua);
+            if (isTablet) return false;
+            return /Android.*Mobile|iPhone|iPod|IEMobile|BlackBerry/i.test(ua);
+          }
 	
 	  function updateBlocker () {
 	    const phone = isPhoneSized() || isPhoneUserAgent();
