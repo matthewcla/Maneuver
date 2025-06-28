@@ -251,7 +251,7 @@ We may suspend or terminate your access to the Services immediately and without 
 <!-- Help Modal -->
 <div id="help-modal"
      style="
-        position:fixed; inset:0;
+        position:fixed; top:0; left:0; width:80px;
         background:rgba(0,0,0,0.95); color:#0f0;
         z-index:9997;
         display:none; flex-direction:column;
@@ -340,7 +340,7 @@ Data Panels
         <!-- Left Pane: Vertical Button Bar -->
         <div id="button-bar" class="p-2 flex flex-col items-center gap-2 justify-end flex-shrink-0 ml-[15px]">
 	    <!-- Help Button -->
-            <button id="btn-help" class="control-btn p-2" data-tooltip="Show Instructions">HELP</button>
+            <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
 
             <span class="w-full border-t border-gray-600"></span>
 
@@ -1524,13 +1524,14 @@ function gameLoop(timestamp) {
             btnAddTrack.addEventListener('click', addTrack);
             btnDropTrack.addEventListener('click', dropTrack);
             btnScen.addEventListener('click', setupRandomScenario);
-		            btnHelp.addEventListener('click', () => {
+            btnHelp.addEventListener('click', () => {
+                const rect = btnHelp.getBoundingClientRect();
                 helpModal.style.display = 'flex';
-                document.documentElement.style.overflow = 'hidden';
+                helpModal.style.left = `${rect.right}px`;
+                helpModal.style.top = `${rect.top}px`;
             });
             helpCloseBtn.addEventListener('click', () => {
                 helpModal.style.display = 'none';
-                document.documentElement.style.overflow = '';
             });
             initialize(); // Initial load of the application
             startGameLoop(); // Start the main loop when ready
