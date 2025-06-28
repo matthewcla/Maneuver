@@ -529,6 +529,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
             let hoveredTrackId = null;
             let draggedItemId = null;
             let dragType = null;
+            let pendingDragId = null;
+            let pendingDragType = null;
+            let pointerDownPos = { x: 0, y: 0 };
+            const dragThreshold = 6; // pixels
             let lastMousePos = { x: 0, y: 0 };
             let lastTimestamp = 0;
             let lastDomUpdate  = 0;
@@ -1143,6 +1147,15 @@ function updateWindDataDisplay() {
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 const center = canvas.width / 2;
+		    
+                if (pendingDragId && !draggedItemId) {
+                    const dx0 = mouseX - pointerDownPos.x;
+                    const dy0 = mouseY - pointerDownPos.y;
+                    if (Math.hypot(dx0, dy0) > dragThreshold) {
+                        draggedItemId = pendingDragId;
+                        dragType = pendingDragType;
+                    }
+                }
                 
                 if (!draggedItemId) {
                     const item = getInteractiveItemAt(mouseX, mouseY);
@@ -1221,25 +1234,33 @@ function updateWindDataDisplay() {
             }
             
             function handlePointerDown(e) {
-                if (e.button !== 0) return; 
+                if (e.button !== 0 && e.buttons !== undefined && e.buttons !== 1) return;
                 const rect = canvas.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
                 const item = getInteractiveItemAt(mouseX, mouseY);
+                pointerDownPos = { x: mouseX, y: mouseY };
                 if (item) {
-                    draggedItemId = item.id;
-                    dragType = item.type;
+                    pendingDragId = item.id;
+                    pendingDragType = item.type;
                     lastMousePos = { x: mouseX, y: mouseY };
                     if (item.id !== 'ownShip' && item.id !== 'trueWind') {
                         selectedTrackId = item.id;
                     }
+                    hoveredTrackId = item.id;
                     markSceneDirty();
+                } else {
+                    pendingDragId = null;
+                    pendingDragType = null;
+                    hoveredTrackId = null;
                 }
             }
 
             function handlePointerUp() {
-                draggedItemId = null; 
-                dragType = null; 
+                draggedItemId = null;
+                dragType = null;
+                pendingDragId = null;
+                pendingDragType = null;
             }
             
             // --- Animation Loop ---
