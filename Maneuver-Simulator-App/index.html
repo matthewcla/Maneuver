@@ -300,24 +300,41 @@ We may suspend or terminate your access to the Services immediately and without 
 	  
 Questions?  >>  Aheadflank.ai@gmail.com
 
-//Radar Display
+//Radar Display//
+	  
 > The circular radar shows your ship at the center.
+	  
 > Click or tap a track to select it.
+	  
 > Change the course or speed of your ship, or a track by dragging and dropping the tip of it's vector.
+	  
 > Change the bearing, range of a track by dragging and dropping the track symbol.
+	  
 > When enabled, change the direction of True Wind by dragging and dropping the "W" symbol.
+	  
 > When enabled, change the speed of True Wind by dragging and dropping the tip of it's vector.
+	  
 
-//Track Controls
+//Track Controls//
+	  
 > Play/Pause starts or stops the scenario.
+	  
 > Fast Forward and Rewind cycle simulation speed.
+	  
 > + / - add or drop tracks.
+	  
+
 > WIND, RM V and CPA toggle wind, relative motion vectors/data and CPA data.
+	  
 > Vector Time cycles 5/15/30 min and Range cycles radar range.
 
-//Data Panels
+	  
+//Data Panels//
+	  
 > Right side panels show own ship, selected track, relative motion and CPA.
+	  
 > Panels update as the simulation runs.
+	  
   </pre>
 </div>
 	
@@ -444,7 +461,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
         <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green ms-auto">
 
             <div id="sim-clock" class="text-center">00:00:00</div>
-            <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto">
+            <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto" style="maxwidth": 600px; padding: 16.0711px; gap: 32.1422px;"></div>
                 <!-- OwnShip Data -->
                 <div>
                     <p class="font-bold tracking-wide data-title">OwnShip</p>
@@ -1304,7 +1321,7 @@ function updateWindDataDisplay() {
             }
 
 
-function gameLoop(timestamp) {
+	    function gameLoop(timestamp) {
 
                 const deltaTime = (timestamp - lastTimestamp) || 0;
                 lastTimestamp = timestamp;
