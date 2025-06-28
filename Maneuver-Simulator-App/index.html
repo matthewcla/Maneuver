@@ -1459,6 +1459,7 @@ function gameLoop(timestamp) {
                 isSimulationRunning = !isSimulationRunning;
                 simulationSpeed = 1;
                 updateSpeedIndicator();
+                updateButtonStyles
                 startGameLoop();
             });
             btnFf.addEventListener('click', () => {
