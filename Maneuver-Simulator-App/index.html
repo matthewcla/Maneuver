@@ -1385,9 +1385,8 @@ function gameLoop(timestamp) {
                 const rightMargin = parseFloat(buttonBarStyles.marginRight) || 0;
                 const leftWidth = buttonBar.offsetWidth + leftMargin + rightMargin;
                 const rightWidth = rightPane.offsetWidth;
-                const minRadarDim = 200; // prevent zero size when the window is very small
-                const availableWidth = Math.max(window.innerWidth - leftWidth - rightWidth - gapWidth * 2, minRadarDim);
-                const availableHeight = Math.max(window.innerHeight - gapWidth * 2, minRadarDim);
+                const availableWidth = Math.max(window.innerWidth - leftWidth - rightWidth - gapWidth * 2, 0);
+                const availableHeight = Math.max(window.innerHeight - gapWidth * 2, 0);
 		    
                 radarContainer.style.width = `${availableWidth}px`;
                 radarContainer.style.height = `${availableHeight}px`;
