@@ -479,7 +479,8 @@ We may suspend or terminate your access to the Services immediately and without 
             let showRelativeMotion = false;
             let showCPAInfo = false;
             let isSimulationRunning = true;
-            let showWeather = false; 
+            let showWeather = false;
+            let uiScaleFactor = 1;
 
 
 	/* ------------------------------------------------------------------ */
@@ -687,6 +688,15 @@ We may suspend or terminate your access to the Services immediately and without 
             }
 
             // --- UI Update Functions ---
+
+          function applyDataPanelFontSizes() {
+                const titleSize = 1.25 * uiScaleFactor;
+                const valueSize = 1.5 * uiScaleFactor;
+                document.querySelectorAll('.data-title').forEach(el => el.style.fontSize = `${titleSize}rem`);
+                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${1 * uiScaleFactor}rem`);
+                document.querySelectorAll('.data-value').forEach(el => el.style.fontSize = `${valueSize}rem`);
+            }
+
             function updateOwnShipPanel() {
                 setText('ownship-crs', `${formatBearing(ownShip.course)} T`);
                 setText('ownship-spd', `${ownShip.speed.toFixed(1)} KTS`);
@@ -723,6 +733,8 @@ We may suspend or terminate your access to the Services immediately and without 
                         <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
                         <div class="flex justify-between items-baseline"><span class="data-label">Time</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
                     </div>`;
+
+		applyDataPanelFontSizes();
 
             }
             
@@ -1200,7 +1212,8 @@ function gameLoop(timestamp) {
                 const baseDim = 900;
                 const viewportMin = Math.min(window.innerWidth, window.innerHeight);
                 const scaleFactor = Math.max(0.7, Math.min(1.5, viewportMin / baseDim));
-
+                uiScaleFactor = scaleFactor;
+		    
                 // Scale the simulation clock
                 simClock.style.fontSize = `${2.25 * scaleFactor}rem`;
 
@@ -1267,16 +1280,7 @@ function gameLoop(timestamp) {
                 windDataDisplay.style.top = `${rRect.top - mRect.top - 20}px`;
                 canvas.style.height = `${size}px`;
 		    
-                // Scale the Maneuver title and other data titles
-                const titleFontSize = 1.25 * scaleFactor;
-                // The maneuver title size is now set directly in its style and will not scale.
-                // If scaling is desired for the larger title, it should be done here.
-                // For now, respecting the user's hardcoded "double size" instruction.
-                document.querySelectorAll('.data-title').forEach(el => el.style.fontSize = `${titleFontSize}rem`);
-
-                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${1 * scaleFactor}rem`);
-                document.querySelectorAll('.data-value').forEach(el => el.style.fontSize = `${dataValueFontSize * scaleFactor}rem`);
-
+                applyDataPanelFontSizes();
                 
             }
 
