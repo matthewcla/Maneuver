@@ -74,8 +74,10 @@
              height: calc(var(--vh, 1vh) * 100);
              gap: 40px;             /* space between control, radar and data panes */
              width: 100%;           /* follow viewport width */
-             overflow: hidden;      /* hide any excess due to scaling */
-        }
+             /* allow elements like the wind display to extend upward while
+                preventing horizontal scrollbars */
+             overflow-x: hidden;
+             overflow-y: visible;
         
         /* Button Styling */
         .control-btn {
