@@ -6,8 +6,10 @@
     <title>Maneuver</title>
     <link rel="licon" type="image/svg+xml" href="favicons.svg">
     
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap CSS for styling -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+      rel="stylesheet">
 
     <script>
         // Mobile viewport height fix
@@ -36,6 +38,8 @@
         body {
             font-family: 'Share Tech Mono', monospace;
             background-color: #000000;
+            color: #ffffff;
+            overflow: hidden;
         }
         /* Define custom colors for easier use in JS and to avoid purging */
         :root {
@@ -55,6 +59,9 @@
         /* Helper class for green text color */
         .text-radar-green {
             color: var(--radar-green);
+        }
+        .tracking-wide {
+            letter-spacing: 0.05em;
         }
         /* Ensure the main content area fills the viewport height */
         .main-content {
@@ -142,7 +149,7 @@
         }
     </style>
 </head>
-<body class="bg-black text-white overflow-hidden">
+<body>
 
 <div id="mobile-blocker"
      style="
@@ -347,85 +354,86 @@ Questions?  >>  Aheadflank.ai@gmail.com
   })();
 </script>
 	
-    <main class="flex flex-row items-center main-content relative">
+<main class="d-flex flex-row align-items-center main-content position-relative">
         <!-- Maneuver Title in the upper left corner -->
-        <div id="maneuver-title" class="absolute top-4 text-radar-green font-bold tracking-wide p-3"
-             style="font-size: 2.05rem; left: 10px; z-index: 20;">
+        <div id="maneuver-title" class="position-absolute text-radar-green fw-bold tracking-wide p-3"
+             style="font-size: 2.05rem; left: 10px; top: 1rem; z-index: 20;">
             Mnvr.
         </div>
         <!-- Wind Data moved to top layer -->
         <div id="wind-data-display"
-             class="absolute left-1/2 -translate-x-1/2 text-center text-radar-green z-20"></div>
+             class="position-absolute start-50 translate-middle-x text-center text-radar-green"
+             style="z-index: 20;"></div>
 
         <!-- Left Pane: Vertical Button Bar -->
-        <div id="button-bar" class="p-2 flex flex-col items-center gap-2 justify-end flex-shrink-0 ml-[15px]">
+        <div id="button-bar" class="p-2 d-flex flex-column align-items-center gap-2 justify-content-end flex-shrink-0" style="margin-left: 15px;">
 	    <!-- Help Button -->
             <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
 
-            <span class="w-full border-t border-gray-600"></span>
+            <span class="w-100 border-top border-secondary"></span>
 
             <!-- Simulation Controls -->
             <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
-                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-               <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                <span id="ff-speed-indicator" class="absolute bottom-0 right-1 text-xs font-bold hidden"></span>
+            <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
             <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
-                <span id="rev-speed-indicator" class="absolute bottom-0 right-1 text-xs font-bold hidden"></span>
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
+                <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
 
-            <span class="w-full border-t border-gray-600"></span>
+            <span class="w-100 border-top border-secondary"></span>
 
             <!-- New Scenario Button -->
             <button id="btn-scen" class="control-btn selected p-2" data-tooltip="Generate New Scenario">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                 </svg>
             </button>
 
-            <span class="w-full border-t border-gray-600"></span>
+            <span class="w-100 border-top border-secondary"></span>
             
             <!-- Add/Drop Track and Scenario Buttons -->
             <button id="btn-add-track" class="control-btn selected p-2" data-tooltip="Add New Track">+</button>
             <button id="btn-drop-track" class="control-btn selected p-2" data-tooltip="Drop Selected Track">-</button>
             
-            <span class="w-full border-t border-gray-600"></span>
+            <span class="w-100 border-top border-secondary"></span>
 
              <!-- Button Group 1 -->
             <button id="btn-wind" class="control-btn" data-tooltip="Toggle Wind Display">WIND</button>
             <button id="btn-rmv" class="control-btn" data-tooltip="Toggle Relative Motion Vectors">RM V</button>
             <button id="btn-cpa" class="control-btn" data-tooltip="Toggle CPA Information">CPA</button>
             
-            <span class="w-full border-t border-gray-600"></span>
+           <span class="w-100 border-top border-secondary"></span>
             
             <!-- Button Group 2 -->
             <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (5, 15, 30 min)">15</button>
 
-            <span class="w-full border-t border-gray-600"></span>
+           <span class="w-100 border-top border-secondary"></span>
 
             <!-- Button Group 3 -->
             <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range">9.0</button>
         </div>
 	    
         <!-- Center Pane: Radar Display -->
-        <div id="radar-container" class="flex-grow p-4 flex items-center justify-center relative">
-            <canvas id="radarCanvas"></canvas>
-        </div>
+        <div id="radar-container" class="flex-grow-1 p-4 d-flex align-items-center justify-content-center position-relative">
+            <canvas id="radarCanvas"></canvas>        
+	</div>
 
         <!-- Right Pane -->
-        <div id="right-pane" class="flex flex-col justify-between flex-shrink-0 pt-4 pr-4 pl-4 pb-0 text-radar-green">
+        <div id="right-pane" class="d-flex flex-column justify-content-between flex-shrink-0 pt-4 pr-4 pl-4 pb-0 text-radar-green">
             <div id="sim-clock" class="text-center">00:00:00</div>
-            <div id="data-pane" class="flex flex-col gap-8 overflow-y-auto">
+            <div id="data-pane" class="d-flex flex-column gap-8 overflow-auto">
                 <!-- OwnShip Data -->
                 <div>
                     <p class="font-bold tracking-wide data-title">OwnShip</p>
-                    <div class="mt-2 pl-2 flex flex-col gap-1">
-                        <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
                     </div>
                 </div>
                 <!-- Data Panels for selected track will be dynamically inserted here -->
@@ -788,31 +796,31 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
                 // Always display track data, or placeholders if no track is selected
                 trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK ${selectedTrack ? selectedTrack.id : '--'}</p>
-                    <div class="mt-2 pl-2 flex flex-col gap-1">
-                        <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span class="data-value text-right">${selectedTrack ? formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span class="data-value text-right">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Crs</span><span class="data-value text-right">${selectedTrack ? formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Spd</span><span class="data-value text-right">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${selectedTrack ? formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span class="data-value text-end">${selectedTrack ? formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span class="data-value text-end">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
                     </div>`;
 
                 // Display relative motion data, or placeholders if toggled off or no track selected
                 const showRM = selectedTrack && showRelativeMotion;
                 rmDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Relative Motion</p>
-                    <div class="mt-2 pl-2 flex flex-col gap-1">
-                        <div class="flex justify-between items-baseline"><span class="data-label">Direction RM</span><span class="data-value text-right">${showRM ? selectedTrack.rm.dir : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Spd RM</span><span class="data-value text-right">${showRM ? selectedTrack.rm.spd : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Brg Rate</span><span class="data-value text-right">${showRM ? selectedTrack.rm.rate : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Tgt Angle</span><span class="data-value text-right">${showRM ? selectedTrack.rm.angle : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Aspect</span><span class="data-value text-right">${showRM ? selectedTrack.rm.aspect : '--'}</span></div>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.dir : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.spd : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span class="data-value text-end">${showRM ? selectedTrack.rm.rate : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span class="data-value text-end">${showRM ? selectedTrack.rm.angle : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span class="data-value text-end">${showRM ? selectedTrack.rm.aspect : '--'}</span></div>
                     </div>`;
                 
                 // Display CPA data, or placeholders if toggled off, no track selected, or CPA has passed
                 const showCPA = selectedTrack && showCPAInfo && !selectedTrack.hasPassedCPA;
                 cpaDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">CPA</p>
-                    <div class="mt-2 pl-2 flex flex-col gap-1">
-                        <div class="flex justify-between items-baseline"><span class="data-label">Brg</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.brg : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Rng</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
-                        <div class="flex justify-between items-baseline"><span class="data-label">Time</span><span class="data-value text-right">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.brg : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
                     </div>`;
 
 		applyDataPanelFontSizes();
@@ -825,8 +833,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 btnCpa.className = `control-btn ${showCPAInfo ? 'selected' : 'unselected'}`;
                                         
                 btnPlayPause.className = `control-btn p-2 ${isSimulationRunning ? 'selected' : 'unselected'}`;
-                iconPlay.classList.toggle('hidden', isSimulationRunning);
-                iconPause.classList.toggle('hidden', !isSimulationRunning);
+                iconPlay.classList.toggle('d-none', isSimulationRunning);
+                iconPause.classList.toggle('d-none', !isSimulationRunning);
 
                 btnFf.className = `control-btn p-2 ${simulationSpeed > 1 ? 'selected' : 'unselected'}`;
                 btnRev.className = `control-btn p-2 ${simulationSpeed < 1 ? 'selected' : 'unselected'}`;
@@ -1483,15 +1491,15 @@ function gameLoop(timestamp) {
             function updateSpeedIndicator() {
                 if (simulationSpeed > 1) {
                     setText('ff-speed-indicator', `${simulationSpeed}x`);
-                    ffSpeedIndicator.classList.remove('hidden');
-                    revSpeedIndicator.classList.add('hidden');
+                    ffSpeedIndicator.classList.remove('d-none');
+                    revSpeedIndicator.classList.add('d-none');
                 } else if (simulationSpeed < 1) {
                     setText('rev-speed-indicator', `${Math.abs(simulationSpeed)}x`);
-                    revSpeedIndicator.classList.remove('hidden');
-                    ffSpeedIndicator.classList.add('hidden');
+                    revSpeedIndicator.classList.remove('d-none');
+                    ffSpeedIndicator.classList.add('d-none');
                 } else {
-                    ffSpeedIndicator.classList.add('hidden');
-                    revSpeedIndicator.classList.add('hidden');
+                    ffSpeedIndicator.classList.add('d-none');
+                    revSpeedIndicator.classList.add('d-none');
                 }
             }
 
