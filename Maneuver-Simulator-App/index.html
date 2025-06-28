@@ -1424,10 +1424,6 @@ function gameLoop(timestamp) {
                 canvas.addEventListener('mouseleave', handlePointerUp);
                 canvas.addEventListener('mousemove', handlePointerMove);
             }
-            window.addEventListener('resize', () => {
-                scaleUI();
-                markSceneDirty();    // size change requires re‑draw
-            });
             
             btnVectorTime.addEventListener('click', () => {
                 const currentIndex = vectorTimes.indexOf(vectorTimeInMinutes);
