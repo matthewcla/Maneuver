@@ -1358,17 +1358,13 @@ function gameLoop(timestamp) {
                 windDataDisplay.style.transform = 'translateX(-50%)';
 
                 const size = Math.min(availableWidth, availableHeight);
-                canvas.width = size;
-                canvas.height = size;
-
-               canvas.style.width = `${size}px`;
+                canvas.style.width = `${size}px`;
                 canvas.style.height = `${size}px`;
 
                 // final alignment after layout changes
                 const rRect = radarContainer.getBoundingClientRect();
                 const mRect = mainContainer.getBoundingClientRect();
                 windDataDisplay.style.top = `${rRect.top - mRect.top - 20}px`;
-                canvas.style.height = `${size}px`;
 		    
                 applyDataPanelFontSizes();
                 
@@ -1464,6 +1460,13 @@ function gameLoop(timestamp) {
             // --- Initial Setup ---
             function initialize() {
                 // This function is now also used to reset scenarios
+                const BASE_CANVAS_SIZE = 900;
+                const DPR = window.devicePixelRatio || 1;
+                canvas.width = BASE_CANVAS_SIZE * DPR;
+                canvas.height = BASE_CANVAS_SIZE * DPR;
+                canvas.style.width = `${BASE_CANVAS_SIZE}px`;
+                canvas.style.height = `${BASE_CANVAS_SIZE}px`;
+		    
                 simulationElapsed = 0;
                 updateSimClock();
                 if (tracks.length > 0) {
