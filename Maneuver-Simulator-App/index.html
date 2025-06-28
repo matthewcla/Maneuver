@@ -506,8 +506,19 @@ We may suspend or terminate your access to the Services immediately and without 
 	    }
 	}
 
-	/** mark the canvas dirty when interactive state changes */
-	function markSceneDirty() { sceneDirty = true; }
+        /** mark the canvas dirty when interactive state changes */
+        function markSceneDirty() {
+            sceneDirty = true;
+            startGameLoop();
+        }
+
+        /** ensure the main loop is running when needed */
+        function startGameLoop() {
+            if (!gameLoop.running) {
+                gameLoop.running = true;
+                requestAnimationFrame(gameLoop);
+            }
+        }
 
 	/* …same pattern for other setText calls inside updateDataPanels() */
 	
@@ -676,9 +687,9 @@ We may suspend or terminate your access to the Services immediately and without 
             }
 
             // --- UI Update Functions ---
-            function updateOwnShipPanel() { 
-                document.getElementById('ownship-crs').textContent = `${formatBearing(ownShip.course)} T`; 
-                document.getElementById('ownship-spd').textContent = `${ownShip.speed.toFixed(1)} KTS`; 
+            function updateOwnShipPanel() {
+                setText('ownship-crs', `${formatBearing(ownShip.course)} T`);
+                setText('ownship-spd', `${ownShip.speed.toFixed(1)} KTS`);
             }
             
             function updateDataPanels() {
@@ -729,7 +740,7 @@ We may suspend or terminate your access to the Services immediately and without 
                 btnRev.className = `control-btn p-2 ${simulationSpeed < 1 ? 'selected' : 'unselected'}`;
             }
             function updateSimClock() {
-                simClock.textContent = formatTime(simulationElapsed / 3600);
+                setText('sim-clock', formatTime(simulationElapsed / 3600));
             }
 
             // --- Drawing Functions ---
@@ -1150,43 +1161,41 @@ function updateWindDataDisplay() {
             }
 
 
-	    function gameLoop(timestamp) {
-		    
+function gameLoop(timestamp) {
+
                 const deltaTime = (timestamp - lastTimestamp) || 0;
                 lastTimestamp = timestamp;
 
                 // Move own ship and tracks
                 updatePhysics(deltaTime);
-		    
-	        // --- simulation math --------------------------------------------------
-	            if (isSimulationRunning) {
-	            
+
+                if (isSimulationRunning) {            
                     simulationElapsed += (deltaTime / 1000) * Math.abs(simulationSpeed);
                     sceneDirty = true;
-		}
-	
-	      // --- draw canvas only when needed -------------------------------------
-	          if (sceneDirty) {
-		    
-		    tracks.forEach(calculateAllData);
-		    calculateWindData();
-		    drawRadar();
-		    sceneDirty = false; // Corrected typo from SceneDirty
-		}
-	
-	       // --- update DOM at low frequency --------------------------------------
-		 if (timestamp - lastDomUpdate >= DOM_UPDATE_INTERVAL) {
-		
-                updateOwnShipPanel();
-                updateDataPanels();      
-                updateButtonStyles();
-                updateSimClock();
-                lastDomUpdate = timestamp;
-		}
-	
-		requestAnimationFrame(gameLoop);
-	}
+                }
 
+                if (sceneDirty) {
+                    tracks.forEach(calculateAllData);
+                    calculateWindData();
+                    drawRadar();
+                    sceneDirty = false;
+                }
+
+                if (timestamp - lastDomUpdate >= DOM_UPDATE_INTERVAL) {
+                    updateOwnShipPanel();
+                    updateDataPanels();
+                    updateButtonStyles();
+                    updateSimClock();
+                    lastDomUpdate = timestamp;
+                }
+
+                if (isSimulationRunning || sceneDirty) {
+                    requestAnimationFrame(gameLoop);
+                } else {
+                    gameLoop.running = false;
+                }
+        }
+		
             // --- UI Scaling Function ---
             function scaleUI() {
                 const baseDim = 900;
@@ -1380,20 +1389,19 @@ function updateWindDataDisplay() {
                 scaleUI();
                 
                 lastTimestamp = performance.now();
-                if (isSimulationRunning && !gameLoop.running) {
-                    gameLoop.running = true;
-                    requestAnimationFrame(gameLoop);
+                if (isSimulationRunning) {
+                    startGameLoop();
                 }
             }
 
              // --- Speed Control UI ---
             function updateSpeedIndicator() {
                 if (simulationSpeed > 1) {
-                    ffSpeedIndicator.textContent = `${simulationSpeed}x`;
+                    setText('ff-speed-indicator', `${simulationSpeed}x`);
                     ffSpeedIndicator.classList.remove('hidden');
                     revSpeedIndicator.classList.add('hidden');
                 } else if (simulationSpeed < 1) {
-                    revSpeedIndicator.textContent = `${Math.abs(simulationSpeed)}x`;
+                    setText('rev-speed-indicator', `${Math.abs(simulationSpeed)}x`);
                     revSpeedIndicator.classList.remove('hidden');
                     ffSpeedIndicator.classList.add('hidden');
                 } else {
@@ -1416,23 +1424,23 @@ function updateWindDataDisplay() {
                 canvas.addEventListener('mouseleave', handlePointerUp);
                 canvas.addEventListener('mousemove', handlePointerMove);
             }
-	    window.addEventListener('resize', () => {
-	        scaleUI();
-	        sceneDirty = true;    // size change requires re‑draw
-	    });
+            window.addEventListener('resize', () => {
+                scaleUI();
+                markSceneDirty();    // size change requires re‑draw
+            });
             
             btnVectorTime.addEventListener('click', () => {
                 const currentIndex = vectorTimes.indexOf(vectorTimeInMinutes);
                 const nextIndex = (currentIndex + 1) % vectorTimes.length;
                 vectorTimeInMinutes = vectorTimes[nextIndex];
-                btnVectorTime.textContent = vectorTimeInMinutes;
+                setText('btn-vector-time', vectorTimeInMinutes);
             });
 
             btnRange.addEventListener('click', () => {
                 const currentIndex = rangeScales.indexOf(maxRange);
                 const nextIndex = (currentIndex + 1) % rangeScales.length;
                 maxRange = rangeScales[nextIndex];
-                btnRange.textContent = maxRange.toFixed(1);
+                setText('btn-range', maxRange.toFixed(1));
             });
 
 	    // Weather toggle
@@ -1452,30 +1460,32 @@ function updateWindDataDisplay() {
                markSceneDirty();
                updatePanelsAndRedraw();
             });
-            btnPlayPause.addEventListener('click', () => { 
-                isSimulationRunning = !isSimulationRunning; 
+            btnPlayPause.addEventListener('click', () => {
+                isSimulationRunning = !isSimulationRunning;
                 simulationSpeed = 1;
                 updateSpeedIndicator();
+                startGameLoop();
             });
             btnFf.addEventListener('click', () => {
                 const currentIndex = ffSpeeds.indexOf(simulationSpeed);
                 simulationSpeed = ffSpeeds[(currentIndex + 1) % ffSpeeds.length];
                 updateSpeedIndicator();
                 isSimulationRunning = true;
+                startGameLoop();
             });
              btnRev.addEventListener('click', () => {
                 const currentIndex = revSpeeds.indexOf(simulationSpeed);
                 simulationSpeed = revSpeeds[(currentIndex + 1) % revSpeeds.length];
                 updateSpeedIndicator();
                 isSimulationRunning = true;
+                startGameLoop();
             });
             
             btnAddTrack.addEventListener('click', addTrack);
             btnDropTrack.addEventListener('click', dropTrack);
             btnScen.addEventListener('click', setupRandomScenario);
             initialize(); // Initial load of the application
-            gameLoop.running = true;
-            requestAnimationFrame(gameLoop); // Start the main loop
+            startGameLoop(); // Start the main loop when ready
         });
     </script>
     <script>
