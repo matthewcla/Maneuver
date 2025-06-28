@@ -441,7 +441,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
         </div>
 	
         <!-- Right Pane -->
-        <div id="right-pane" class="d-flex flex-column justify-content-between flex-shrink-0 pt-4 pe-4 ps-4 pb-0 text-radar-green ms-auto">
+        <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green ms-auto">
             <div id="sim-clock" class="text-center">00:00:00</div>
             <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto">
                 <!-- OwnShip Data -->
@@ -1341,8 +1341,9 @@ function gameLoop(timestamp) {
             // --- UI Scaling Function ---
             function scaleUI() {
                 const baseDim = 900;
-                const viewportMin = Math.min(window.innerWidth, window.innerHeight);
-                const scaleFactor = Math.max(0.7, Math.min(1.5, viewportMin / baseDim));
+                const widthScale  = Math.max(0.7, Math.min(1.5, window.innerWidth  / baseDim));
+                const heightScale = Math.max(0.7, Math.min(1.5, window.innerHeight / baseDim));
+                const scaleFactor = Math.min(widthScale, heightScale);
                 uiScaleFactor = scaleFactor;
 		    
                 // Scale the simulation clock
@@ -1375,7 +1376,7 @@ function gameLoop(timestamp) {
                 });
 
                 dataPane.style.removeProperty('width');
-                dataPane.style.maxWidth = `${320 * scaleFactor}px`;
+                dataPane.style.maxWidth = `${320 * widthScale}px`;
                 dataPane.style.padding = `${16 * scaleFactor}px`;
                 dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
