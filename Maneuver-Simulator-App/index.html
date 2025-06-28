@@ -554,15 +554,29 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	/* OPTIMISATIONS (add after global consts)                           */
 	/* ------------------------------------------------------------------ */
 
-	/** Debounce function for expensive callbacks (e.g. window.resize) */
-	
-	function debounce(fn, delay = 150) {
-	    let t;
-	    return (...args) => {
-	        clearTimeout(t);
-	        t = setTimeout(() => fn.apply(this, args), delay);
-	    };
-	}
+        /** Debounce function for expensive callbacks (unused but kept for reference) */
+
+        function debounce(fn, delay = 150) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        /** Throttle using requestAnimationFrame for smooth resize handling */
+        function throttleRAF(fn) {
+            let running = false;
+            return (...args) => {
+                if (!running) {
+                    running = true;
+                    requestAnimationFrame(() => {
+                        fn.apply(this, args);
+                        running = false;
+                    });
+                }
+            };
+        }
 
 	/** Cache values so we only touch the DOM when something changed.   */
 	
@@ -588,13 +602,13 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
         }
 
-	/* …same pattern for other setText calls inside updateDataPanels() */
-	
-	/* Use debounced resize instead of raw listener --------------------- */
-	window.addEventListener('resize', debounce(() => {
-	    scaleUI();
-	    markSceneDirty();
-	}, 100));
+        /* …same pattern for other setText calls inside updateDataPanels() */
+
+        /* Throttled resize handler for smoother scaling ------------------- */
+        window.addEventListener('resize', throttleRAF(() => {
+            scaleUI();
+            markSceneDirty();
+        }));
 
 	    function prepareStaticStyles() {
 	       ctx.strokeStyle = radarFaintGreen;
