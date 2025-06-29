@@ -561,77 +561,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
             const simClock = document.getElementById('sim-clock');
             const mainContainer = document.querySelector('main.main-content');
 
-            // --- Data Panel Elements ---
-            const trackEls = {};
-            const rmEls = {};
-            const cpaEls = {};
-
-            function createDataRow(parent, labelText, id) {
-                const row = document.createElement('div');
-                row.className = 'd-flex justify-content-between align-items-baseline';
-                const label = document.createElement('span');
-                label.className = 'data-label';
-                label.textContent = labelText;
-                const value = document.createElement('span');
-                value.className = 'data-value text-end';
-                if (id) value.id = id;
-                row.appendChild(label);
-                row.appendChild(value);
-                parent.appendChild(row);
-                return value;
-            }
-
-            function buildDataPanels() {
-                // Track panel
-                trackDataContainer.innerHTML = '';
-                const trackTitle = document.createElement('p');
-                trackTitle.className = 'font-bold tracking-wide data-title';
-                trackTitle.id = 'track-title';
-                trackDataContainer.appendChild(trackTitle);
-                const trackDiv = document.createElement('div');
-                trackDiv.className = 'mt-2 ps-2 d-flex flex-column gap-1';
-                trackDataContainer.appendChild(trackDiv);
-                trackEls.title = trackTitle;
-                trackEls.brg = createDataRow(trackDiv, 'Brg', 'track-brg');
-                trackEls.rng = createDataRow(trackDiv, 'Rng', 'track-rng');
-                trackEls.crs = createDataRow(trackDiv, 'Crs', 'track-crs');
-                trackEls.spd = createDataRow(trackDiv, 'Spd', 'track-spd');
-
-                // RM panel
-                rmDataContainer.innerHTML = '';
-                const rmTitle = document.createElement('p');
-                rmTitle.className = 'font-bold tracking-wide data-title';
-                rmTitle.textContent = 'Rel Motion';
-                rmTitle.id = 'rm-title';
-                rmDataContainer.appendChild(rmTitle);
-                const rmDiv = document.createElement('div');
-                rmDiv.className = 'mt-2 ps-2 d-flex flex-column gap-1';
-                rmDataContainer.appendChild(rmDiv);
-                rmEls.dir = createDataRow(rmDiv, 'Direction RM', 'rm-dir');
-                rmEls.spd = createDataRow(rmDiv, 'Spd RM', 'rm-spd');
-                rmEls.rate = createDataRow(rmDiv, 'Brg Rate', 'rm-rate');
-                rmEls.angle = createDataRow(rmDiv, 'Tgt Angle', 'rm-angle');
-                rmEls.aspect = createDataRow(rmDiv, 'Aspect', 'rm-aspect');
-
-                // CPA panel
-                cpaDataContainer.innerHTML = '';
-                const cpaTitle = document.createElement('p');
-                cpaTitle.className = 'font-bold tracking-wide data-title';
-                cpaTitle.textContent = 'CPA';
-                cpaTitle.id = 'cpa-title';
-                cpaDataContainer.appendChild(cpaTitle);
-                const cpaDiv = document.createElement('div');
-                cpaDiv.className = 'mt-2 ps-2 d-flex flex-column gap-1';
-                cpaDataContainer.appendChild(cpaDiv);
-                cpaEls.brg = createDataRow(cpaDiv, 'Brg', 'cpa-brg');
-                cpaEls.rng = createDataRow(cpaDiv, 'Rng', 'cpa-rng');
-                cpaEls.time = createDataRow(cpaDiv, 'Time', 'cpa-time');
-
-                applyDataPanelFontSizes();
-            }
-
-            buildDataPanels();
-
             // Keep wind data aligned on viewport changes
             // Previous implementation used a ResizeObserver on the main
             // container, but that triggered continuous resize events when
@@ -945,27 +874,35 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const selectedTrack = tracks.find(t => t.id === selectedTrackId);
 
                 // Always display track data, or placeholders if no track is selected
-                setText('track-title', `TRACK ${selectedTrack ? selectedTrack.id : '--'}`);
-                setText('track-brg', selectedTrack ? `${formatBearing(selectedTrack.bearing)} T` : '--');
-                setText('track-rng', selectedTrack ? `${selectedTrack.range.toFixed(2)} NM` : '--');
-                setText('track-crs', selectedTrack ? `${formatBearing(selectedTrack.course)} T` : '--');
-                setText('track-spd', selectedTrack ? `${selectedTrack.speed.toFixed(1)} KTS` : '--');
+                trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK ${selectedTrack ? selectedTrack.id : '--'}</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${selectedTrack ? formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span class="data-value text-end">${selectedTrack ? formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span class="data-value text-end">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
+                    </div>`;
 
                 // Display relative motion data, or placeholders if toggled off or no track selected
                 const showRM = selectedTrack && showRelativeMotion;
-                setText('rm-dir', showRM ? selectedTrack.rm.dir : '--');
-                setText('rm-spd', showRM ? selectedTrack.rm.spd : '--');
-                setText('rm-rate', showRM ? selectedTrack.rm.rate : '--');
-                setText('rm-angle', showRM ? selectedTrack.rm.angle : '--');
-                setText('rm-aspect', showRM ? selectedTrack.rm.aspect : '--');
-		    
+                rmDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Rel Motion</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.dir : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.spd : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span class="data-value text-end">${showRM ? selectedTrack.rm.rate : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span class="data-value text-end">${showRM ? selectedTrack.rm.angle : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span class="data-value text-end">${showRM ? selectedTrack.rm.aspect : '--'}</span></div>
+                    </div>`;
+                
                 // Display CPA data, or placeholders if toggled off, no track selected, or CPA has passed
                 const showCPA = selectedTrack && showCPAInfo && !selectedTrack.hasPassedCPA;
-                setText('cpa-brg', showCPA ? selectedTrack.cpa.brg : '--');
-                setText('cpa-rng', showCPA ? selectedTrack.cpa.range : '--');
-                setText('cpa-time', showCPA ? selectedTrack.cpa.time : '--');
+                cpaDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">CPA</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.brg : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
+                    </div>`;
 
-                applyDataPanelFontSizes();
+		applyDataPanelFontSizes();
 
             }
             
