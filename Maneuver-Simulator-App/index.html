@@ -70,12 +70,6 @@
         .tracking-wide {
             letter-spacing: 0.05em;
         }
-        #hud-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
         /* Ensure the main content area fills the viewport height */
         .main-content {
              /* default 100vh plus dynamic fix for mobile browsers */
@@ -90,6 +84,7 @@
         }
 
         #data-pane,
+        #sim-clock,
         #data-pane > div,
         #track-data-container,
         #cpa-data-container,
@@ -170,10 +165,7 @@
         }
         #sim-clock {
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-            line-height: 1;
-            z-index: 10;
-            pointer-events: none;
-            font-size: clamp(2rem, 1.5vw + 1rem, 3rem);
+            font-size: calc(3rem * var(--ui-scale));
         }
         /* Make the radar container circular and centered */
         #radar-container {
@@ -436,15 +428,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
   })();
 </script>
 	
-<header id="hud-header">
-        <div id="maneuver-title" class="text-radar-green fw-bold tracking-wide p-3" style="font-size: 2.05rem;">
+<main class="d-flex flex-row align-items-center main-content position-relative">
+        <!-- Maneuver Title in the upper left corner -->
+        <div id="maneuver-title" class="position-absolute text-radar-green fw-bold tracking-wide p-3"
+             style="font-size: 2.05rem; left: 10px; top: 1rem; z-index: 20;">
             Mnvr.
         </div>
-        <div style="flex:1"></div>
-        <div id="sim-clock" class="text-center">00:00:00</div>
-</header>
-
-<main class="d-flex flex-row align-items-center main-content position-relative">
 
         <!-- Left Pane: Vertical Button Bar -->
         <div id="button-bar" class="p-2 d-flex flex-column align-items-center gap-2 justify-content-end" style="margin-left: 15px;">
@@ -510,6 +499,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	
         <!-- Right Pane -->
         <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green">
+            <div id="sim-clock" class="text-center">00:00:00</div>
             <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto" >
                 <!-- OwnShip Data -->
                 <div>
