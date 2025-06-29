@@ -76,8 +76,23 @@
              width: 100%;           /* follow viewport width */
              /* allow elements like the wind display to extend upward while
                 preventing horizontal scrollbars */
-             overflow-x: hidden;
-             overflow-y: visible;
+            overflow-x: hidden;
+            overflow-y: visible;
+        }
+
+        #right-pane {
+            align-self: flex-end;
+            margin-bottom: 30px;
+        }
+
+        #data-pane,
+        #sim-clock,
+        #data-pane > div,
+        #track-data-container,
+        #cpa-data-container,
+        #rm-data-container {
+            width: 100%;
+        }
         
         /* Button Styling */
         .control-btn {
