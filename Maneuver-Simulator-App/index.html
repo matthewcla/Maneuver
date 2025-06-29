@@ -147,7 +147,7 @@
             align-self: flex-end;
             margin-bottom: 30px;
             flex-basis: calc(300px * var(--ui-scale));
-            min-width: 220px;
+            min-width: 320px;
         }
         #data-pane {
             width: 100%;
@@ -366,7 +366,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
 > WIND, RM V and CPA toggle wind, relative motion vectors/data and CPA data.
 	  
-> Vector Time cycles 5/15/30 min and Range cycles radar range.
+> Vector Time cycles 3/15/30 min and Range cycles 3/6/12/24 nm.
 
 	  
 //Data Panels//
@@ -481,12 +481,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
            <span class="w-100 border-top border-secondary"></span>
             
             <!-- Button Group 2 -->
-            <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (5, 15, 30 min)">15</button>
+            <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (3, 15, 30 min)">15</button>
 
            <span class="w-100 border-top border-secondary"></span>
 
             <!-- Button Group 3 -->
-            <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range">9.0</button>
+            <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range (3, 6, 12, 24 nm)">12.0</button>
         </div>
 	    
         <!-- Center Pane: Radar Display -->
@@ -623,10 +623,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
             let relativeWind = {};
 
             // --- Feature Toggle States ---
-            let maxRange = 9.0;
-            const rangeScales = [1.0, 3.0, 6.0, 9.0];
+            let maxRange = 12.0;
+            const rangeScales = [3.0, 6.0, 12.0, 24.0];
             let vectorTimeInMinutes = 15;
-            const vectorTimes = [5, 15, 30];
+            const vectorTimes = [3, 15, 30];
             let simulationSpeed = 1;
             const ffSpeeds = [10, 20, 30, 1];
             const revSpeeds = [-10, -20, -30, 1];
