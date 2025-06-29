@@ -53,6 +53,9 @@
             --radar-faint-white: rgba(255, 255, 255, 0.5);
             /* fallback for dynamic 100vh calculation */
             --vh: 1vh;
+            /* global UI scale set by JavaScript */
+            --ui-scale: 1;
+            --base: calc(1 * var(--ui-scale));
         }
         /* Ensure the canvas is responsive and has a cursor pointer for interaction */
         canvas {
@@ -80,11 +83,6 @@
             overflow-y: visible;
         }
 
-        #right-pane {
-            align-self: flex-end;
-            margin-bottom: 30px;
-        }
-
         #data-pane,
         #sim-clock,
         #data-pane > div,
@@ -107,7 +105,10 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            font-size: calc(0.75rem * var(--ui-scale));
+            padding: calc(0.5rem * var(--ui-scale)) calc(0.25rem * var(--ui-scale));
         }
+        .control-btn svg { width: 1em; height: 1em; }
         /* Instant tooltip styling using data-tooltip attribute */
         .control-btn[data-tooltip]::after {
             content: attr(data-tooltip);
@@ -140,9 +141,31 @@
         }
         .wind-value   { font-size: 150%; }  /* 1.5 × current size */
         .wind-label   { font-size: inherit; }/* unchanged */
+        #button-bar      { width: calc(60px * var(--ui-scale)); }
+        #button-bar > .border-top { margin: calc(10px * var(--ui-scale)) 0; }
+        #right-pane {
+            align-self: flex-end;
+            margin-bottom: 30px;
+            flex-basis: calc(220px * var(--ui-scale));
+            min-width: 160px;
+        }
+        #data-pane {
+            width: 100%;
+            gap: calc(32px * var(--ui-scale));
+            padding: calc(5px * var(--ui-scale));
+            max-width: calc(800px * var(--ui-scale));
+        }
+        .data-title { font-size: calc(1.25rem * var(--ui-scale)); }
+        .data-label { font-size: calc(1rem * var(--ui-scale)); }
+        .data-value { font-size: calc(1.5rem * var(--ui-scale)); }
+        #btn-add-track,
+        #btn-drop-track {
+            font-size: calc(2.25rem * var(--ui-scale));
+            line-height: 1;
+        }
         #sim-clock {
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-            font-size: 3.00rem;
+            font-size: calc(3rem * var(--ui-scale));
         }
         /* Make the radar container circular and centered */
         #radar-container {
@@ -162,6 +185,8 @@
             top: 10px;    /* keep inside wrapper to avoid clipping */
             left: 50%;
             transform: translateX(-50%);
+            font-size: calc(0.75rem * var(--ui-scale));
+            padding: calc(10px * var(--ui-scale));
         }
 	    
         #help-modal {
@@ -411,7 +436,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
         </div>
 
         <!-- Left Pane: Vertical Button Bar -->
-        <div id="button-bar" class="p-2 d-flex flex-column align-items-center gap-2 justify-content-end flex-shrink-0" style="margin-left: 15px;">
+        <div id="button-bar" class="p-2 d-flex flex-column align-items-center gap-2 justify-content-end" style="margin-left: 15px;">
 	    <!-- Help Button -->
             <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
 
@@ -419,15 +444,15 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             <!-- Simulation Controls -->
             <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
-                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
             <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
                 <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
             <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
                 <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
 
@@ -435,7 +460,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             <!-- New Scenario Button -->
             <button id="btn-scen" class="control-btn selected p-2" data-tooltip="Generate New Scenario">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
                 </svg>
             </button>
@@ -1372,45 +1397,16 @@ function updateWindDataDisplay() {
 		
             // --- UI Scaling Function ---
             function scaleUI() {
-                const baseDim = 900;
-                const rawWidthScale = Math.min(1.5, window.innerWidth / baseDim);
-                const widthScale  = Math.max(0.7, rawWidthScale);
-                const heightScale = Math.max(0.7, Math.min(1.5, window.innerHeight / baseDim));
-                const scaleFactor = Math.min(widthScale, heightScale);
-		    
-                // Scale the simulation clock
-                simClock.style.fontSize = `${2.25 * scaleFactor}rem`;
+                const BASE = 900;
+                const dim = Math.min(window.innerWidth, window.innerHeight);
+                const scale = Math.max(0.7, Math.min(1.5, dim / BASE));
 
-                buttonBar.style.width = `${60 * scaleFactor}px`;
-                const buttons = document.querySelectorAll('.control-btn');
-                buttons.forEach(btn => {
-                    btn.style.fontSize = `${0.75 * scaleFactor}rem`;
-                    btn.style.padding = `${0.5 * scaleFactor}rem ${0.25 * scaleFactor}rem`;
-                });
+                document.documentElement.style.setProperty('--ui-scale', scale);
+                uiScaleFactor = scale;
 		    
                 // Update drawing styles once per resize
                 prepareStaticStyles();
                 markSceneDirty();
-
-                const largeButtonFontSize = 2.25;
-                btnAddTrack.style.fontSize = `${largeButtonFontSize * scaleFactor}rem`;
-                btnAddTrack.style.lineHeight = '1';
-                btnDropTrack.style.fontSize = `${largeButtonFontSize * scaleFactor}rem`;
-                btnDropTrack.style.lineHeight = '1';
-
-                const dataValueFontSize = 1.5;
-                windDataDisplay.style.fontSize = `${(dataValueFontSize / 2) * scaleFactor}rem`;
-                windDataDisplay.style.padding = `${10 * scaleFactor}px`;
-
-                const dividers = document.querySelectorAll('#button-bar > .border-t');
-                dividers.forEach(div => {
-                    div.style.margin = `${10 * scaleFactor}px 0`;
-                });
-
-                dataPane.style.removeProperty('width');
-                dataPane.style.maxWidth = `${800 * rawWidthScale}px`;
-                dataPane.style.padding = `${5 * scaleFactor}px`;
-                dataPane.style.gap = `${32 * scaleFactor}px`;
 		    
                 const gapWidth = 20;
                 const buttonBarStyles = getComputedStyle(buttonBar);
