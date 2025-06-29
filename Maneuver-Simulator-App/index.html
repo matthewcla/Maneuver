@@ -144,20 +144,35 @@
         #button-bar      { width: calc(60px * var(--ui-scale)); }
         #button-bar > .border-top { margin: calc(10px * var(--ui-scale)) 0; }
         #right-pane {
-            align-self: flex-end;
-            margin-bottom: 30px;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
             flex-basis: calc(300px * var(--ui-scale));
             min-width: 320px;
         }
         #data-pane {
             width: 100%;
-            gap: calc(32px * var(--ui-scale));
+            gap: 0.5rem !important;
             padding: calc(5px * var(--ui-scale));
             max-width: calc(800px * var(--ui-scale));
+            flex: 0 1 auto;
+            overflow-y: auto;
         }
         .data-title { font-size: calc(1.25rem * var(--ui-scale)); }
-        .data-label { font-size: calc(1rem * var(--ui-scale)); }
-        .data-value { font-size: calc(1.5rem * var(--ui-scale)); }
+        .data-label {
+            font-size: calc(1rem * var(--ui-scale));
+            line-height: 1.1;
+        }
+        .data-value {
+            font-size: calc(1.5rem * var(--ui-scale));
+            line-height: 1.1;
+        }
+        #data-pane .mt-2 { margin-top: 0.25rem !important; }
         #btn-add-track,
         #btn-drop-track {
             font-size: calc(2.25rem * var(--ui-scale));
@@ -166,6 +181,7 @@
         #sim-clock {
             font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
             font-size: calc(3rem * var(--ui-scale));
+            flex: 0 0 auto;
         }
         /* Make the radar container circular and centered */
         #radar-container {
@@ -1413,7 +1429,7 @@ function updateWindDataDisplay() {
                 const leftMargin = parseFloat(buttonBarStyles.marginLeft) || 0;
                 const rightMargin = parseFloat(buttonBarStyles.marginRight) || 0;
                 const leftWidth = buttonBar.offsetWidth + leftMargin + rightMargin;
-                const rightWidth = rightPane.offsetWidth;
+                const rightWidth = rightPane.getBoundingClientRect().width;
                 
 		const wrapperStyles = getComputedStyle(radarWrapper);
                 const wrapperPadding = (parseFloat(wrapperStyles.paddingLeft) || 0) +
