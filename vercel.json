@@ -1,0 +1,10 @@
+{
+
+  // ❶ Tell Vercel where the built site lives
+  "outputDirectory": "Simulator"
+
+  /* 
+   * You can add more fields later — buildCommand, rewrites, redirects, 
+   * headers, env, etc. For now, keep it minimal so you eliminate the 404.
+   */
+}
