@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,10 +57,9 @@
             --ui-scale: 1;
             --base: calc(1 * var(--ui-scale));
         }
-        /* Ensure the canvas is responsive and has a cursor pointer for interaction */
+        /* Ensure the canvas is responsive; cursor state is managed dynamically */
         canvas {
             display: block;
-            cursor: pointer;
             touch-action: none; /* enable custom touch gestures */
         }
         /* Helper class for green text color */
@@ -624,6 +622,209 @@ Questions?  >>  Aheadflank.ai@gmail.com
     </main>
 
     <script>
+        /* ============================================================
+         * Scenario generation & COLREGs contact controller
+         * ============================================================
+         */
+        const ScenarioConfig = {
+            contact_density        : 6,
+            cpa_leeway             : 0.3,
+            time_to_cpa_range      : [15, 30],
+            vector_randomization   : 0.15,
+            maneuvering_probability: 0.35,
+            constraint_density     : 2,
+        };
+
+        function solveCPA(own, tgt) {
+            const rx = tgt.x - own.x;
+            const ry = tgt.y - own.y;
+            const vx = tgt.vx - own.vx;
+            const vy = tgt.vy - own.vy;
+
+            const v2   = vx*vx + vy*vy;
+            const tCPA = v2 < 1e-6 ? 1e9 : - (rx*vx + ry*vy) / v2;
+            const xCPA = rx + vx*tCPA;
+            const yCPA = ry + vy*tCPA;
+            const dCPA = Math.sqrt(xCPA*xCPA + yCPA*yCPA);
+            return { t: tCPA, d: dCPA };
+        }
+
+        class ScenarioGenerator {
+            constructor(cfg){
+                this.cfg = cfg;
+                this.nextId = 1;
+            }
+            makeScenario(ownship){
+                const tracks = [];
+                const archetypes = ['STARBOARD_CROSS','HEAD_ON','OVERTAKE','CONSTRAINED'];
+                const type = archetypes[Math.floor(Math.random()*archetypes.length)];
+                const primary = this._makePrimary(type, ownship);
+                tracks.push(primary);
+                const nExtra = this._randInt(this.cfg.contact_density-1, this.cfg.contact_density+1);
+                for(let i=0;i<nExtra;i++){
+                    const c = this._makeSecondary(ownship, tracks);
+                    tracks.push(c);
+                }
+                for(let i=0;i<this.cfg.constraint_density;i++){
+                    tracks.push(this._makeHazard(ownship));
+                }
+                return tracks;
+            }
+            _makePrimary(type,own){
+                const rng = this._rand(4,8);
+                let brg, crs, spd;
+                switch(type){
+                    case 'STARBOARD_CROSS':
+                        brg = this._rand(20,60);
+                        crs = (own.course + 270 + this._rand(-10,10))%360; break;
+                    case 'HEAD_ON':
+                        brg = this._rand(350,10);
+                        crs = (own.course + 180 + this._rand(-5,5))%360; break;
+                    case 'OVERTAKE':
+                        brg = this._rand(150,210);
+                        crs = own.course + this._rand(-5,5);
+                        spd = own.speed - this._rand(2,4); break;
+                    case 'CONSTRAINED':
+                    default:
+                        brg = this._rand(40,60);
+                        crs = (own.course + 270)%360; break;
+                }
+                spd = spd ?? this._rand(5,12);
+                const tgt = this._spawn(own, brg, rng, crs, spd);
+                this._tuneCPA(own, tgt);
+                tgt.archetype = type;
+                return tgt;
+            }
+            _makeSecondary(own, existing){
+                const brg = this._rand(0,360);
+                const rng = this._rand(2, own.maxRange??12);
+                const crs = this._rand(0,360);
+                const spd = this._rand(3,15);
+                const c = this._spawn(own, brg, rng, crs, spd);
+                if(Math.random()<this.cfg.maneuvering_probability && existing.length){
+                    const tgt = existing[Math.floor(Math.random()*existing.length)];
+                    c.course = (Math.atan2(tgt.y-c.y, tgt.x-c.x)*180/Math.PI + 360 + this._rand(-5,5))%360;
+                }
+                return c;
+            }
+            _makeHazard(own){
+                const brg = this._rand(0,360);
+                const rng = this._rand(3, own.maxRange??12);
+                const h = this._spawn(own, brg, rng, 0, 0);
+                h.isHazard = true;
+                return h;
+            }
+            _spawn(own,bearing,range,course,speed){
+                const id  = String(this.nextId++).padStart(4, '0');
+                const rad = bearing * Math.PI / 180;
+                return {
+                    id,
+                    x: own.x + range * Math.sin(rad),
+                    y: own.y + range * Math.cos(rad),
+                    course: course % 360,
+                    speed,
+                    state: 'MONITORING',
+                    isUserControlled: false,
+                    _base: { course, speed },
+                    initialBearing: bearing,
+                    initialRange: range,
+                };
+            }
+            _tuneCPA(own,tgt){
+                for(let i=0;i<90;i++){
+                    const ownVec=this._vel(own), tgtVec=this._vel(tgt);
+                    const {t,d}=solveCPA({...own,...ownVec},{...tgt,...tgtVec});
+                    const minT=this.cfg.time_to_cpa_range[0]/60,
+                          maxT=this.cfg.time_to_cpa_range[1]/60;
+                    if(d<this.cfg.cpa_leeway && t>minT && t<maxT) return;
+                    tgt.course=(tgt.course+this._rand(-4,4))%360;
+                }
+            }
+            _vel(v){const rad=(90-v.course)*Math.PI/180;return{vx:v.speed*Math.cos(rad),vy:v.speed*Math.sin(rad)}}
+            _rand(a,b){return a+Math.random()*(b-a)}
+            _randInt(a,b){return Math.floor(this._rand(a,b+1))}
+        }
+
+        class ContactController {
+            constructor(track){this.t=track;}
+            update(dtHours,allContacts,cfg){
+                if(this.t.isUserControlled||this.t.isHazard) return;
+                switch(this.t.state){
+                    case 'MONITORING':
+                        if(this._collisionThreat(allContacts,cfg)){ this._planManeuver(); }
+                        break;
+                    case 'CALCULATING_MANEUVER': break;
+                    case 'EXECUTING_MANEUVER':
+                        this._applyManeuver(dtHours); break;
+                    case 'RESUMING_COURSE':
+                        this._returnToBase(dtHours); break;
+                }
+            }
+            _collisionThreat(all,cfg){
+                const own=this._asParticle(this.t);
+                for(const other of all){
+                    if(other===this.t||other.isHazard) continue;
+                    const tgt=this._asParticle(other);
+                    const {t,d}=solveCPA(own,tgt);
+                    if(d<cfg.cpa_leeway && t>0 && t<cfg.time_to_cpa_range[1]/60){
+                        this.t.threat=other; return true;
+                    }
+                } return false;
+            }
+            _planManeuver(){
+                const rel=(this.t.threat&&this._relativeSituation(this.t,this.t.threat))||'UNKNOWN';
+                let deltaCrs=0, deltaSpd=0;
+                switch(rel){
+                    case 'HEAD_ON': deltaCrs=30; break;
+                    case 'CROSS_GIVEWAY': deltaCrs=35; break;
+                    case 'OVERTAKING': deltaCrs=0; deltaSpd=-0.4*this.t.speed; break;
+                    default: deltaCrs=25;
+                }
+                this.t._targetCourse=(this.t.course+deltaCrs+360)%360;
+                this.t._targetSpeed=Math.max(2,this.t.speed+deltaSpd);
+                this.t.state='EXECUTING_MANEUVER';
+            }
+            _applyManeuver(dt){
+                const rateTurn=10*dt*60;
+                const acc=1*dt*60;
+                const diffC=((this.t._targetCourse - this.t.course + 540)%360)-180;
+                if(Math.abs(diffC)>rateTurn){
+                    this.t.course=(this.t.course+Math.sign(diffC)*rateTurn+360)%360;
+                }else{ this.t.course=this.t._targetCourse; }
+                if(Math.abs(this.t.speed-this.t._targetSpeed)>acc){
+                    this.t.speed+=Math.sign(this.t._targetSpeed - this.t.speed)*acc;
+                }else{ this.t.speed=this.t._targetSpeed; }
+                if(!this._collisionThreat([...this.t._sim.tracks],this.t._sim.scenarioCfg)){
+                    this.t.state='RESUMING_COURSE';
+                }
+            }
+            _returnToBase(dt){
+                const rateTurn=5*dt*60;
+                const acc=0.5*dt*60;
+                const diffC=((this.t._base.course - this.t.course + 540)%360)-180;
+                if(Math.abs(diffC)>rateTurn){
+                    this.t.course=(this.t.course+Math.sign(diffC)*rateTurn+360)%360;
+                }else{ this.t.course=this.t._base.course; }
+                if(Math.abs(this.t.speed-this.t._base.speed)>acc){
+                    this.t.speed+=Math.sign(this.t._base.speed - this.t.speed)*acc;
+                }else{ this.t.speed=this.t._base.speed; }
+                if(Math.abs(diffC)<1 && Math.abs(this.t.speed-this.t._base.speed)<0.1){
+                    this.t.state='MONITORING';
+                    delete this.t.threat;
+                }
+            }
+            _relativeSituation(a,b){
+                const brg=(Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI+360)%360;
+                const diffHdgs=Math.abs(((a.course - b.course + 540)%360)-180);
+                if(diffHdgs>150&&diffHdgs<210) return 'HEAD_ON';
+                const relBrg=(brg - a.course + 360)%360;
+                if(relBrg>112.5&&relBrg<247.5) return 'OVERTAKING';
+                if(relBrg>0&&relBrg<112.5) return 'CROSS_GIVEWAY';
+                return 'OTHER';
+            }
+            _asParticle(v){const rad=(90-v.course)*Math.PI/180;return{x:v.x,y:v.y,vx:v.speed*Math.cos(rad),vy:v.speed*Math.sin(rad)}}
+        }
+
         /**
          * @class Simulator
          * Encapsulates the entire state and logic for the ship maneuvering simulator.
@@ -670,18 +871,19 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.radarWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-white').trim();
                 this.radarFaintGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-green').trim();
                 this.radarFaintWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-white').trim();
+                this.scenarioCfg = ScenarioConfig;
                 
                 // --- State Data ---
                 this.ownShip = { course: 91, speed: 12.7, id: 'ownShip', x: 0, y: 0 };
                 this.tracks = [
-                    { id: 1, initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
-                    { id: 2, initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
-                    { id: 3, initialBearing: 190, initialRange: 8.2, course: 75,  speed: 8.0 },
-                    { id: 4, initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
-                    { id: 5, initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
+                    { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
+                    { id: '0002', initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
+                    { id: '0003', initialBearing: 190, initialRange: 8.2, course: 75,  speed: 8.0 },
+                    { id: '0004', initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
+                    { id: '0005', initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
                 ];
-                
-                this.selectedTrackId = 1;
+
+                this.selectedTrackId = '0001';
                 this.hoveredTrackId = null;
                 this.draggedItemId = null;
                 this.dragType = null;
@@ -742,8 +944,19 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.updateSimClock();
                 if (this.tracks.length > 0) {
                     this.tracks.forEach(track => {
-                        track.x = this.ownShip.x + track.initialRange * Math.sin(this.toRadians(track.initialBearing));
-                        track.y = this.ownShip.y + track.initialRange * Math.cos(this.toRadians(track.initialBearing));
+                        if (track.initialBearing !== undefined && track.initialRange !== undefined) {
+                            track.x = this.ownShip.x + track.initialRange * Math.sin(this.toRadians(track.initialBearing));
+                            track.y = this.ownShip.y + track.initialRange * Math.cos(this.toRadians(track.initialBearing));
+                        } else if (track.x !== undefined && track.y !== undefined) {
+                            const dx = track.x - this.ownShip.x;
+                            const dy = track.y - this.ownShip.y;
+                            track.initialRange = Math.sqrt(dx ** 2 + dy ** 2);
+                            track.initialBearing = (this.toDegrees(Math.atan2(dx, dy)) + 360) % 360;
+                        }
+                        if (!track._controller) {
+                            track._controller = new ContactController(track);
+                            track._sim = this;
+                        }
                     });
                 }
                 
@@ -971,10 +1184,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 
                 this.tracks.forEach(track => {
                     if (this.draggedItemId === track.id) return;
-                    
+			
                     const dist = track.speed * timeMultiplier;
                     track.x += dist * Math.sin(this.toRadians(track.course));
                     track.y += dist * Math.cos(this.toRadians(track.course));
+                    const dtH = (deltaTime/3600000)*Math.abs(this.simulationSpeed);
+                    track._controller?.update(dtH, this.tracks, this.scenarioCfg);
                 });
             }
 
@@ -1455,6 +1670,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const item = this.getInteractiveItemAt(mouseX, mouseY);
                 this.pointerDownPos = { x: mouseX, y: mouseY };
                 if (item) {
+                    this.canvas.style.cursor = 'grabbing';
                     this.pendingDragId = item.id;
                     this.pendingDragType = item.type;
                     this.lastMousePos = { x: mouseX, y: mouseY };
@@ -1470,7 +1686,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 }
             }
 
-            handlePointerUp() {
+           handlePointerUp() {
+                this.canvas.style.cursor = 'pointer';
                 this.draggedItemId = null;
                 this.dragType = null;
                 this.pendingDragId = null;
@@ -1545,7 +1762,11 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                     this.lastMousePos = { x: mouseX, y: mouseY };
                 } else {
-                    const item = this.getInteractiveItemAt(mouseX, mouseY);
+                    let item = null;
+                    if (!this.pendingDragId) {
+                        item = this.getInteractiveItemAt(mouseX, mouseY);
+                        this.canvas.style.cursor = item ? 'pointer' : 'default';
+                    }
                     const newHoverId = item ? item.id : null;
                     if (newHoverId !== this.hoveredTrackId) {
                         this.hoveredTrackId = newHoverId;
@@ -1663,9 +1884,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
 
             addTrack() {
-                const existingIds = this.tracks.map(t => t.id).sort((a,b) => a - b);
-                let newId = 1;
-                while (existingIds.includes(newId)) newId++;
+                const existingNums = this.tracks.map(t => parseInt(t.id, 10)).sort((a,b) => a - b);
+                let newNum = 1;
+                while (existingNums.includes(newNum)) newNum++;
+                const newId = String(newNum).padStart(4, '0');
                 const newTrack = {
                     id: newId,
                     initialBearing: Math.random() * 360,
@@ -1675,6 +1897,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 };
                 newTrack.x = this.ownShip.x + newTrack.initialRange * Math.sin(this.toRadians(newTrack.initialBearing));
                 newTrack.y = this.ownShip.y + newTrack.initialRange * Math.cos(this.toRadians(newTrack.initialBearing));
+                newTrack._controller = new ContactController(newTrack);
+                newTrack._sim = this;
                 this.tracks.push(newTrack);
                 this.selectedTrackId = newId;
                 this.calculateAllData(newTrack);
@@ -1698,35 +1922,14 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 }
             }
 
-            setupRandomScenario() {
-                this.ownShip = { course: 90, speed: 12, id: 'ownShip', x: 0, y: 0 };
-                this.tracks = [];
+            setupRandomScenario(){
+                const gen = new ScenarioGenerator(this.scenarioCfg);
+                this.tracks = gen.makeScenario(this.ownShip);
+                this.tracks.forEach(t=>{ t._sim=this; t._controller=new ContactController(t); });
+                this.selectedTrackId = this.tracks[0].id;
+                this.isSimulationRunning = true;
                 this.simulationElapsed = 0;
-                this.updateSimClock();
-                const numTracks = Math.floor(Math.random() * 6) + 3;
-                const riskTrack = {
-                    id: 1,
-                    initialBearing: 45 + (Math.random() * 20 - 10),
-                    initialRange: 6 + Math.random() * 2,
-                    course: 315 + (Math.random() * 20 - 10),
-                    speed: 10 + Math.random() * 4
-                };
-                this.tracks.push(riskTrack);
-                this.selectedTrackId = 1;
-                for (let i = 2; i <= numTracks; i++) {
-                    const otherTrack = {
-                        id: i,
-                        initialBearing: Math.random() * 360,
-                        initialRange: 3 + Math.random() * (this.maxRange - 3),
-                        course: Math.random() * 360,
-                        speed: 5 + Math.random() * 10
-                    };
-                    const bearingDiff = Math.abs(otherTrack.initialBearing - otherTrack.course);
-                    if (bearingDiff > 160 && bearingDiff < 200) {
-                        otherTrack.course = (otherTrack.course + 90) % 360;
-                    }
-                    this.tracks.push(otherTrack);
-                }
+                this.scaleUI();
                 this.isSimulationRunning = true;
                 this._initialize();
                 this.markSceneDirty();
