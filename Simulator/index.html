@@ -929,12 +929,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.handlePointerUp = this.handlePointerUp.bind(this);
                 this.handlePointerMove = this.handlePointerMove.bind(this);
 
+		this._attachEventListeners();
                 this._initialize();
             }
 
             // --- Main Initialization ---
             _initialize() {
-                this._attachEventListeners();
                 
                 const BASE_CANVAS_SIZE = 900;
                 this.canvas.width = BASE_CANVAS_SIZE * this.DPR;
