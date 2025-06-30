@@ -1316,7 +1316,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.applyDataPanelFontSizes();
             }
             
-            updateButtonStyles() { 
+            updateButtonStyles() {
                 this.btnWind.className = `control-btn ${this.showWeather ? 'selected' : 'unselected'}`;
                 this.btnRmv.className = `control-btn ${this.showRelativeMotion ? 'selected' : 'unselected'}`;
                 this.btnCpa.className = `control-btn ${this.showCPAInfo ? 'selected' : 'unselected'}`;
@@ -1329,10 +1329,23 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.btnRev.className = `control-btn p-2 ${this.simulationSpeed < 0 ? 'selected' : 'unselected'}`;
             }
 
+            updateSpeedIndicator() {
+                this.ffSpeedIndicator.classList.add('d-none');
+                this.revSpeedIndicator.classList.add('d-none');
+
+                if (this.simulationSpeed > 1) {
+                    this.ffSpeedIndicator.textContent = `${this.simulationSpeed}x`;
+                    this.ffSpeedIndicator.classList.remove('d-none');
+                } else if (this.simulationSpeed < 0) {
+                    this.revSpeedIndicator.textContent = `${Math.abs(this.simulationSpeed)}x`;
+                    this.revSpeedIndicator.classList.remove('d-none');
+                }
+            }
+		
             updateSimClock() {
                 this._setText('sim-clock', this.formatTime(this.simulationElapsed / 3600));
             }
-
+		
             scaleUI() {
                 const BASE = 900;
                 const containerHeight = this.mainContainer.clientHeight;
@@ -1603,33 +1616,39 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             togglePlayPause() {
                 this.isSimulationRunning = !this.isSimulationRunning;
-                if (this.isSimulationRunning) {
-                    this.simulationSpeed = 1;
-                }
+                this.simulationSpeed = 1;
                 this.updateButtonStyles();
                 this.updateSpeedIndicator();
                 this.startGameLoop();
             }
 
             fastForward() {
-                const speeds = [1, 1.25, 1.5];
-                let currentIndex = speeds.indexOf(this.simulationSpeed);
-                if (this.simulationSpeed <= 0) currentIndex = -1;
-                const nextIndex = (currentIndex + 1) % speeds.length;
-                this.simulationSpeed = speeds[nextIndex];
-                this.isSimulationRunning = true;
+                const cycle = [1, ...this.ffSpeeds];
+                if (!this.isSimulationRunning || this.simulationSpeed < 0) {
+                    this.simulationSpeed = this.ffSpeeds[0];
+                    this.isSimulationRunning = true;
+                } else {
+                    let idx = cycle.indexOf(this.simulationSpeed);
+                    idx = (idx + 1) % cycle.length;
+                    this.simulationSpeed = cycle[idx];
+                    this.isSimulationRunning = true;
+                }
                 this.updateButtonStyles();
                 this.updateSpeedIndicator();
                 this.startGameLoop();
             }
 
             rewind() {
-                const speeds = [1, -1.25, -1.5];
-                let currentIndex = speeds.indexOf(this.simulationSpeed);
-                if (this.simulationSpeed >= 1) currentIndex = 0;
-                const nextIndex = (currentIndex + 1) % speeds.length;
-                this.simulationSpeed = speeds[nextIndex];
-                this.isSimulationRunning = true;
+                const cycle = [1, ...this.revSpeeds];
+                if (!this.isSimulationRunning || this.simulationSpeed > 0) {
+                    this.simulationSpeed = this.revSpeeds[0];
+                    this.isSimulationRunning = true;
+                } else {
+                    let idx = cycle.indexOf(this.simulationSpeed);
+                    idx = (idx + 1) % cycle.length;
+                    this.simulationSpeed = cycle[idx];
+                    this.isSimulationRunning = true;
+                }
                 this.updateButtonStyles();
                 this.updateSpeedIndicator();
                 this.startGameLoop();
