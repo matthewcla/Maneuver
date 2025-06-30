@@ -522,11 +522,11 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
             </button>
-            <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward">
+            <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward: 25x, 50x">
                 <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
                 <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
-            <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind">
+            <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind: 25x, 50x">
                 <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
                 <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
             </button>
@@ -712,8 +712,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.vectorTimeInMinutes = 15;
                 this.vectorTimes = [3, 15, 30];
                 this.simulationSpeed = 1;
-                this.ffSpeeds = [1.25, 1.5];
-                this.revSpeeds = [-1.25, -1.5];
+                this.ffSpeeds = [25, 50];
+                this.revSpeeds = [-25, -50];
                 this.showRelativeMotion = false;
                 this.showCPAInfo = false;
                 this.isSimulationRunning = true;
@@ -1334,15 +1334,15 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.revSpeedIndicator.classList.add('d-none');
 
                 if (this.simulationSpeed > 1) {
-                    const label = this.simulationSpeed === 1.25 ? '25x'
-                                  : this.simulationSpeed === 1.5 ? '50x'
+                    const label = this.simulationSpeed === 25 ? '25x'
+                                  : this.simulationSpeed === 50 ? '50x'
                                   : `${this.simulationSpeed}x`;
                     this.ffSpeedIndicator.textContent = label;
                     this.ffSpeedIndicator.classList.remove('d-none');
                 } else if (this.simulationSpeed < 0) {
                     const absSpeed = Math.abs(this.simulationSpeed);
-                    const label = absSpeed === 1.25 ? '25x'
-                                  : absSpeed === 1.5 ? '50x'
+                    const label = absSpeed === 25 ? '25x'
+                                  : absSpeed === 50 ? '50x'
                                   : `${absSpeed}x`;
                     this.revSpeedIndicator.textContent = label;
                     this.revSpeedIndicator.classList.remove('d-none');
