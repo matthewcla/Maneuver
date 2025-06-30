@@ -71,15 +71,22 @@
             letter-spacing: 0.05em;
         }
         /* Ensure the main content area fills the viewport height */
-	   .main-content {
-  	   	display: flex;
-  	   	justify-content: space-between;
-  	   	align-items: center;
-  	   	height: 100vh;
-  	   	gap: 20px;
-  	   	padding: 0 10px;
-  	   	overflow: hidden;
-	  }
+           .main-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                height: calc(var(--vh, 1vh) * 100);
+                gap: 20px;
+                padding: 0 10px;
+                overflow: hidden;
+          }
+
+        @media (min-width: 1600px) {
+            main.main-content {
+                max-width: 1600px;
+                margin: 0 auto;
+            }
+        }
 
         #data-pane,
         #sim-clock,
@@ -1443,7 +1450,9 @@ function updateWindDataDisplay() {
             // --- UI Scaling Function ---
             function scaleUI() {
                 const BASE = 900;
-                const dim = Math.min(window.innerWidth, window.innerHeight);
+                const containerWidth  = mainContainer.clientWidth;
+                const containerHeight = mainContainer.clientHeight;
+                const dim = Math.min(containerWidth, containerHeight);
                 const scale = Math.max(0.7, Math.min(1.5, dim / BASE));
 
                 document.documentElement.style.setProperty('--ui-scale', scale);
@@ -1463,9 +1472,9 @@ function updateWindDataDisplay() {
                 const wrapperPadding = (parseFloat(wrapperStyles.paddingLeft) || 0) +
                                       (parseFloat(wrapperStyles.paddingRight) || 0);
 
-                const wrapperWidth = Math.max(window.innerWidth - leftWidth - rightWidth - gapWidth * 2, 0);
+                const wrapperWidth = Math.max(containerWidth - leftWidth - rightWidth - gapWidth * 2, 0);
                 const availableWidth = Math.max(wrapperWidth - wrapperPadding, 0);
-                const availableHeight = Math.max(window.innerHeight - gapWidth * 2, 0);
+                const availableHeight = Math.max(containerHeight - gapWidth * 2, 0);
 		    
                 radarWrapper.style.width = `${wrapperWidth}px`;
 		     const visualOffset   = leftWidth + gapWidth;          // button bar + single gap
