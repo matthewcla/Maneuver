@@ -893,6 +893,72 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 }
             }
 
+            _renderEditableField(id, displayValue, numericValue) {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (this.activeEditField === id) {
+                    if (!el.querySelector('input')) {
+                        el.innerHTML = `<input type="text" value="${parseFloat(numericValue).toFixed(1)}">`;
+                        const input = el.querySelector('input');
+                        const commit = () => {
+                            const newVal = parseFloat(input.value);
+                            this.commitEdit(id, newVal);
+                        };
+                        input.addEventListener('blur', commit, { once: true });
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                input.blur();
+                            } else if (e.key === 'Escape') {
+                                this.activeEditField = null;
+                                this.updatePanelsAndRedraw();
+                            }
+                        });
+                        setTimeout(() => { input.focus(); input.select(); }, 0);
+                    }
+                } else {
+                    if (el.textContent !== displayValue) {
+                        el.textContent = displayValue;
+                    }
+                }
+            }
+
+            commitEdit(id, value) {
+                if (isNaN(value)) {
+                    this.activeEditField = null;
+                    this.updatePanelsAndRedraw();
+                    return;
+                }
+
+                const track = this.tracks.find(t => t.id === this.selectedTrackId);
+
+                if (id === 'ownship-crs') {
+                    this.ownShip.course = Math.max(0, Math.min(359.9, value));
+                } else if (id === 'ownship-spd') {
+                    this.ownShip.speed = value;
+                } else if (track) {
+                    if (id === 'track-brg') {
+                        track.bearing = Math.max(0, Math.min(359.9, value));
+                    } else if (id === 'track-rng') {
+                        track.range = value;
+                    } else if (id === 'track-crs') {
+                        track.course = Math.max(0, Math.min(359.9, value));
+                    } else if (id === 'track-spd') {
+                        track.speed = value;
+                    }
+
+                    if (id === 'track-brg' || id === 'track-rng') {
+                        const angleRad = this.toRadians(track.bearing);
+                        track.x = this.ownShip.x + track.range * Math.sin(angleRad);
+                        track.y = this.ownShip.y + track.range * Math.cos(angleRad);
+                    }
+                }
+
+                this.activeEditField = null;
+                this.updatePanelsAndRedraw();
+                this.markSceneDirty();
+            }
+
             // --- Physics & Calculations ---
             updatePhysics(deltaTime) {
                 if (!this.isSimulationRunning) return;
@@ -1208,18 +1274,26 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
 
             updateOwnShipPanel() {
-                this._setText('ownship-crs', `${this.formatBearing(this.ownShip.course)} T`);
-                this._setText('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`);
+                this._renderEditableField('ownship-crs', `${this.formatBearing(this.ownShip.course)} T`, this.ownShip.course);
+                this._renderEditableField('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`, this.ownShip.speed);
             }
 
             updateDataPanels() {
                 const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
                 
                 this._setText('track-id', selectedTrack ? selectedTrack.id : '--');
-                this._setText('track-brg', selectedTrack ? `${this.formatBearing(selectedTrack.bearing)} T` : '--');
-                this._setText('track-rng', selectedTrack ? `${selectedTrack.range.toFixed(1)} NM` : '--');
-                this._setText('track-crs', selectedTrack ? `${this.formatBearing(selectedTrack.course)} T` : '--');
-                this._setText('track-spd', selectedTrack ? `${selectedTrack.speed.toFixed(1)} KTS` : '--');
+
+                if (selectedTrack) {
+                    this._renderEditableField('track-brg', `${this.formatBearing(selectedTrack.bearing)} T`, selectedTrack.bearing);
+                    this._renderEditableField('track-rng', `${selectedTrack.range.toFixed(1)} NM`, selectedTrack.range);
+                    this._renderEditableField('track-crs', `${this.formatBearing(selectedTrack.course)} T`, selectedTrack.course);
+                    this._renderEditableField('track-spd', `${selectedTrack.speed.toFixed(1)} KTS`, selectedTrack.speed);
+                } else {
+                    this._setText('track-brg', '--');
+                    this._setText('track-rng', '--');
+                    this._setText('track-crs', '--');
+                    this._setText('track-spd', '--');
+                }
 
                 const showRM = selectedTrack && this.showRelativeMotion;
                 this._setText('rm-dir', showRM ? selectedTrack.rm.dir : '--');
@@ -1491,58 +1565,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     if (dist < hitTolerance) return {type: 'vector', id: vessel.id};
                 }
                 return null;
-            }
-
-            createEditableField(element) {
-                if (element.querySelector('input')) return;
-                
-                const originalText = element.textContent;
-                const originalValue = parseFloat(originalText) || 0;
-
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = originalValue.toFixed(1);
-                
-                const commitEdit = () => {
-                    let newValue = parseFloat(input.value);
-                    if (!isNaN(newValue)) {
-                        const id = element.id;
-                        const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
-                        
-                        if (id === 'ownship-crs') this.ownShip.course = Math.max(0, Math.min(359.9, newValue));
-                        else if (id === 'ownship-spd') this.ownShip.speed = newValue;
-                        else if (selectedTrack) {
-                            if (id === 'track-brg') selectedTrack.bearing = Math.max(0, Math.min(359.9, newValue));
-                            else if (id === 'track-rng') selectedTrack.range = newValue;
-                            else if (id === 'track-crs') selectedTrack.course = Math.max(0, Math.min(359.9, newValue));
-                            else if (id === 'track-spd') selectedTrack.speed = newValue;
-
-                            if (id === 'track-brg' || id === 'track-rng') {
-                                const angleRad = this.toRadians(selectedTrack.bearing);
-                                selectedTrack.x = this.ownShip.x + selectedTrack.range * Math.sin(angleRad);
-                                selectedTrack.y = this.ownShip.y + selectedTrack.range * Math.cos(angleRad);
-                            }
-                        }
-                    }
-                    this.activeEditField = null;
-                    this.updatePanelsAndRedraw();
-                    this.markSceneDirty();
-                };
-
-                input.addEventListener('blur', commitEdit, { once: true });
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        input.blur();
-                    } else if (e.key === 'Escape') {
-                        this.activeEditField = null;
-                        this.updatePanelsAndRedraw();
-                    }
-                });
-
-                element.innerHTML = '';
-                element.appendChild(input);
-                input.focus();
-                input.select();
             }
 
             // --- Control Button Actions ---
