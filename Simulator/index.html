@@ -939,11 +939,16 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.updateSimClock();
                 if (this.tracks.length > 0) {
                     this.tracks.forEach(track => {
-	  	        if (track.initialBearing !== undefined && track.initialRange !== undefined){
-		            track.x = this.ownShip.x + track.initialRange * Math.sin(this.toRadians(track.initialBearing));
-	 	            track.y = this.ownShip.y + track.initialRange * Math.cos(this.toRadians(track.initialBearing));
-	       	}
-                        if(!track._controller){
+                        if (track.initialBearing !== undefined && track.initialRange !== undefined) {
+                            track.x = this.ownShip.x + track.initialRange * Math.sin(this.toRadians(track.initialBearing));
+                            track.y = this.ownShip.y + track.initialRange * Math.cos(this.toRadians(track.initialBearing));
+                        } else if (track.x !== undefined && track.y !== undefined) {
+                            const dx = track.x - this.ownShip.x;
+                            const dy = track.y - this.ownShip.y;
+                            track.initialRange = Math.sqrt(dx ** 2 + dy ** 2);
+                            track.initialBearing = (this.toDegrees(Math.atan2(dx, dy)) + 360) % 360;
+                        }
+                        if (!track._controller) {
                             track._controller = new ContactController(track);
                             track._sim = this;
                         }
