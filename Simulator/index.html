@@ -716,16 +716,19 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 return h;
             }
             _spawn(own,bearing,range,course,speed){
-                const id = String(this.nextId++).padStart(4, '0');
+                const id  = String(this.nextId++).padStart(4, '0');
+                const rad = bearing * Math.PI / 180;
                 return {
                     id,
-                    x: own.x + range*Math.cos(rad),
-                    y: own.y + range*Math.sin(rad),
-                    course: course%360,
+                    x: own.x + range * Math.sin(rad),
+                    y: own.y + range * Math.cos(rad),
+                    course: course % 360,
                     speed,
-                    state:'MONITORING',
-                    isUserControlled:false,
-                    _base:{course,speed},
+                    state: 'MONITORING',
+                    isUserControlled: false,
+                    _base: { course, speed },
+                    initialBearing: bearing,
+                    initialRange: range,
                 };
             }
             _tuneCPA(own,tgt){
