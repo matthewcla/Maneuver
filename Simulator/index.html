@@ -94,7 +94,8 @@
         #data-pane > div,
         #track-data-container,
         #cpa-data-container,
-        #rm-data-container {
+        #rm-data-container,
+        #wind-data-container {
             width: 100%;
         }
         
@@ -145,8 +146,6 @@
             color: var(--radar-green);
             border-color: var(--radar-green);
         }
-        .wind-value   { font-size: 170%; }  /* 1.5 × current size */
-        .wind-label   { font-size: inherit; }/* unchanged */
 	   #button-bar{
    		padding: 0.5rem;
    		z-index: 40;
@@ -175,20 +174,37 @@
         }
         #data-pane {
             width: 100%;
-            gap: 1.7rem !important;
             padding: calc(5px * var(--ui-scale));
-            max-width: calc(800px * var(--ui-scale));
-            flex: 0 1 auto;
+            flex: 1 1 auto;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.5rem;
         }
         .data-title { font-size: calc(1.25rem * var(--ui-scale)); }
         .data-label {
-            font-size: calc(1rem * var(--ui-scale));
+            font-size: calc(1.3rem * var(--ui-scale));
             line-height: 1.1;
         }
         .data-value {
-            font-size: calc(1.75rem * var(--ui-scale));
+            font-size: calc(1.3rem * var(--ui-scale));
             line-height: 1.1;
+        }
+        #ownship-crs, #ownship-spd, #track-data-container .data-value {
+             font-size: calc(1.4rem * var(--ui-scale));
+        }
+        .editable {
+            cursor: pointer;
+        }
+        .data-value input {
+            background-color: #000;
+            color: var(--radar-green);
+            border: 1px solid var(--radar-green);
+            text-align: right;
+            font-size: inherit;
+            font-family: inherit;
+            width: 50%;
         }
         #data-pane .mt-2 { margin-top: 0.25rem !important; }
         #btn-add-track,
@@ -209,13 +225,13 @@
  		justify-content: center;
  		align-items: center;
         position: relative;
-        transform: scale(0.95);
         gap: 10px;
 	   }
         /* Make the radar container circular and centered */
 
         #radar-container {
-            flex: 1;
+            max-width: 90%;
+            max-height: 90%;
             min-height: 0;
             width: 100%;
             border-radius: 50%;
@@ -232,11 +248,6 @@
             border-radius: 50%;
             aspect-ratio: 1 / 1;   /* maintain perfect circle */
         }
-        #wind-data-display {
-            font-size: calc(0.75rem * var(--ui-scale));
-            padding: 0;
-            text-align: center;
-        }
 	   
         #help-modal {
             border: 2px solid var(--radar-faint-green);
@@ -250,9 +261,26 @@
             transform-origin: top right;
             width: 10%;
         }
+
+        /* Tooltip for dragging items on the canvas */
+        #drag-tooltip {
+            position: fixed;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: var(--radar-green);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+            border-radius: 0.25rem;
+            pointer-events: none; /* So it doesn't interfere with mouse events */
+            z-index: 1000;
+            line-height: 1.4;
+            white-space: pre; /* To respect newlines and spacing */
+        }
     </style>
 </head>
 <body>
+
+<div id="drag-tooltip"></div>
 
 <div id="mobile-blocker"
      style="
@@ -535,7 +563,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	    
         <!-- Center Pane: Radar Display -->
         <div id="radar-wrapper" class="flex-grow-1 d-flex align-items-center justify-content-center">
-            <div id="wind-data-display" class="text-center text-radar-green"></div>
             <div id="radar-container" class="d-flex align-items-center justify-content-center">
     			<canvas id="radarCanvas"></canvas>
 	      </div>
@@ -544,19 +571,20 @@ Questions?  >>  Aheadflank.ai@gmail.com
         <!-- Right Pane -->
         <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green">
             <div id="sim-clock" class="text-center">00:00:00</div>
-            <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto" >
+            <div id="data-pane" class="d-flex flex-column" >
                 <!-- OwnShip Data -->
                 <div>
                     <p class="font-bold tracking-wide data-title">OwnShip</p>
                     <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
                     </div>
                 </div>
                 <!-- Data Panels for selected track will be dynamically inserted here -->
                 <div id="track-data-container"></div>
                 <div id="cpa-data-container"></div>
                 <div id="rm-data-container"></div>
+                <div id="wind-data-container"></div>
             </div>
         </div>
     </main>
@@ -571,6 +599,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 // --- DOM Element References ---
                 this.canvas = document.getElementById('radarCanvas');
                 this.ctx = this.canvas.getContext('2d');
+                this.dragTooltip = document.getElementById('drag-tooltip');
                 this.btnVectorTime = document.getElementById('btn-vector-time');
                 this.btnRmv = document.getElementById('btn-rmv');
                 this.btnCpa = document.getElementById('btn-cpa');
@@ -598,7 +627,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.trackDataContainer = document.getElementById('track-data-container');
                 this.rmDataContainer = document.getElementById('rm-data-container');
                 this.cpaDataContainer = document.getElementById('cpa-data-container');
-                this.windDataDisplay = document.getElementById('wind-data-display');
+                this.windDataContainer = document.getElementById('wind-data-container');
                 this.simClock = document.getElementById('sim-clock');
                 this.mainContainer = document.querySelector('main.main-content');
 
@@ -753,6 +782,24 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
                     this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
                 }).observe(this.helpModal);
+
+                // Editable fields
+                this.dataPane.addEventListener('dblclick', (e) => {
+                    if (e.target.classList.contains('editable')) {
+                        const id = e.target.id;
+                        const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
+                        if (id === 'ownship-crs') {
+                            this.createEditableField(e.target, this.ownShip, 'course', { min: 0, max: 359.9 });
+                        } else if (id === 'ownship-spd') {
+                            this.createEditableField(e.target, this.ownShip, 'speed');
+                        } else if (selectedTrack) {
+                            if (id === 'track-brg') this.createEditableField(e.target, selectedTrack, 'bearing', { min: 0, max: 359.9 });
+                            if (id === 'track-rng') this.createEditableField(e.target, selectedTrack, 'range');
+                            if (id === 'track-crs') this.createEditableField(e.target, selectedTrack, 'course', { min: 0, max: 359.9 });
+                            if (id === 'track-spd') this.createEditableField(e.target, selectedTrack, 'speed');
+                        }
+                    }
+                });
             }
 
             // --- Animation & Optimizations ---
@@ -884,7 +931,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
                         const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
                         track.cpa = {
-                            range: `${cpaRange.toFixed(2)} NM`,
+                            range: `${cpaRange.toFixed(1)} NM`,
                             time: this.formatTime(tcpa),
                             brg: `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`
                         };
@@ -934,9 +981,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 
                 if (this.showWeather) {
                     this.drawWeatherInfo(center, radius);
-                    this.updateWindDataDisplay();
-                } else {
-                    this.updateWindDataDisplay();
                 }
                 this.drawOwnShipIcon(center, radius);
                 this.tracks.forEach(track => {
@@ -1140,18 +1184,18 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
 
             updateOwnShipPanel() {
-                this._setText('ownship-crs', `${this.formatBearing(this.ownShip.course)} T`);
-                this._setText('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`);
+                document.getElementById('ownship-crs').textContent = `${this.formatBearing(this.ownShip.course)} T`;
+                document.getElementById('ownship-spd').textContent = `${this.ownShip.speed.toFixed(1)} KTS`;
             }
 
             updateDataPanels() {
                 const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
                 this.trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK ${selectedTrack ? selectedTrack.id : '--'}</p>
                     <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${selectedTrack ? this.formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span class="data-value text-end">${selectedTrack ? this.formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span class="data-value text-end">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">${selectedTrack ? this.formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">${selectedTrack ? selectedTrack.range.toFixed(1) + ' NM' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">${selectedTrack ? this.formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
                     </div>`;
 
                 const showRM = selectedTrack && this.showRelativeMotion;
@@ -1171,6 +1215,16 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
                         <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
                     </div>`;
+                
+                const showTrueWind = this.showWeather;
+                const showRelWind = this.showWeather && this.showRelativeMotion;
+                const relWindBearing = (this.relativeWind.vectorDirection - this.ownShip.course + 360) % 360;
+                this.windDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Wind</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span class="data-value text-end">${showTrueWind ? `${this.formatBearing(this.trueWind.direction)} T  ${this.trueWind.speed.toFixed(1)} kts` : '--'}</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span class="data-value text-end">${showRelWind ? `${this.formatBearing(relWindBearing)} R  ${this.relativeWind.speed.toFixed(1)} kts` : '--'}</span></div>
+                    </div>`;
+
                 this.applyDataPanelFontSizes();
             }
             
@@ -1189,25 +1243,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             updateSimClock() {
                 this._setText('sim-clock', this.formatTime(this.simulationElapsed / 3600));
-            }
-
-            updateWindDataDisplay() {
-                if (!this.showWeather) {
-                    this.windDataDisplay.innerHTML = '';
-                    this.windDataDisplay.style.display = 'none';
-                    return;
-                }
-                this.windDataDisplay.style.display = 'block';
-                const trueDir = this.formatBearing(this.trueWind.direction);
-                const trueSpd = this.trueWind.speed.toFixed(0);
-                const trueHtml = `<span class="wind-label">True Wind&nbsp;&nbsp;</span><span class="wind-value">${trueDir}&nbsp;T&nbsp;&nbsp;${trueSpd}&nbsp;KTS</span>`;
-                let relHtml = '';
-                if (this.showRelativeMotion) {
-                    const relDir = this.formatBearing(this.relativeWind.vectorDirection);
-                    const relSpd = this.relativeWind.speed.toFixed(0);
-                    relHtml = `<span class="wind-label">&nbsp;&nbsp;Relative&nbsp;Wind:&nbsp;</span><span class="wind-value">${relDir}&nbsp;T&nbsp;&nbsp;${relSpd}&nbsp;KTS</span>`;
-                }
-                this.windDataDisplay.innerHTML = trueHtml + relHtml;
             }
 
             scaleUI() {
@@ -1237,13 +1272,74 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             applyDataPanelFontSizes() {
                 const titleSize = 1.25 * this.uiScaleFactor;
-                const valueSize = 1.5 * this.uiScaleFactor;
+                const largeValueSize = 1.4 * this.uiScaleFactor;
+                const mediumValueSize = 1.3 * this.uiScaleFactor;
+
                 document.querySelectorAll('.data-title').forEach(el => el.style.fontSize = `${titleSize}rem`);
-                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${1 * this.uiScaleFactor}rem`);
-                document.querySelectorAll('.data-value').forEach(el => el.style.fontSize = `${valueSize}rem`);
+                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${mediumValueSize}rem`);
+
+                document.querySelectorAll('#ownship-crs, #ownship-spd, #track-data-container .data-value').forEach(el => {
+                    if (el) el.style.fontSize = `${largeValueSize}rem`;
+                });
+
+                document.querySelectorAll('#rm-data-container .data-value, #cpa-data-container .data-value, #wind-data-container .data-value').forEach(el => {
+                    if (el) el.style.fontSize = `${mediumValueSize}rem`;
+                });
             }
 
             // --- Interaction Handlers ---
+            updateDragTooltip(e) {
+                if (!this.draggedItemId) {
+                    this.dragTooltip.style.display = 'none';
+                    return;
+                }
+
+                let tooltipText = '';
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = (e.clientX - rect.left) * this.DPR;
+                const mouseY = (e.clientY - rect.top) * this.DPR;
+                const center = this.canvas.width / 2;
+                const pixelsPerNm = (center * 0.9) / this.maxRange;
+
+                if (this.dragType === 'icon') {
+                    const dx = mouseX - center;
+                    const dy = -(mouseY - center);
+                    const newRange = Math.hypot(dx, dy) / pixelsPerNm;
+                    const newCanvasAngleRad = Math.atan2(dy, dx);
+                    const newBearing = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+
+                    tooltipText = `Brg: ${this.formatBearing(newBearing)} T\nRng: ${newRange.toFixed(1)} nm`;
+                } else if (this.dragType === 'vector') {
+                    const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
+                    if (vessel) {
+                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
+                        const dx = mouseX - startPoint.x;
+                        const dy = -(mouseY - startPoint.y);
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        const distOnCanvas = Math.hypot(dx, dy);
+                        const newSpeed = distOnCanvas / pixelsPerNm / (this.vectorTimeInMinutes / 60);
+                        tooltipText = `Crs: ${this.formatBearing(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
+                    }
+                } else if (this.draggedItemId === 'trueWind') {
+                    if (this.dragType === 'windDirection') {
+                        tooltipText = `Dir: ${this.formatBearing(this.trueWind.direction)} T`;
+                    } else if (this.dragType === 'windSpeed') {
+                        tooltipText = `Spd: ${this.trueWind.speed.toFixed(1)} kts`;
+                    }
+                }
+
+                if (tooltipText) {
+                    this.dragTooltip.innerText = tooltipText;
+                    const tooltipRect = this.dragTooltip.getBoundingClientRect();
+                    this.dragTooltip.style.display = 'block';
+                    this.dragTooltip.style.left = `${e.clientX - tooltipRect.width - 10}px`;
+                    this.dragTooltip.style.top = `${e.clientY - tooltipRect.height - 10}px`;
+                } else {
+                    this.dragTooltip.style.display = 'none';
+                }
+            }
+
             handlePointerDown(e) {
                 if (e.button !== 0 && e.buttons !== undefined && e.buttons !== 1) return;
                 const rect = this.canvas.getBoundingClientRect();
@@ -1272,13 +1368,13 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.dragType = null;
                 this.pendingDragId = null;
                 this.pendingDragType = null;
+                this.dragTooltip.style.display = 'none';
             }
 
             handlePointerMove(e) {
                 const rect = this.canvas.getBoundingClientRect();
                 const mouseX = (e.clientX - rect.left) * this.DPR;
                 const mouseY = (e.clientY - rect.top) * this.DPR;
-                const center = this.canvas.width / 2;
                 
                 if (this.pendingDragId && !this.draggedItemId) {
                     const dx0 = mouseX - this.pointerDownPos.x;
@@ -1289,70 +1385,66 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                 }
                 
-                if (!this.draggedItemId) {
+                if (this.draggedItemId) {
+                    this.updateDragTooltip(e);
+                    const center = this.canvas.width / 2;
+                    const pixelsPerNm = (center * 0.9) / this.maxRange;
+                    if (this.draggedItemId === 'trueWind') {
+                        const dx = mouseX - center;
+                        const dy = -(mouseY - center);
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        if (this.dragType === 'windDirection') {
+                            this.trueWind.direction = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        } else if (this.dragType === 'windSpeed') {
+                            const pixelsPerKnot = 4;
+                            const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
+                            const radius = center * 0.9;
+                            const mouseVecX = mouseX - center;
+                            const mouseVecY = -(mouseY - center);
+                            const windVecX = Math.cos(windFromAngle);
+                            const windVecY = Math.sin(windFromAngle);
+                            const projectedLength = mouseVecX * windVecX + mouseVecY * windVecY;
+                            const arrowPixelLength = projectedLength - radius;
+                            this.trueWind.speed = Math.max(0, -arrowPixelLength / pixelsPerKnot);
+                        }
+                        this.markSceneDirty();
+                    } else if (this.dragType === 'icon') {
+                        const track = this.tracks.find(t => t.id === this.draggedItemId);
+                        if (track) {
+                            const deltaX_pixels = mouseX - this.lastMousePos.x;
+                            const deltaY_pixels = mouseY - this.lastMousePos.y;
+                            const deltaX_nm = deltaX_pixels / pixelsPerNm;
+                            const deltaY_nm = deltaY_pixels / pixelsPerNm;
+                            track.x += deltaX_nm;
+                            track.y -= deltaY_nm;
+                            this.markSceneDirty();
+                        }
+                    } else if (this.dragType === 'vector') {
+                        const timeInHours = this.vectorTimeInMinutes / 60;
+                        const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
+                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
+                        
+                        const dx = mouseX - startPoint.x;
+                        const dy = -(mouseY - startPoint.y);
+                        
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
+                        const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
+                        
+                        vessel.course = newCourse;
+                        vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
+                        this.markSceneDirty();
+                    }
+                    this.lastMousePos = { x: mouseX, y: mouseY };
+                } else {
                     const item = this.getInteractiveItemAt(mouseX, mouseY);
                     const newHoverId = item ? item.id : null;
                     if (newHoverId !== this.hoveredTrackId) {
                         this.hoveredTrackId = newHoverId;
                         this.markSceneDirty();
                     }
-                    return;
                 }
-
-                if (this.draggedItemId === 'trueWind') {
-                    const dx = mouseX - center;
-                    const dy = -(mouseY - center);
-                    const newCanvasAngleRad = Math.atan2(dy, dx);
-                    if (this.dragType === 'windDirection') {
-                        this.trueWind.direction = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                        this.markSceneDirty();
-                    } else if (this.dragType === 'windSpeed') {
-                        const pixelsPerKnot = 4;
-                        const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
-                        const radius = center * 0.9;
-                        const mouseVecX = mouseX - center;
-                        const mouseVecY = -(mouseY - center);
-                        const windVecX = Math.cos(windFromAngle);
-                        const windVecY = Math.sin(windFromAngle);
-                        const projectedLength = mouseVecX * windVecX + mouseVecY * windVecY;
-                        const arrowPixelLength = projectedLength - radius;
-                        this.trueWind.speed = Math.max(0, -arrowPixelLength / pixelsPerKnot);
-                        this.markSceneDirty();
-                    }
-                    return;
-                }
-
-                const pixelsPerNm = (center * 0.9) / this.maxRange;
-                if (this.dragType === 'icon') {
-                    const track = this.tracks.find(t => t.id === this.draggedItemId);
-                    if (track) {
-                        const deltaX_pixels = mouseX - this.lastMousePos.x;
-                        const deltaY_pixels = mouseY - this.lastMousePos.y;
-                        const deltaX_nm = deltaX_pixels / pixelsPerNm;
-                        const deltaY_nm = deltaY_pixels / pixelsPerNm;
-                        track.x += deltaX_nm;
-                        track.y -= deltaY_nm;
-                        this.markSceneDirty();
-                    }
-                } else if (this.dragType === 'vector') {
-                    const timeInHours = this.vectorTimeInMinutes / 60;
-                    const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
-                    const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
-                    
-                    const dx = mouseX - startPoint.x;
-                    const dy = -(mouseY - startPoint.y);
-                    
-                    const newCanvasAngleRad = Math.atan2(dy, dx);
-                    let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                    const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
-                    const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
-                    
-                    vessel.course = newCourse;
-                    vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
-                    this.markSceneDirty();
-                }
-                
-                this.lastMousePos = { x: mouseX, y: mouseY };
             }
 
             getInteractiveItemAt(mouseX, mouseY) {
@@ -1389,6 +1481,52 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 return null;
             }
 
+            createEditableField(element, targetObject, property, constraints = {}) {
+                const originalValue = targetObject[property];
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = originalValue.toFixed(1);
+                
+                const updateValue = () => {
+                    let newValue = parseFloat(input.value);
+                    if (!isNaN(newValue)) {
+                        if (constraints.min !== undefined) newValue = Math.max(constraints.min, newValue);
+                        if (constraints.max !== undefined) newValue = Math.min(constraints.max, newValue);
+                        targetObject[property] = newValue;
+                        
+                        if (property === 'bearing' || property === 'range') {
+                            const track = targetObject;
+                            const angleRad = this.toRadians(track.bearing);
+                            track.x = this.ownShip.x + track.range * Math.sin(angleRad);
+                            track.y = this.ownShip.y + track.range * Math.cos(angleRad);
+                        }
+                    }
+                    this.updatePanelsAndRedraw();
+                    this.markSceneDirty();
+                };
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        updateValue();
+                        input.blur();
+                    } else if (e.key === 'Escape') {
+                        input.blur();
+                    }
+                });
+
+                input.addEventListener('blur', () => {
+                    if (input.parentElement === element) {
+                         element.removeChild(input);
+                    }
+                    this.updatePanelsAndRedraw();
+                });
+
+                element.innerHTML = '';
+                element.appendChild(input);
+                input.focus();
+                input.select();
+            }
+
             // --- Control Button Actions ---
             toggleVectorTime() {
                 const currentIndex = this.vectorTimes.indexOf(this.vectorTimeInMinutes);
@@ -1408,14 +1546,13 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.showWeather = !this.showWeather;
                 this.markSceneDirty();
                 this.scaleUI();
-                this.updateWindDataDisplay();
+                this.updateDataPanels();
             }
 
             toggleRelativeMotion() {
                 this.showRelativeMotion = !this.showRelativeMotion;
                 this.markSceneDirty();
                 this.updatePanelsAndRedraw();
-                this.updateWindDataDisplay();
             }
 
             toggleCPAInfo() {
@@ -1603,4 +1740,4 @@ Questions?  >>  Aheadflank.ai@gmail.com
     </script>
     <script src="/_vercel/insights/script.js"></script>
 </body>
-</ht
+</html>
