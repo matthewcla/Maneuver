@@ -209,8 +209,10 @@
  		justify-content: center;
  		align-items: center;
         position: relative;
-        transform: scale(0.95);
+        transform: scale(0.85);
         gap: 10px;
+        margin-top: 20px;
+        margin-bottom: 20px;
 	   }
         /* Make the radar container circular and centered */
 
@@ -250,9 +252,26 @@
             transform-origin: top right;
             width: 10%;
         }
+
+        /* Tooltip for dragging items on the canvas */
+        #drag-tooltip {
+            position: fixed;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: var(--radar-green);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.85rem;
+            border-radius: 0.25rem;
+            pointer-events: none; /* So it doesn't interfere with mouse events */
+            z-index: 1000;
+            line-height: 1.4;
+            white-space: pre; /* To respect newlines and spacing */
+        }
     </style>
 </head>
 <body>
+
+<div id="drag-tooltip"></div>
 
 <div id="mobile-blocker"
      style="
@@ -571,6 +590,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 // --- DOM Element References ---
                 this.canvas = document.getElementById('radarCanvas');
                 this.ctx = this.canvas.getContext('2d');
+                this.dragTooltip = document.getElementById('drag-tooltip');
                 this.btnVectorTime = document.getElementById('btn-vector-time');
                 this.btnRmv = document.getElementById('btn-rmv');
                 this.btnCpa = document.getElementById('btn-cpa');
@@ -1244,6 +1264,51 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
 
             // --- Interaction Handlers ---
+            updateDragTooltip(e) {
+                if (!this.draggedItemId) {
+                    this.dragTooltip.style.display = 'none';
+                    return;
+                }
+
+                let tooltipText = '';
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = (e.clientX - rect.left) * this.DPR;
+                const mouseY = (e.clientY - rect.top) * this.DPR;
+                const center = this.canvas.width / 2;
+                const pixelsPerNm = (center * 0.9) / this.maxRange;
+
+                if (this.dragType === 'icon') {
+                    const dx = mouseX - center;
+                    const dy = -(mouseY - center);
+                    const newRange = Math.hypot(dx, dy) / pixelsPerNm;
+                    const newCanvasAngleRad = Math.atan2(dy, dx);
+                    const newBearing = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+
+                    tooltipText = `Brg: ${this.formatBearing(newBearing)} T\nRng: ${newRange.toFixed(1)} nm`;
+                } else if (this.dragType === 'vector') {
+                    const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
+                    if (vessel) {
+                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
+                        const dx = mouseX - startPoint.x;
+                        const dy = -(mouseY - startPoint.y);
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        const distOnCanvas = Math.hypot(dx, dy);
+                        const newSpeed = distOnCanvas / pixelsPerNm / (this.vectorTimeInMinutes / 60);
+                        tooltipText = `Crs: ${this.formatBearing(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
+                    }
+                }
+
+                if (tooltipText) {
+                    this.dragTooltip.innerText = tooltipText;
+                    this.dragTooltip.style.display = 'block';
+                    this.dragTooltip.style.left = `${e.clientX + 15}px`;
+                    this.dragTooltip.style.top = `${e.clientY + 15}px`;
+                } else {
+                    this.dragTooltip.style.display = 'none';
+                }
+            }
+
             handlePointerDown(e) {
                 if (e.button !== 0 && e.buttons !== undefined && e.buttons !== 1) return;
                 const rect = this.canvas.getBoundingClientRect();
@@ -1272,13 +1337,13 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.dragType = null;
                 this.pendingDragId = null;
                 this.pendingDragType = null;
+                this.dragTooltip.style.display = 'none';
             }
 
             handlePointerMove(e) {
                 const rect = this.canvas.getBoundingClientRect();
                 const mouseX = (e.clientX - rect.left) * this.DPR;
                 const mouseY = (e.clientY - rect.top) * this.DPR;
-                const center = this.canvas.width / 2;
                 
                 if (this.pendingDragId && !this.draggedItemId) {
                     const dx0 = mouseX - this.pointerDownPos.x;
@@ -1289,70 +1354,47 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                 }
                 
-                if (!this.draggedItemId) {
+                if (this.draggedItemId) {
+                    this.updateDragTooltip(e);
+                    const center = this.canvas.width / 2;
+                    const pixelsPerNm = (center * 0.9) / this.maxRange;
+                    if (this.dragType === 'icon') {
+                        const track = this.tracks.find(t => t.id === this.draggedItemId);
+                        if (track) {
+                            const deltaX_pixels = mouseX - this.lastMousePos.x;
+                            const deltaY_pixels = mouseY - this.lastMousePos.y;
+                            const deltaX_nm = deltaX_pixels / pixelsPerNm;
+                            const deltaY_nm = deltaY_pixels / pixelsPerNm;
+                            track.x += deltaX_nm;
+                            track.y -= deltaY_nm;
+                            this.markSceneDirty();
+                        }
+                    } else if (this.dragType === 'vector') {
+                        const timeInHours = this.vectorTimeInMinutes / 60;
+                        const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
+                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
+                        
+                        const dx = mouseX - startPoint.x;
+                        const dy = -(mouseY - startPoint.y);
+                        
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
+                        const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
+                        
+                        vessel.course = newCourse;
+                        vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
+                        this.markSceneDirty();
+                    }
+                    this.lastMousePos = { x: mouseX, y: mouseY };
+                } else {
                     const item = this.getInteractiveItemAt(mouseX, mouseY);
                     const newHoverId = item ? item.id : null;
                     if (newHoverId !== this.hoveredTrackId) {
                         this.hoveredTrackId = newHoverId;
                         this.markSceneDirty();
                     }
-                    return;
                 }
-
-                if (this.draggedItemId === 'trueWind') {
-                    const dx = mouseX - center;
-                    const dy = -(mouseY - center);
-                    const newCanvasAngleRad = Math.atan2(dy, dx);
-                    if (this.dragType === 'windDirection') {
-                        this.trueWind.direction = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                        this.markSceneDirty();
-                    } else if (this.dragType === 'windSpeed') {
-                        const pixelsPerKnot = 4;
-                        const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
-                        const radius = center * 0.9;
-                        const mouseVecX = mouseX - center;
-                        const mouseVecY = -(mouseY - center);
-                        const windVecX = Math.cos(windFromAngle);
-                        const windVecY = Math.sin(windFromAngle);
-                        const projectedLength = mouseVecX * windVecX + mouseVecY * windVecY;
-                        const arrowPixelLength = projectedLength - radius;
-                        this.trueWind.speed = Math.max(0, -arrowPixelLength / pixelsPerKnot);
-                        this.markSceneDirty();
-                    }
-                    return;
-                }
-
-                const pixelsPerNm = (center * 0.9) / this.maxRange;
-                if (this.dragType === 'icon') {
-                    const track = this.tracks.find(t => t.id === this.draggedItemId);
-                    if (track) {
-                        const deltaX_pixels = mouseX - this.lastMousePos.x;
-                        const deltaY_pixels = mouseY - this.lastMousePos.y;
-                        const deltaX_nm = deltaX_pixels / pixelsPerNm;
-                        const deltaY_nm = deltaY_pixels / pixelsPerNm;
-                        track.x += deltaX_nm;
-                        track.y -= deltaY_nm;
-                        this.markSceneDirty();
-                    }
-                } else if (this.dragType === 'vector') {
-                    const timeInHours = this.vectorTimeInMinutes / 60;
-                    const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
-                    const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
-                    
-                    const dx = mouseX - startPoint.x;
-                    const dy = -(mouseY - startPoint.y);
-                    
-                    const newCanvasAngleRad = Math.atan2(dy, dx);
-                    let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                    const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
-                    const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
-                    
-                    vessel.course = newCourse;
-                    vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
-                    this.markSceneDirty();
-                }
-                
-                this.lastMousePos = { x: mouseX, y: mouseY };
             }
 
             getInteractiveItemAt(mouseX, mouseY) {
@@ -1603,4 +1645,4 @@ Questions?  >>  Aheadflank.ai@gmail.com
     </script>
     <script src="/_vercel/insights/script.js"></script>
 </body>
-</ht
+</html>
