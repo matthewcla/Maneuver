@@ -653,7 +653,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
         class ScenarioGenerator {
             constructor(cfg){
                 this.cfg = cfg;
-                this.generatedIds = new Set();
+                this.nextId = 1;
             }
             makeScenario(ownship){
                 const tracks = [];
@@ -716,9 +716,9 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 return h;
             }
             _spawn(own,bearing,range,course,speed){
-                const rad=(bearing-90)*Math.PI/180;
+                const id = String(this.nextId++).padStart(4, '0');
                 return {
-                    id: crypto.randomUUID().slice(0,8),
+                    id,
                     x: own.x + range*Math.cos(rad),
                     y: own.y + range*Math.sin(rad),
                     course: course%360,
@@ -874,14 +874,14 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 // --- State Data ---
                 this.ownShip = { course: 91, speed: 12.7, id: 'ownShip', x: 0, y: 0 };
                 this.tracks = [
-                    { id: 1, initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
-                    { id: 2, initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
-                    { id: 3, initialBearing: 190, initialRange: 8.2, course: 75,  speed: 8.0 },
-                    { id: 4, initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
-                    { id: 5, initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
+                    { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
+                    { id: '0002', initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
+                    { id: '0003', initialBearing: 190, initialRange: 8.2, course: 75,  speed: 8.0 },
+                    { id: '0004', initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
+                    { id: '0005', initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
                 ];
-                
-                this.selectedTrackId = 1;
+
+                this.selectedTrackId = '0001';
                 this.hoveredTrackId = null;
                 this.draggedItemId = null;
                 this.dragType = null;
@@ -1876,9 +1876,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
             }
 
             addTrack() {
-                const existingIds = this.tracks.map(t => t.id).sort((a,b) => a - b);
-                let newId = 1;
-                while (existingIds.includes(newId)) newId++;
+                const existingNums = this.tracks.map(t => parseInt(t.id, 10)).sort((a,b) => a - b);
+                let newNum = 1;
+                while (existingNums.includes(newNum)) newNum++;
+                const newId = String(newNum).padStart(4, '0');
                 const newTrack = {
                     id: newId,
                     initialBearing: Math.random() * 360,
