@@ -439,7 +439,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	  
 > Play/Pause starts or stops the scenario.
 	  
-> Fast Forward and Rewind cycle simulation speed.
+> Fast Forward and Rewind cycle simulation speed at 25x and 50x.
 	  
 > + / - add or drop tracks.
 	  
@@ -1334,10 +1334,17 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.revSpeedIndicator.classList.add('d-none');
 
                 if (this.simulationSpeed > 1) {
-                    this.ffSpeedIndicator.textContent = `${this.simulationSpeed}x`;
+                    const label = this.simulationSpeed === 1.25 ? '25x'
+                                  : this.simulationSpeed === 1.5 ? '50x'
+                                  : `${this.simulationSpeed}x`;
+                    this.ffSpeedIndicator.textContent = label;
                     this.ffSpeedIndicator.classList.remove('d-none');
                 } else if (this.simulationSpeed < 0) {
-                    this.revSpeedIndicator.textContent = `${Math.abs(this.simulationSpeed)}x`;
+                    const absSpeed = Math.abs(this.simulationSpeed);
+                    const label = absSpeed === 1.25 ? '25x'
+                                  : absSpeed === 1.5 ? '50x'
+                                  : `${absSpeed}x`;
+                    this.revSpeedIndicator.textContent = label;
                     this.revSpeedIndicator.classList.remove('d-none');
                 }
             }
