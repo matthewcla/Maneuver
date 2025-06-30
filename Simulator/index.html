@@ -651,7 +651,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
         }
 
         class ScenarioGenerator {
-            constructor(cfg){ this.cfg = cfg; }
+            constructor(cfg){
+                this.cfg = cfg;
+                this.generatedIds = new Set();
+            }
             makeScenario(ownship){
                 const tracks = [];
                 const archetypes = ['STARBOARD_CROSS','HEAD_ON','OVERTAKE','CONSTRAINED'];
