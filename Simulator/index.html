@@ -57,10 +57,9 @@
             --ui-scale: 1;
             --base: calc(1 * var(--ui-scale));
         }
-        /* Ensure the canvas is responsive and has a cursor pointer for interaction */
+        /* Ensure the canvas is responsive; cursor state is managed dynamically */
         canvas {
             display: block;
-            cursor: pointer;
             touch-action: none; /* enable custom touch gestures */
         }
         /* Helper class for green text color */
@@ -1671,6 +1670,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const item = this.getInteractiveItemAt(mouseX, mouseY);
                 this.pointerDownPos = { x: mouseX, y: mouseY };
                 if (item) {
+                    this.canvas.style.cursor = 'grabbing';
                     this.pendingDragId = item.id;
                     this.pendingDragType = item.type;
                     this.lastMousePos = { x: mouseX, y: mouseY };
@@ -1686,7 +1686,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 }
             }
 
-            handlePointerUp() {
+           handlePointerUp() {
+                this.canvas.style.cursor = 'pointer';
                 this.draggedItemId = null;
                 this.dragType = null;
                 this.pendingDragId = null;
@@ -1761,13 +1762,14 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                     this.lastMousePos = { x: mouseX, y: mouseY };
                 } else {
-                    const item = this.getInteractiveItemAt(mouseX, mouseY);
-                    const newHoverId = item ? item.id : null;
-                    if (newHoverId !== this.hoveredTrackId) {
-                        this.hoveredTrackId = newHoverId;
-                        this.markSceneDirty();
-                    }
-                }
+                   const item = this.getInteractiveItemAt(mouseX, mouseY);
+                    this.canvas.style.cursor = item ? 'pointer' : 'default';
+                   const newHoverId = item ? item.id : null;
+                   if (newHoverId !== this.hoveredTrackId) {
+                       this.hoveredTrackId = newHoverId;
+                       this.markSceneDirty();
+                   }
+               }
             }
 
             getInteractiveItemAt(mouseX, mouseY) {
