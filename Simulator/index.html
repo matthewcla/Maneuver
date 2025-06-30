@@ -94,7 +94,8 @@
         #data-pane > div,
         #track-data-container,
         #cpa-data-container,
-        #rm-data-container {
+        #rm-data-container,
+        #wind-data-container {
             width: 100%;
         }
         
@@ -145,8 +146,6 @@
             color: var(--radar-green);
             border-color: var(--radar-green);
         }
-        .wind-value   { font-size: 170%; }  /* 1.5 × current size */
-        .wind-label   { font-size: inherit; }/* unchanged */
 	   #button-bar{
    		padding: 0.5rem;
    		z-index: 40;
@@ -175,20 +174,40 @@
         }
         #data-pane {
             width: 100%;
-            gap: 1.7rem !important;
             padding: calc(5px * var(--ui-scale));
-            max-width: calc(800px * var(--ui-scale));
-            flex: 0 1 auto;
+            flex: 1 1 auto;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 0.5rem;
         }
         .data-title { font-size: calc(1.25rem * var(--ui-scale)); }
         .data-label {
-            font-size: calc(1rem * var(--ui-scale));
+            font-size: calc(1.3rem * var(--ui-scale));
             line-height: 1.1;
         }
         .data-value {
-            font-size: calc(1.75rem * var(--ui-scale));
+            font-size: calc(1.3rem * var(--ui-scale));
             line-height: 1.1;
+        }
+        #ownship-crs, #ownship-spd, #track-data-container .data-value {
+             font-size: calc(1.4rem * var(--ui-scale));
+        }
+        .editable {
+            cursor: pointer;
+        }
+        .data-value input {
+            background-color: transparent;
+            color: var(--radar-green);
+            border: none;
+            text-align: right;
+            font-size: inherit;
+            font-family: inherit;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            outline: none;
         }
         #data-pane .mt-2 { margin-top: 0.25rem !important; }
         #btn-add-track,
@@ -209,15 +228,13 @@
  		justify-content: center;
  		align-items: center;
         position: relative;
-        transform: scale(0.85);
         gap: 10px;
-        margin-top: 20px;
-        margin-bottom: 20px;
 	   }
         /* Make the radar container circular and centered */
 
         #radar-container {
-            flex: 1;
+            max-width: 90%;
+            max-height: 90%;
             min-height: 0;
             width: 100%;
             border-radius: 50%;
@@ -233,11 +250,6 @@
             height: 100%;
             border-radius: 50%;
             aspect-ratio: 1 / 1;   /* maintain perfect circle */
-        }
-        #wind-data-display {
-            font-size: calc(0.75rem * var(--ui-scale));
-            padding: 0;
-            text-align: center;
         }
 	   
         #help-modal {
@@ -554,7 +566,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
 	    
         <!-- Center Pane: Radar Display -->
         <div id="radar-wrapper" class="flex-grow-1 d-flex align-items-center justify-content-center">
-            <div id="wind-data-display" class="text-center text-radar-green"></div>
             <div id="radar-container" class="d-flex align-items-center justify-content-center">
     			<canvas id="radarCanvas"></canvas>
 	      </div>
@@ -563,19 +574,50 @@ Questions?  >>  Aheadflank.ai@gmail.com
         <!-- Right Pane -->
         <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green">
             <div id="sim-clock" class="text-center">00:00:00</div>
-            <div id="data-pane" class="d-flex flex-column gap-4 overflow-auto" >
+            <div id="data-pane" class="d-flex flex-column" >
                 <!-- OwnShip Data -->
                 <div>
                     <p class="font-bold tracking-wide data-title">OwnShip</p>
                     <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value"></span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
                     </div>
                 </div>
                 <!-- Data Panels for selected track will be dynamically inserted here -->
-                <div id="track-data-container"></div>
-                <div id="cpa-data-container"></div>
-                <div id="rm-data-container"></div>
+                <div id="track-data-container">
+                     <p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
+                    </div>
+                </div>
+                <div id="rm-data-container">
+                    <p class="font-bold tracking-wide data-title">Rel Motion</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
+                    </div>
+                </div>
+                <div id="cpa-data-container">
+                     <p class="font-bold tracking-wide data-title">CPA</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
+                    </div>
+                </div>
+                <div id="wind-data-container">
+                    <p class="font-bold tracking-wide data-title">Wind</p>
+                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -618,7 +660,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.trackDataContainer = document.getElementById('track-data-container');
                 this.rmDataContainer = document.getElementById('rm-data-container');
                 this.cpaDataContainer = document.getElementById('cpa-data-container');
-                this.windDataDisplay = document.getElementById('wind-data-display');
+                this.windDataContainer = document.getElementById('wind-data-container');
                 this.simClock = document.getElementById('sim-clock');
                 this.mainContainer = document.querySelector('main.main-content');
 
@@ -653,6 +695,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.DOM_UPDATE_INTERVAL = 200;
                 this.sceneDirty = true;
                 this.simulationElapsed = 0;
+                this.activeEditField = null;
                 
                 // --- Weather Data ---
                 this.trueWind = { 
@@ -669,8 +712,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.vectorTimeInMinutes = 15;
                 this.vectorTimes = [3, 15, 30];
                 this.simulationSpeed = 1;
-                this.ffSpeeds = [10, 20, 30, 1];
-                this.revSpeeds = [-10, -20, -30, 1];
+                this.ffSpeeds = [1.25, 1.5];
+                this.revSpeeds = [-1.25, -1.5];
                 this.showRelativeMotion = false;
                 this.showCPAInfo = false;
                 this.isSimulationRunning = true;
@@ -773,6 +816,15 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
                     this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
                 }).observe(this.helpModal);
+
+                // Editable fields
+                this.dataPane.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('editable')) {
+                        if (this.activeEditField) return; // Prevent new input if one is already active
+                        this.activeEditField = e.target.id;
+                        this.updatePanelsAndRedraw();
+                    }
+                });
             }
 
             // --- Animation & Optimizations ---
@@ -836,9 +888,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             _setText(id, value) {
                 const el = document.getElementById(id);
-                if (el && el._prev !== value) {
+                if (el && el.textContent !== value) {
                     el.textContent = value;
-                    el._prev = value;
                 }
             }
 
@@ -904,7 +955,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
                         const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
                         track.cpa = {
-                            range: `${cpaRange.toFixed(2)} NM`,
+                            range: `${cpaRange.toFixed(1)} NM`,
                             time: this.formatTime(tcpa),
                             brg: `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`
                         };
@@ -954,9 +1005,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 
                 if (this.showWeather) {
                     this.drawWeatherInfo(center, radius);
-                    this.updateWindDataDisplay();
-                } else {
-                    this.updateWindDataDisplay();
                 }
                 this.drawOwnShipIcon(center, radius);
                 this.tracks.forEach(track => {
@@ -1166,31 +1214,31 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             updateDataPanels() {
                 const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
-                this.trackDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">TRACK ${selectedTrack ? selectedTrack.id : '--'}</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${selectedTrack ? this.formatBearing(selectedTrack.bearing) + ' T' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${selectedTrack ? selectedTrack.range.toFixed(2) + ' NM' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span class="data-value text-end">${selectedTrack ? this.formatBearing(selectedTrack.course) + ' T' : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span class="data-value text-end">${selectedTrack ? selectedTrack.speed.toFixed(1) + ' KTS' : '--'}</span></div>
-                    </div>`;
+                
+                this._setText('track-id', selectedTrack ? selectedTrack.id : '--');
+                this._setText('track-brg', selectedTrack ? `${this.formatBearing(selectedTrack.bearing)} T` : '--');
+                this._setText('track-rng', selectedTrack ? `${selectedTrack.range.toFixed(1)} NM` : '--');
+                this._setText('track-crs', selectedTrack ? `${this.formatBearing(selectedTrack.course)} T` : '--');
+                this._setText('track-spd', selectedTrack ? `${selectedTrack.speed.toFixed(1)} KTS` : '--');
 
                 const showRM = selectedTrack && this.showRelativeMotion;
-                this.rmDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">Rel Motion</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.dir : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span class="data-value text-end">${showRM ? selectedTrack.rm.spd : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span class="data-value text-end">${showRM ? selectedTrack.rm.rate : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span class="data-value text-end">${showRM ? selectedTrack.rm.angle : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span class="data-value text-end">${showRM ? selectedTrack.rm.aspect : '--'}</span></div>
-                    </div>`;
+                this._setText('rm-dir', showRM ? selectedTrack.rm.dir : '--');
+                this._setText('rm-spd', showRM ? selectedTrack.rm.spd : '--');
+                this._setText('rm-rate', showRM ? selectedTrack.rm.rate : '--');
+                this._setText('rm-angle', showRM ? selectedTrack.rm.angle : '--');
+                this._setText('rm-aspect', showRM ? selectedTrack.rm.aspect : '--');
                 
                 const showCPA = selectedTrack && this.showCPAInfo && !selectedTrack.hasPassedCPA;
-                this.cpaDataContainer.innerHTML = `<p class="font-bold tracking-wide data-title">CPA</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.brg : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.range : '--'}</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span class="data-value text-end">${showCPA ? selectedTrack.cpa.time : '--'}</span></div>
-                    </div>`;
+                this._setText('cpa-brg', showCPA ? selectedTrack.cpa.brg : '--');
+                this._setText('cpa-rng', showCPA ? selectedTrack.cpa.range : '--');
+                this._setText('cpa-time', showCPA ? selectedTrack.cpa.time : '--');
+                
+                const showTrueWind = this.showWeather;
+                const showRelWind = this.showWeather && this.showRelativeMotion;
+                const relWindBearing = (this.relativeWind.vectorDirection - this.ownShip.course + 360) % 360;
+                this._setText('wind-true', showTrueWind ? `${this.formatBearing(this.trueWind.direction)} T  ${this.trueWind.speed.toFixed(1)} kts` : '--');
+                this._setText('wind-rel', showRelWind ? `${this.formatBearing(relWindBearing)} R  ${this.relativeWind.speed.toFixed(1)} kts` : '--');
+
                 this.applyDataPanelFontSizes();
             }
             
@@ -1204,30 +1252,11 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.iconPause.classList.toggle('d-none', !this.isSimulationRunning);
 
                 this.btnFf.className = `control-btn p-2 ${this.simulationSpeed > 1 ? 'selected' : 'unselected'}`;
-                this.btnRev.className = `control-btn p-2 ${this.simulationSpeed < 1 ? 'selected' : 'unselected'}`;
+                this.btnRev.className = `control-btn p-2 ${this.simulationSpeed < 0 ? 'selected' : 'unselected'}`;
             }
 
             updateSimClock() {
                 this._setText('sim-clock', this.formatTime(this.simulationElapsed / 3600));
-            }
-
-            updateWindDataDisplay() {
-                if (!this.showWeather) {
-                    this.windDataDisplay.innerHTML = '';
-                    this.windDataDisplay.style.display = 'none';
-                    return;
-                }
-                this.windDataDisplay.style.display = 'block';
-                const trueDir = this.formatBearing(this.trueWind.direction);
-                const trueSpd = this.trueWind.speed.toFixed(0);
-                const trueHtml = `<span class="wind-label">True Wind&nbsp;&nbsp;</span><span class="wind-value">${trueDir}&nbsp;T&nbsp;&nbsp;${trueSpd}&nbsp;KTS</span>`;
-                let relHtml = '';
-                if (this.showRelativeMotion) {
-                    const relDir = this.formatBearing(this.relativeWind.vectorDirection);
-                    const relSpd = this.relativeWind.speed.toFixed(0);
-                    relHtml = `<span class="wind-label">&nbsp;&nbsp;Relative&nbsp;Wind:&nbsp;</span><span class="wind-value">${relDir}&nbsp;T&nbsp;&nbsp;${relSpd}&nbsp;KTS</span>`;
-                }
-                this.windDataDisplay.innerHTML = trueHtml + relHtml;
             }
 
             scaleUI() {
@@ -1257,10 +1286,19 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             applyDataPanelFontSizes() {
                 const titleSize = 1.25 * this.uiScaleFactor;
-                const valueSize = 1.5 * this.uiScaleFactor;
+                const largeValueSize = 1.4 * this.uiScaleFactor;
+                const mediumValueSize = 1.3 * this.uiScaleFactor;
+
                 document.querySelectorAll('.data-title').forEach(el => el.style.fontSize = `${titleSize}rem`);
-                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${1 * this.uiScaleFactor}rem`);
-                document.querySelectorAll('.data-value').forEach(el => el.style.fontSize = `${valueSize}rem`);
+                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${mediumValueSize}rem`);
+
+                document.querySelectorAll('#ownship-crs, #ownship-spd, #track-data-container .data-value').forEach(el => {
+                    if (el) el.style.fontSize = `${largeValueSize}rem`;
+                });
+
+                document.querySelectorAll('#rm-data-container .data-value, #cpa-data-container .data-value, #wind-data-container .data-value').forEach(el => {
+                    if (el) el.style.fontSize = `${mediumValueSize}rem`;
+                });
             }
 
             // --- Interaction Handlers ---
@@ -1297,13 +1335,18 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         const newSpeed = distOnCanvas / pixelsPerNm / (this.vectorTimeInMinutes / 60);
                         tooltipText = `Crs: ${this.formatBearing(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
                     }
+                } else if (this.draggedItemId === 'trueWind') {
+                    if (this.dragType === 'windDirection') {
+                        tooltipText = `Dir: ${this.formatBearing(this.trueWind.direction)} T`;
+                    } else if (this.dragType === 'windSpeed') {
+                        tooltipText = `Spd: ${this.trueWind.speed.toFixed(1)} kts`;
+                    }
                 }
 
                 if (tooltipText) {
                     this.dragTooltip.innerText = tooltipText;
                     this.dragTooltip.style.display = 'block';
-                    this.dragTooltip.style.left = `${e.clientX + 15}px`;
-                    this.dragTooltip.style.top = `${e.clientY + 15}px`;
+                    this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
                 } else {
                     this.dragTooltip.style.display = 'none';
                 }
@@ -1358,7 +1401,26 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     this.updateDragTooltip(e);
                     const center = this.canvas.width / 2;
                     const pixelsPerNm = (center * 0.9) / this.maxRange;
-                    if (this.dragType === 'icon') {
+                    if (this.draggedItemId === 'trueWind') {
+                        const dx = mouseX - center;
+                        const dy = -(mouseY - center);
+                        const newCanvasAngleRad = Math.atan2(dy, dx);
+                        if (this.dragType === 'windDirection') {
+                            this.trueWind.direction = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                        } else if (this.dragType === 'windSpeed') {
+                            const pixelsPerKnot = 4;
+                            const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
+                            const radius = center * 0.9;
+                            const mouseVecX = mouseX - center;
+                            const mouseVecY = -(mouseY - center);
+                            const windVecX = Math.cos(windFromAngle);
+                            const windVecY = Math.sin(windFromAngle);
+                            const projectedLength = mouseVecX * windVecX + mouseVecY * windVecY;
+                            const arrowPixelLength = projectedLength - radius;
+                            this.trueWind.speed = Math.max(0, -arrowPixelLength / pixelsPerKnot);
+                        }
+                        this.markSceneDirty();
+                    } else if (this.dragType === 'icon') {
                         const track = this.tracks.find(t => t.id === this.draggedItemId);
                         if (track) {
                             const deltaX_pixels = mouseX - this.lastMousePos.x;
@@ -1431,6 +1493,58 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 return null;
             }
 
+            createEditableField(element) {
+                if (element.querySelector('input')) return;
+                
+                const originalText = element.textContent;
+                const originalValue = parseFloat(originalText) || 0;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = originalValue.toFixed(1);
+                
+                const commitEdit = () => {
+                    let newValue = parseFloat(input.value);
+                    if (!isNaN(newValue)) {
+                        const id = element.id;
+                        const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
+                        
+                        if (id === 'ownship-crs') this.ownShip.course = Math.max(0, Math.min(359.9, newValue));
+                        else if (id === 'ownship-spd') this.ownShip.speed = newValue;
+                        else if (selectedTrack) {
+                            if (id === 'track-brg') selectedTrack.bearing = Math.max(0, Math.min(359.9, newValue));
+                            else if (id === 'track-rng') selectedTrack.range = newValue;
+                            else if (id === 'track-crs') selectedTrack.course = Math.max(0, Math.min(359.9, newValue));
+                            else if (id === 'track-spd') selectedTrack.speed = newValue;
+
+                            if (id === 'track-brg' || id === 'track-rng') {
+                                const angleRad = this.toRadians(selectedTrack.bearing);
+                                selectedTrack.x = this.ownShip.x + selectedTrack.range * Math.sin(angleRad);
+                                selectedTrack.y = this.ownShip.y + selectedTrack.range * Math.cos(angleRad);
+                            }
+                        }
+                    }
+                    this.activeEditField = null;
+                    this.updatePanelsAndRedraw();
+                    this.markSceneDirty();
+                };
+
+                input.addEventListener('blur', commitEdit, { once: true });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        input.blur();
+                    } else if (e.key === 'Escape') {
+                        this.activeEditField = null;
+                        this.updatePanelsAndRedraw();
+                    }
+                });
+
+                element.innerHTML = '';
+                element.appendChild(input);
+                input.focus();
+                input.select();
+            }
+
             // --- Control Button Actions ---
             toggleVectorTime() {
                 const currentIndex = this.vectorTimes.indexOf(this.vectorTimeInMinutes);
@@ -1450,14 +1564,13 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.showWeather = !this.showWeather;
                 this.markSceneDirty();
                 this.scaleUI();
-                this.updateWindDataDisplay();
+                this.updateDataPanels();
             }
 
             toggleRelativeMotion() {
                 this.showRelativeMotion = !this.showRelativeMotion;
                 this.markSceneDirty();
                 this.updatePanelsAndRedraw();
-                this.updateWindDataDisplay();
             }
 
             toggleCPAInfo() {
@@ -1468,27 +1581,35 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             togglePlayPause() {
                 this.isSimulationRunning = !this.isSimulationRunning;
-                if (!this.isSimulationRunning) {
+                if (this.isSimulationRunning) {
                     this.simulationSpeed = 1;
                 }
-                this.updateSpeedIndicator();
                 this.updateButtonStyles();
+                this.updateSpeedIndicator();
                 this.startGameLoop();
             }
 
             fastForward() {
-                const currentIndex = this.ffSpeeds.indexOf(this.simulationSpeed);
-                this.simulationSpeed = this.ffSpeeds[(currentIndex + 1) % this.ffSpeeds.length];
-                this.updateSpeedIndicator();
+                const speeds = [1, 1.25, 1.5];
+                let currentIndex = speeds.indexOf(this.simulationSpeed);
+                if (this.simulationSpeed <= 0) currentIndex = -1;
+                const nextIndex = (currentIndex + 1) % speeds.length;
+                this.simulationSpeed = speeds[nextIndex];
                 this.isSimulationRunning = true;
+                this.updateButtonStyles();
+                this.updateSpeedIndicator();
                 this.startGameLoop();
             }
 
             rewind() {
-                const currentIndex = this.revSpeeds.indexOf(this.simulationSpeed);
-                this.simulationSpeed = this.revSpeeds[(currentIndex + 1) % this.revSpeeds.length];
-                this.updateSpeedIndicator();
+                const speeds = [1, -1.25, -1.5];
+                let currentIndex = speeds.indexOf(this.simulationSpeed);
+                if (this.simulationSpeed >= 1) currentIndex = 0;
+                const nextIndex = (currentIndex + 1) % speeds.length;
+                this.simulationSpeed = speeds[nextIndex];
                 this.isSimulationRunning = true;
+                this.updateButtonStyles();
+                this.updateSpeedIndicator();
                 this.startGameLoop();
             }
 
