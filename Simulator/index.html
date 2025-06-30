@@ -1762,14 +1762,17 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                     this.lastMousePos = { x: mouseX, y: mouseY };
                 } else {
-                   const item = this.getInteractiveItemAt(mouseX, mouseY);
-                    this.canvas.style.cursor = item ? 'pointer' : 'default';
-                   const newHoverId = item ? item.id : null;
-                   if (newHoverId !== this.hoveredTrackId) {
-                       this.hoveredTrackId = newHoverId;
-                       this.markSceneDirty();
-                   }
-               }
+                    let item = null;
+                    if (!this.pendingDragId) {
+                        item = this.getInteractiveItemAt(mouseX, mouseY);
+                        this.canvas.style.cursor = item ? 'pointer' : 'default';
+                    }
+                    const newHoverId = item ? item.id : null;
+                    if (newHoverId !== this.hoveredTrackId) {
+                        this.hoveredTrackId = newHoverId;
+                        this.markSceneDirty();
+                    }
+                }
             }
 
             getInteractiveItemAt(mouseX, mouseY) {
