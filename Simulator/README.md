@@ -6,7 +6,7 @@ It displays a radar screen, lets you play/pause a simulated scenario, add or dro
 
 ## Running Locally
 1. Clone or download this repository.
-2. Open the `Maneuver-Simulator-App/index.html` file in any modern desktop browser (Chrome, Firefox, Edge, etc.).
+2. Open the `Simulator/index.html` file in any modern desktop browser (Chrome, Firefox, Edge, etc.).
 3. The simulator should load immediately—no server setup is required.
 
 ## Safety Disclaimer
