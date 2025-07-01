@@ -894,8 +894,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.dragThreshold = 6 * this.DPR;
                 this.lastMousePos = { x: 0, y: 0 };
                 this.lastTimestamp = 0;
-                this.timeSinceFastUpdate = 0;
-                this.timeSinceSlowUpdate = 0;
+                this.lastDomUpdate  = 0;
+                this.DOM_UPDATE_INTERVAL = 200;
                 this.sceneDirty = true;
                 this.simulationElapsed = 0;
                 this.activeEditField = null;
@@ -929,12 +929,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.handlePointerUp = this.handlePointerUp.bind(this);
                 this.handlePointerMove = this.handlePointerMove.bind(this);
 
-		this._attachEventListeners();
                 this._initialize();
             }
 
             // --- Main Initialization ---
             _initialize() {
+                this._attachEventListeners();
                 
                 const BASE_CANVAS_SIZE = 900;
                 this.canvas.width = BASE_CANVAS_SIZE * this.DPR;
@@ -1040,41 +1040,37 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     }
                 });
             }
-
+		
+	    // TODO: Optimize the simulation loop to handle ~50-100 tracks smoothly.
+	    // - Avoid creating new objects or strings every frame (reuse them instead).
+	    // - Do minimal work for off-screen or non-selected tracks.
+	    // - Keep each frame under ~16ms.
             // --- Animation & Optimizations ---
+		
             gameLoop(timestamp) {
                 const deltaTime = (timestamp - this.lastTimestamp) || 0;
                 this.lastTimestamp = timestamp;
 
-                this.timeSinceFastUpdate += deltaTime;
-                this.timeSinceSlowUpdate += deltaTime;
-
-		this.updatePhysics(deltaTime);
+                this.updatePhysics(deltaTime);
 
                 if (this.isSimulationRunning) {
                     this.simulationElapsed += (deltaTime / 1000) * Math.abs(this.simulationSpeed);
                     this.sceneDirty = true;
                 }
 
-                if (this.timeSinceFastUpdate >= 1000) {
-                    this.updateSimClock();
-                    this.calculateWindData();
-                    this.updateOwnShipPanel();
-                    this.updateWindPanel();
-                    this.timeSinceFastUpdate = 0;
-                    this.sceneDirty = true;
-                }
-
-                if (this.timeSinceSlowUpdate >= 6000) {
-                    this.tracks.forEach(t => this.calculateAllData(t));
-                    this.updateDataPanels();
-                    this.timeSinceSlowUpdate = 0;
-                    this.sceneDirty = true;
-                }
-
                 if (this.sceneDirty) {
+                    this.tracks.forEach(t => this.calculateAllData(t));
+                    this.calculateWindData();
                     this.drawRadar();
                     this.sceneDirty = false;
+                }
+
+                if (timestamp - this.lastDomUpdate >= this.DOM_UPDATE_INTERVAL) {
+                    this.updateOwnShipPanel();
+                    this.updateDataPanels();
+                    this.updateButtonStyles();
+                    this.updateSimClock();
+                    this.lastDomUpdate = timestamp;
                 }
 
                 if (this.isSimulationRunning || this.sceneDirty) {
@@ -1503,14 +1499,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this._renderEditableField('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`, this.ownShip.speed);
             }
 
-            updateWindPanel() {
-                const showTrueWind = this.showWeather;
-                const showRelWind = this.showWeather && this.showRelativeMotion;
-                const relWindBearing = (this.relativeWind.vectorDirection - this.ownShip.course + 360) % 360;
-                this._setText('wind-true', showTrueWind ? `${this.formatBearing(this.trueWind.direction)} T  ${this.trueWind.speed.toFixed(1)} kts` : '--');
-                this._setText('wind-rel', showRelWind ? `${this.formatBearing(relWindBearing)} R  ${this.relativeWind.speed.toFixed(1)} kts` : '--');
-            }
-
             updateDataPanels() {
                 const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
                 
@@ -1758,8 +1746,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                             const deltaY_nm = deltaY_pixels / pixelsPerNm;
                             track.x += deltaX_nm;
                             track.y -= deltaY_nm;
-	                    this.calculateAllData(track);
-                            this.updateDataPanels();
                             this.markSceneDirty();
                         }
                     } else if (this.dragType === 'vector') {
@@ -1777,10 +1763,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         
                         vessel.course = newCourse;
                         vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
-                        if (vessel.id !== 'ownShip') {
-                            this.calculateAllData(vessel);
-                            this.updateDataPanels();
-                        }
                         this.markSceneDirty();
                     }
                     this.lastMousePos = { x: mouseX, y: mouseY };
