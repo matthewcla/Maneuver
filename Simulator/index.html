@@ -30,296 +30,26 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <style>
-        
-        /* Apply the custom font and base styling */
-        html, body {
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #000000;
-            color: #ffffff;
-            overflow: hidden;
-        }
-        /* Define custom colors for easier use in JS and to avoid purging */
-        :root {
-            --radar-green: #00FF00;
-            --radar-white: #FFFFFF;
-            --radar-faint-green: rgba(0, 255, 0, 0.5);
-            --radar-faint-white: rgba(255, 255, 255, 0.5);
-            /* fallback for dynamic 100vh calculation */
-            --vh: 1vh;
-            /* global UI scale set by JavaScript */
-            --ui-scale: 1;
-            --base: calc(1 * var(--ui-scale));
-        }
-        /* Ensure the canvas is responsive; cursor state is managed dynamically */
-        canvas {
-            display: block;
-            touch-action: none; /* enable custom touch gestures */
-        }
-        /* Helper class for green text color */
-        .text-radar-green {
-            color: var(--radar-green);
-        }
-        .tracking-wide {
-            letter-spacing: 0.05em;
-        }
-        /* Ensure the main content area fills the viewport height */
-           .main-content {
-               display: flex;
-               justify-content: space-between;
-               align-items: center;
-               height: calc(var(--vh, 1vh) * 100);
-               gap: 20px;
-               padding: 15px 10px;
-               overflow: hidden;
-               box-sizing: border-box;
-           }
+    <!-- <style>
 
-        @media (min-width: 1600px) {
-            main.main-content {
-                max-width: 1600px;
-                margin: 0 auto;
-            }
-        }
-
-        #data-pane,
-        #sim-clock,
-        #data-pane > div,
-        #track-data-container,
-        #cpa-data-container,
-        #rm-data-container,
-        #wind-data-container {
-            width: 100%;
-        }
-        
-        /* Button Styling */
-        .control-btn {
-            background-color: black;
-            border-radius: 0.5rem;
-            border-width: 1.5px;
-            transition: all 0.2s ease-in-out;
-            width: 100%; /* Make buttons fill the container */
-            text-align: center;
-            /* Added for better vertical alignment of text/icons */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            font-size: calc(1.1rem * var(--ui-scale));
-            padding: calc(0.5rem * var(--ui-scale)) calc(0.25rem * var(--ui-scale));
-        }
-        .control-btn svg { width: 1em; height: 1em; }
-        /* Instant tooltip styling using data-tooltip attribute */
-        .control-btn[data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: 10%;
-            left: 50%;
-            transform: translateY(-50%);
-            margin-left: 0.25rem;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: var(--radar-green);
-            padding: 0.125rem 0.25rem;
-            font-size: 0.75rem;
-            border-radius: 0.25rem;
-            white-space: nowrap;
-            pointer-events: none;
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.1s ease-in-out;
-        }
-        .control-btn[data-tooltip]:hover::after {
-            opacity: 1;
-        }
-        .control-btn.unselected {
-            color: var(--radar-faint-green);
-            border-color: var(--radar-faint-green);
-        }
-        .control-btn.selected {
-            color: var(--radar-green);
-            border-color: var(--radar-green);
-        }
-	   #button-bar{
-   		padding: 0.5rem;
-   		z-index: 40;
-        height: 100%;
-	 }
-        #button-bar      { width: calc(80px * var(--ui-scale)); }
-        #button-bar > .border-top { margin: calc(30px * var(--ui-scale)) 0; }
-	 /* (override Bootstrap’s .gap‑2 and internal margins)              */
-	 #button-bar{
-	   gap: 0.7rem !important;  /* .gap‑2 is 0.5 rem → now 0.2 rem (≈‑60%)*/
-	 }
-	 #button-bar .control-btn{
-	   padding-block: calc(0.2rem * var(--ui-scale));  /* was 0.5 rem     */
-	 }
-	 /* the thin horizontal dividers */
-	 #button-bar .border-top{
-	   margin-block: 0.3rem !important;  /* was ≈1 rem                      */
-	 }
-        #right-pane {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex-basis: calc(300px * var(--ui-scale));
-            min-width: 320px;
-        }
-        #data-pane {
-            width: 100%;
-            padding: calc(5px * var(--ui-scale));
-            flex: 1 1 auto;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-        .data-title { font-size: calc(1.25rem * var(--ui-scale)); }
-        .data-label {
-            font-size: calc(1.3rem * var(--ui-scale));
-            line-height: 1.1;
-        }
-        .data-value {
-            font-size: calc(1.3rem * var(--ui-scale));
-            line-height: 1.1;
-        }
-        #ownship-crs, #ownship-spd, #track-data-container .data-value {
-             font-size: calc(1.4rem * var(--ui-scale));
-        }
-        .editable {
-            cursor: pointer;
-        }
-        .data-value input {
-            background-color: transparent;
-            color: var(--radar-green);
-            border: none;
-            text-align: right;
-            font-size: inherit;
-            font-family: inherit;
-            width: 100%;
-            padding: 0;
-            margin: 0;
-            outline: none;
-        }
-        #data-pane .mt-2 { margin-top: 0.25rem !important; }
-        #btn-add-track,
-        #btn-drop-track {
-            font-size: calc(2.25rem * var(--ui-scale));
-            line-height: 1;
-        }
-        #sim-clock {
-            font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-            font-size: calc(3rem * var(--ui-scale));
-            flex: 0 0 auto;
-        }
-	 /* Let the radar fill the middle, and center its contents */
-	 #radar-wrapper {
- 		flex: 1;
- 		display: flex;
-        flex-direction: column;
- 		justify-content: center;
- 		align-items: center;
-        position: relative;
-        gap: 10px;
-	   }
-        /* Make the radar container circular and centered */
-
-        #radar-container {
-            max-width: 90%;
-            max-height: 90%;
-            min-height: 0;
-            width: 100%;
-            border-radius: 50%;
-            overflow: hidden;
-            position: relative;
-            aspect-ratio: 1 / 1;   /* keep the radar container square */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #radarCanvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            aspect-ratio: 1 / 1;   /* maintain perfect circle */
-        }
-	   
-        #help-modal {
-            border: 2px solid var(--radar-faint-green);
-            position: fixed;
-        }
-        #help-close-btn {
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            transform: scaleX(0.8);
-            transform-origin: top right;
-            width: 10%;
-        }
-
-        /* Tooltip for dragging items on the canvas */
-        #drag-tooltip {
-            position: fixed;
-            display: none;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: var(--radar-green);
-            padding: 0.25rem 0.5rem;
-            font-size: 0.85rem;
-            border-radius: 0.25rem;
-            pointer-events: none; /* So it doesn't interfere with mouse events */
-            z-index: 1000;
-            line-height: 1.4;
-            white-space: pre; /* To respect newlines and spacing */
-        }
-    </style>
+    </style> -->
+    <link rel="stylesheet" href="./css/beta.css"/>
 </head>
 <body>
 
 <div id="drag-tooltip"></div>
 
-<div id="mobile-blocker"
-     style="
-         /* overlay covers the whole viewport */
-         position:fixed; inset:0;
-         background:#000; color:#0f0;
-         z-index:9999;
-
-         /* center the message block */
-         align-items:center; justify-content:center;
-
-         /* text styling */
-         font-family:'Share Tech Mono',monospace;
-         font-size:clamp(1rem,4vw,1.95rem);
-         line-height:1.4; text-align:center;
-         padding:2rem;
-
-         /* hidden by default – JS toggles to 'flex' */
-         display:none;
-       ">
+<div id="mobile-blocker" class="mobile-blocker">
   Maneuver is currently not compatible with cell-phone browsers. <br> <br>
   Please open this page on a laptop, desktop, or tablet. <br> <br>
   Questions? >> AheadFlank.ai@gmail.com
 </div>
 
 	<!-- Terms of Service Modal -->
-<div id="tos-modal"
-     style="
-         position:fixed; inset:0;
-         background:rgba(0,0,0,0.95); color:#0f0;
-         z-index:9998;
-         display:none; flex-direction:column;
-         align-items:center; justify-content:flex-start;
-         overflow-y:auto; padding:1rem;
-         font-family:'Share Tech Mono',monospace;
-       ">
-  <pre id="tos-content" style="white-space:pre-wrap; max-width:60ch;">
+<div id="tos-modal" class="tos-modal">
+  <pre id="tos-content" class="tos-content">
 User Agreement
 
 Maneuver — Comprehensive User Agreement & Terms of Service
@@ -397,90 +127,80 @@ We may suspend or terminate your access to the Services immediately and without 
 - Assignment: You may not assign this Agreement without our prior written consent. We may assign it freely.
 - Contact Information: Legal notices must be sent to: SpecK Innovations LLC, Email: aheadflank.ai@gmail.com
   </pre>
-  <button id="tos-accept-btn" class="control-btn selected" style="margin-top:1rem;">ACCEPT</button>
+  <button id="tos-accept-btn" class="control-btn selected">ACCEPT</button>
 </div>
-	
+
 <!-- Help Modal -->
-<div id="help-modal"
-     style="
-         position:fixed; top:10%; left:10%; width:80vw; height:60vh;
-         background:rgba(0,0,0,0.95); color:#0f0;
-         z-index:9997;
-         display:none; flex-direction:column;
-         align-items:center; justify-content:flex-start;
-         overflow:auto; padding:1rem;
-         font-family:'Share Tech Mono',monospace;
-         resize:both;
-       ">
+<div id="help-modal" class="help-modal">
   <button id="help-close-btn" class="control-btn selected">CLOSE</button>
-  <pre style="white-space:pre-wrap; max-width:100ch; margin-top:2rem;">
-	  
+  <pre class="help-modal-text">
+
 **Maneuver Simulator Tutorial**
-	  
+
 Questions?  >>  Aheadflank.ai@gmail.com
 
 //Radar Display//
-	  
+
 > The circular radar shows your ship at the center.
-	  
+
 > Click or tap a track to select it.
-	  
+
 > Change the course or speed of your ship, or a track by dragging and dropping the tip of it's vector.
-	  
+
 > Change the bearing, range of a track by dragging and dropping the track symbol.
-	  
+
 > When enabled, change the direction of True Wind by dragging and dropping the "W" symbol.
-	  
+
 > When enabled, change the speed of True Wind by dragging and dropping the tip of it's vector.
-	  
+
 
 //Track Controls//
-	  
+
 > Play/Pause starts or stops the scenario.
-	  
+
 > Fast Forward and Rewind cycle simulation speed at 25x and 50x.
-	  
+
 > + / - add or drop tracks.
-	  
+
 
 > WIND, RM V and CPA toggle wind, relative motion vectors/data and CPA data.
-	  
+
 > Vector Time cycles 3/15/30 min and Range cycles 3/6/12/24 nm.
 
-	  
+
 //Data Panels//
-	  
+
 > Right side panels show own ship, selected track, relative motion and CPA.
-	  
+
 > Panels update as the simulation runs.
-	  
+
   </pre>
 </div>
-	
+
 <script>
 	/* ✧✧✧ 2️⃣  DEVICE-GUARD SCRIPT ✧✧✧ */
 	(function () {
 	  const PHONE_MAX_WIDTH = 768;      // px – treat ≤ 768 px CSS width as “phone”
 	  const blocker    = document.getElementById('mobile-blocker');
 	  const root       = document.documentElement;   // <html> – your whole app
-	
+
 	  function isPhoneSized () {
 	    return window.innerWidth <= PHONE_MAX_WIDTH;
 	  }
-	
+
           function isPhoneUserAgent () {
             const ua = navigator.userAgent;
             const isTablet = /iPad|Tablet/i.test(ua);
             if (isTablet) return false;
             return /Android.*Mobile|iPhone|iPod|IEMobile|BlackBerry/i.test(ua);
           }
-	
+
 	  function updateBlocker () {
 	    const phone = isPhoneSized() || isPhoneUserAgent();
 	    blocker.style.display = phone ? 'flex' : 'none';
 	    root.style.overflow   = phone ? 'hidden' : '';   // stop scroll underneath
 	  }
-	
+
 	  updateBlocker();              // on first load  window.addEventListener('resize', updateBlocker);
         })();
 </script>
@@ -506,1508 +226,119 @@ Questions?  >>  Aheadflank.ai@gmail.com
     });
   })();
 </script>
-	
-<main class="d-flex flex-row align-items-center main-content position-relative">
-
+    <main class="d-flex align-items-start main-content position-relative">
         <!-- Left Pane: Vertical Button Bar -->
-        <div id="button-bar" class="p-2 d-flex flex-column align-items-bottom gap-2 justify-content-end">
-	    <!-- Help Button -->
-            <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
+        <section id="left-pane">
+            <section id="logo">
+                Maneuver <br/>
+                <span>Beta</span>
+            </section>
+            <nav id="button-bar" class="d-flex flex-column align-items-bottom gap-2 justify-content-end">
+                <!-- Help Button -->
+                <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- Simulation Controls -->
+                <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
+                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward: 25x, 50x">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                    <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
+                </button>
+                <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind: 25x, 50x">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         style="width:1em;height:1em;margin:auto;"
+                         fill="currentColor" viewBox="0 0 24 24">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" transform="translate(24, 24) rotate(180)"/></svg>
+                    </svg>
+                    <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
+                </button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- New Scenario Button -->
+                <button id="btn-scen" class="control-btn selected p-2" data-tooltip="Generate New Scenario">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                </button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- Add/Drop Track and Scenario Buttons -->
+                <button id="btn-add-track" class="control-btn selected p-2" data-tooltip="Add New Track">+</button>
+                <button id="btn-drop-track" class="control-btn selected p-2" data-tooltip="Drop Selected Track">-</button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- Button Group 1 -->
+                <button id="btn-wind" class="control-btn" data-tooltip="Toggle Wind Display">WIND</button>
+                <button id="btn-rmv" class="control-btn" data-tooltip="Toggle Relative Motion Vectors">RM V</button>
+                <button id="btn-cpa" class="control-btn" data-tooltip="Toggle CPA Information">CPA</button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- Button Group 2 -->
+                <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (3, 15, 30 min)">15</button>
+                <span class="w-100 border-top border-secondary"></span>
+                <!-- Button Group 3 -->
+                <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range (3, 6, 12, 24 nm)">12.0</button>
+            </nav>
+        </section>
 
-            <span class="w-100 border-top border-secondary"></span>
-
-            <!-- Simulation Controls -->
-            <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
-                <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </button>
-            <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward: 25x, 50x">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-            </button>
-            <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind: 25x, 50x">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm-2-6l6.5 6V6l-6.5 6z"/></svg>
-                <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-            </button>
-
-            <span class="w-100 border-top border-secondary"></span>
-
-            <!-- New Scenario Button -->
-            <button id="btn-scen" class="control-btn selected p-2" data-tooltip="Generate New Scenario">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                </svg>
-            </button>
-
-            <span class="w-100 border-top border-secondary"></span>
-            
-            <!-- Add/Drop Track and Scenario Buttons -->
-            <button id="btn-add-track" class="control-btn selected p-2" data-tooltip="Add New Track">+</button>
-            <button id="btn-drop-track" class="control-btn selected p-2" data-tooltip="Drop Selected Track">-</button>
-            
-            <span class="w-100 border-top border-secondary"></span>
-
-             <!-- Button Group 1 -->
-            <button id="btn-wind" class="control-btn" data-tooltip="Toggle Wind Display">WIND</button>
-            <button id="btn-rmv" class="control-btn" data-tooltip="Toggle Relative Motion Vectors">RM V</button>
-            <button id="btn-cpa" class="control-btn" data-tooltip="Toggle CPA Information">CPA</button>
-            
-           <span class="w-100 border-top border-secondary"></span>
-            
-            <!-- Button Group 2 -->
-            <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (3, 15, 30 min)">15</button>
-
-           <span class="w-100 border-top border-secondary"></span>
-
-            <!-- Button Group 3 -->
-            <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range (3, 6, 12, 24 nm)">12.0</button>
-        </div>
-	    
-        <!-- Center Pane: Radar Display -->
-        <div id="radar-wrapper" class="flex-grow-1 d-flex align-items-center justify-content-center">
-            <div id="radar-container" class="d-flex align-items-center justify-content-center">
-    			<canvas id="radarCanvas"></canvas>
-	      </div>
-
-	   </div>        
-        <!-- Right Pane -->
-        <div id="right-pane" class="d-flex flex-column justify-content-between pt-4 pe-4 ps-4 pb-0 text-radar-green">
-            <div id="sim-clock" class="text-center">00:00:00</div>
-            <div id="data-pane" class="d-flex flex-column" >
-                <!-- OwnShip Data -->
-                <div>
-                    <p class="font-bold tracking-wide data-title">OwnShip</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
+	    <section id="simulator">
+            <!-- Center Pane: Radar -->
+            <section id="radar-wrapper" class="flex-grow-1 d-flex align-items-center justify-content-center">
+                <div id="radar-container" class="d-flex align-items-center justify-content-center">
+                    <canvas id="radarCanvas"></canvas>
+              </div>
+           </section>
+            <!-- Right Pane: Data Panel -->
+            <section id="right-pane" class="d-flex flex-column text-radar-green">
+                <div id="sim-clock" class="text-center">00:00:00</div>
+                <div id="data-pane" class="d-flex flex-column" >
+                    <!-- OwnShip Data -->
+                    <div>
+                        <p class="font-bold tracking-wide data-title">OwnShip</p>
+                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
+                        </div>
+                    </div>
+                    <!-- Data Panels for selected track will be dynamically inserted here -->
+                    <div id="track-data-container">
+                         <p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
+                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
+                        </div>
+                    </div>
+                    <div id="rm-data-container">
+                        <p class="font-bold tracking-wide data-title">Rel Motion</p>
+                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
+                        </div>
+                    </div>
+                    <div id="cpa-data-container">
+                         <p class="font-bold tracking-wide data-title">CPA</p>
+                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
+                        </div>
+                    </div>
+                    <div id="wind-data-container">
+                        <p class="font-bold tracking-wide data-title">Wind</p>
+                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
+                        </div>
                     </div>
                 </div>
-                <!-- Data Panels for selected track will be dynamically inserted here -->
-                <div id="track-data-container">
-                     <p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
-                    </div>
-                </div>
-                <div id="rm-data-container">
-                    <p class="font-bold tracking-wide data-title">Rel Motion</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
-                    </div>
-                </div>
-                <div id="cpa-data-container">
-                     <p class="font-bold tracking-wide data-title">CPA</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
-                    </div>
-                </div>
-                <div id="wind-data-container">
-                    <p class="font-bold tracking-wide data-title">Wind</p>
-                    <div class="mt-2 ps-2 d-flex flex-column gap-1">
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
-                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </section>
+        </section>
     </main>
-
+    <script src="./js/arena.js"></script>
     <script>
-        /* ============================================================
-         * Scenario generation & COLREGs contact controller
-         * ============================================================
-         */
-        const ScenarioConfig = {
-            contact_density        : 6,
-            cpa_leeway             : 0.3,
-            time_to_cpa_range      : [15, 30],
-            vector_randomization   : 0.15,
-            maneuvering_probability: 0.35,
-            constraint_density     : 2,
-        };
-
-        function solveCPA(own, tgt) {
-            const rx = tgt.x - own.x;
-            const ry = tgt.y - own.y;
-            const vx = tgt.vx - own.vx;
-            const vy = tgt.vy - own.vy;
-
-            const v2   = vx*vx + vy*vy;
-            const tCPA = v2 < 1e-6 ? 1e9 : - (rx*vx + ry*vy) / v2;
-            const xCPA = rx + vx*tCPA;
-            const yCPA = ry + vy*tCPA;
-            const dCPA = Math.sqrt(xCPA*xCPA + yCPA*yCPA);
-            return { t: tCPA, d: dCPA };
-        }
-
-        class ScenarioGenerator {
-            constructor(cfg){
-                this.cfg = cfg;
-                this.nextId = 1;
-            }
-            makeScenario(ownship){
-                const tracks = [];
-                const archetypes = ['STARBOARD_CROSS','HEAD_ON','OVERTAKE','CONSTRAINED'];
-                const type = archetypes[Math.floor(Math.random()*archetypes.length)];
-                const primary = this._makePrimary(type, ownship);
-                tracks.push(primary);
-                const nExtra = this._randInt(this.cfg.contact_density-1, this.cfg.contact_density+1);
-                for(let i=0;i<nExtra;i++){
-                    const c = this._makeSecondary(ownship, tracks);
-                    tracks.push(c);
-                }
-                for(let i=0;i<this.cfg.constraint_density;i++){
-                    tracks.push(this._makeHazard(ownship));
-                }
-                return tracks;
-            }
-            _makePrimary(type,own){
-                const rng = this._rand(4,8);
-                let brg, crs, spd;
-                switch(type){
-                    case 'STARBOARD_CROSS':
-                        brg = this._rand(20,60);
-                        crs = (own.course + 270 + this._rand(-10,10))%360; break;
-                    case 'HEAD_ON':
-                        brg = this._rand(350,10);
-                        crs = (own.course + 180 + this._rand(-5,5))%360; break;
-                    case 'OVERTAKE':
-                        brg = this._rand(150,210);
-                        crs = own.course + this._rand(-5,5);
-                        spd = own.speed - this._rand(2,4); break;
-                    case 'CONSTRAINED':
-                    default:
-                        brg = this._rand(40,60);
-                        crs = (own.course + 270)%360; break;
-                }
-                spd = spd ?? this._rand(5,12);
-                const tgt = this._spawn(own, brg, rng, crs, spd);
-                this._tuneCPA(own, tgt);
-                tgt.archetype = type;
-                return tgt;
-            }
-            _makeSecondary(own, existing){
-                const brg = this._rand(0,360);
-                const rng = this._rand(2, own.maxRange??12);
-                const crs = this._rand(0,360);
-                const spd = this._rand(3,15);
-                const c = this._spawn(own, brg, rng, crs, spd);
-                if(Math.random()<this.cfg.maneuvering_probability && existing.length){
-                    const tgt = existing[Math.floor(Math.random()*existing.length)];
-                    c.course = (Math.atan2(tgt.y-c.y, tgt.x-c.x)*180/Math.PI + 360 + this._rand(-5,5))%360;
-                }
-                return c;
-            }
-            _makeHazard(own){
-                const brg = this._rand(0,360);
-                const rng = this._rand(3, own.maxRange??12);
-                const h = this._spawn(own, brg, rng, 0, 0);
-                h.isHazard = true;
-                return h;
-            }
-            _spawn(own,bearing,range,course,speed){
-                const id  = String(this.nextId++).padStart(4, '0');
-                const rad = bearing * Math.PI / 180;
-                return {
-                    id,
-                    x: own.x + range * Math.sin(rad),
-                    y: own.y + range * Math.cos(rad),
-                    course: course % 360,
-                    speed,
-                    state: 'MONITORING',
-                    isUserControlled: false,
-                    _base: { course, speed },
-                    initialBearing: bearing,
-                    initialRange: range,
-                };
-            }
-            _tuneCPA(own,tgt){
-                for(let i=0;i<90;i++){
-                    const ownVec=this._vel(own), tgtVec=this._vel(tgt);
-                    const {t,d}=solveCPA({...own,...ownVec},{...tgt,...tgtVec});
-                    const minT=this.cfg.time_to_cpa_range[0]/60,
-                          maxT=this.cfg.time_to_cpa_range[1]/60;
-                    if(d<this.cfg.cpa_leeway && t>minT && t<maxT) return;
-                    tgt.course=(tgt.course+this._rand(-4,4))%360;
-                }
-            }
-            _vel(v){const rad=(90-v.course)*Math.PI/180;return{vx:v.speed*Math.cos(rad),vy:v.speed*Math.sin(rad)}}
-            _rand(a,b){return a+Math.random()*(b-a)}
-            _randInt(a,b){return Math.floor(this._rand(a,b+1))}
-        }
-
-        class ContactController {
-            constructor(track){this.t=track;}
-            update(dtHours,allContacts,cfg){
-                if(this.t.isUserControlled||this.t.isHazard) return;
-                switch(this.t.state){
-                    case 'MONITORING':
-                        if(this._collisionThreat(allContacts,cfg)){ this._planManeuver(); }
-                        break;
-                    case 'CALCULATING_MANEUVER': break;
-                    case 'EXECUTING_MANEUVER':
-                        this._applyManeuver(dtHours); break;
-                    case 'RESUMING_COURSE':
-                        this._returnToBase(dtHours); break;
-                }
-            }
-            _collisionThreat(all,cfg){
-                const own=this._asParticle(this.t);
-                for(const other of all){
-                    if(other===this.t||other.isHazard) continue;
-                    const tgt=this._asParticle(other);
-                    const {t,d}=solveCPA(own,tgt);
-                    if(d<cfg.cpa_leeway && t>0 && t<cfg.time_to_cpa_range[1]/60){
-                        this.t.threat=other; return true;
-                    }
-                } return false;
-            }
-            _planManeuver(){
-                const rel=(this.t.threat&&this._relativeSituation(this.t,this.t.threat))||'UNKNOWN';
-                let deltaCrs=0, deltaSpd=0;
-                switch(rel){
-                    case 'HEAD_ON': deltaCrs=30; break;
-                    case 'CROSS_GIVEWAY': deltaCrs=35; break;
-                    case 'OVERTAKING': deltaCrs=0; deltaSpd=-0.4*this.t.speed; break;
-                    default: deltaCrs=25;
-                }
-                this.t._targetCourse=(this.t.course+deltaCrs+360)%360;
-                this.t._targetSpeed=Math.max(2,this.t.speed+deltaSpd);
-                this.t.state='EXECUTING_MANEUVER';
-            }
-            _applyManeuver(dt){
-                const rateTurn=10*dt*60;
-                const acc=1*dt*60;
-                const diffC=((this.t._targetCourse - this.t.course + 540)%360)-180;
-                if(Math.abs(diffC)>rateTurn){
-                    this.t.course=(this.t.course+Math.sign(diffC)*rateTurn+360)%360;
-                }else{ this.t.course=this.t._targetCourse; }
-                if(Math.abs(this.t.speed-this.t._targetSpeed)>acc){
-                    this.t.speed+=Math.sign(this.t._targetSpeed - this.t.speed)*acc;
-                }else{ this.t.speed=this.t._targetSpeed; }
-                if(!this._collisionThreat([...this.t._sim.tracks],this.t._sim.scenarioCfg)){
-                    this.t.state='RESUMING_COURSE';
-                }
-            }
-            _returnToBase(dt){
-                const rateTurn=5*dt*60;
-                const acc=0.5*dt*60;
-                const diffC=((this.t._base.course - this.t.course + 540)%360)-180;
-                if(Math.abs(diffC)>rateTurn){
-                    this.t.course=(this.t.course+Math.sign(diffC)*rateTurn+360)%360;
-                }else{ this.t.course=this.t._base.course; }
-                if(Math.abs(this.t.speed-this.t._base.speed)>acc){
-                    this.t.speed+=Math.sign(this.t._base.speed - this.t.speed)*acc;
-                }else{ this.t.speed=this.t._base.speed; }
-                if(Math.abs(diffC)<1 && Math.abs(this.t.speed-this.t._base.speed)<0.1){
-                    this.t.state='MONITORING';
-                    delete this.t.threat;
-                }
-            }
-            _relativeSituation(a,b){
-                const brg=(Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI+360)%360;
-                const diffHdgs=Math.abs(((a.course - b.course + 540)%360)-180);
-                if(diffHdgs>150&&diffHdgs<210) return 'HEAD_ON';
-                const relBrg=(brg - a.course + 360)%360;
-                if(relBrg>112.5&&relBrg<247.5) return 'OVERTAKING';
-                if(relBrg>0&&relBrg<112.5) return 'CROSS_GIVEWAY';
-                return 'OTHER';
-            }
-            _asParticle(v){const rad=(90-v.course)*Math.PI/180;return{x:v.x,y:v.y,vx:v.speed*Math.cos(rad),vy:v.speed*Math.sin(rad)}}
-        }
-
-        /**
-         * @class Simulator
-         * Encapsulates the entire state and logic for the ship maneuvering simulator.
-         */
-        class Simulator {
-            constructor() {
-                // --- DOM Element References ---
-                this.canvas = document.getElementById('radarCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.dragTooltip = document.getElementById('drag-tooltip');
-                this.btnVectorTime = document.getElementById('btn-vector-time');
-                this.btnRmv = document.getElementById('btn-rmv');
-                this.btnCpa = document.getElementById('btn-cpa');
-                this.btnPlayPause = document.getElementById('btn-play-pause');
-                this.iconPlay = document.getElementById('icon-play');
-                this.iconPause = document.getElementById('icon-pause');
-                this.btnRange = document.getElementById('btn-range');
-                this.btnAddTrack = document.getElementById('btn-add-track');
-                this.btnDropTrack = document.getElementById('btn-drop-track');
-                this.btnWind = document.getElementById('btn-wind');
-                this.btnScen = document.getElementById('btn-scen');
-                this.btnFf = document.getElementById('btn-ff');
-                this.btnRev = document.getElementById('btn-rev');
-                this.ffSpeedIndicator = document.getElementById('ff-speed-indicator');
-                this.revSpeedIndicator = document.getElementById('rev-speed-indicator');
-                this.btnHelp = document.getElementById('btn-help');
-                this.helpModal = document.getElementById('help-modal');
-                this.helpCloseBtn = document.getElementById('help-close-btn');
-                this.helpContent = this.helpModal.querySelector('pre');
-                this.buttonBar = document.getElementById('button-bar');
-                this.radarWrapper = document.getElementById('radar-wrapper');
-                this.radarContainer = document.getElementById('radar-container');
-                this.rightPane = document.getElementById('right-pane');
-                this.dataPane = document.getElementById('data-pane');
-                this.trackDataContainer = document.getElementById('track-data-container');
-                this.rmDataContainer = document.getElementById('rm-data-container');
-                this.cpaDataContainer = document.getElementById('cpa-data-container');
-                this.windDataContainer = document.getElementById('wind-data-container');
-                this.simClock = document.getElementById('sim-clock');
-                this.mainContainer = document.querySelector('main.main-content');
-
-                // --- Configuration ---
-                this.radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
-                this.radarWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-white').trim();
-                this.radarFaintGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-green').trim();
-                this.radarFaintWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-white').trim();
-                this.scenarioCfg = ScenarioConfig;
-                
-                // --- State Data ---
-                this.ownShip = { course: 91, speed: 12.7, id: 'ownShip', x: 0, y: 0 };
-                this.tracks = [
-                    { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
-                    { id: '0002', initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
-                    { id: '0003', initialBearing: 190, initialRange: 8.2, course: 75,  speed: 8.0 },
-                    { id: '0004', initialBearing: 205, initialRange: 5.5, course: 70,  speed: 7.5 },
-                    { id: '0005', initialBearing: 180, initialRange: 3.1, course: 72,  speed: 8.2 },
-                ];
-
-                this.selectedTrackId = '0001';
-                this.hoveredTrackId = null;
-                this.draggedItemId = null;
-                this.dragType = null;
-                this.pendingDragId = null;
-                this.pendingDragType = null;
-                this.DPR = window.devicePixelRatio || 1;
-                this.pointerDownPos = { x: 0, y: 0 };
-                this.dragThreshold = 6 * this.DPR;
-                this.lastMousePos = { x: 0, y: 0 };
-                this.lastTimestamp = 0;
-                this.lastDomUpdate  = 0;
-                this.DOM_UPDATE_INTERVAL = 200;
-                this.sceneDirty = true;
-                this.simulationElapsed = 0;
-                this.activeEditField = null;
-                
-                // --- Weather Data ---
-                this.trueWind = { 
-                    direction: 70,
-                    speed: 15,
-                    wPos: {x: 0, y: 0},
-                    arrowEndpoint: {x: 0, y: 0}
-                };
-                this.relativeWind = {};
-
-                // --- Feature Toggle States ---
-                this.maxRange = 12.0;
-                this.rangeScales = [3.0, 6.0, 12.0, 24.0];
-                this.vectorTimeInMinutes = 15;
-                this.vectorTimes = [3, 15, 30];
-                this.simulationSpeed = 1;
-                this.ffSpeeds = [25, 50];
-                this.revSpeeds = [-25, -50];
-                this.showRelativeMotion = false;
-                this.showCPAInfo = false;
-                this.isSimulationRunning = true;
-                this.showWeather = false;
-                this.uiScaleFactor = 1;
-                
-                // Bind methods to ensure correct `this` context
-                this.gameLoop = this.gameLoop.bind(this);
-                this.handlePointerDown = this.handlePointerDown.bind(this);
-                this.handlePointerUp = this.handlePointerUp.bind(this);
-                this.handlePointerMove = this.handlePointerMove.bind(this);
-
-                this._initialize();
-            }
-
-            // --- Main Initialization ---
-            _initialize() {
-                this._attachEventListeners();
-                
-                const BASE_CANVAS_SIZE = 900;
-                this.canvas.width = BASE_CANVAS_SIZE * this.DPR;
-                this.canvas.height = BASE_CANVAS_SIZE * this.DPR;
-                
-                this.simulationElapsed = 0;
-                this.updateSimClock();
-                if (this.tracks.length > 0) {
-                    this.tracks.forEach(track => {
-                        if (track.initialBearing !== undefined && track.initialRange !== undefined) {
-                            track.x = this.ownShip.x + track.initialRange * Math.sin(this.toRadians(track.initialBearing));
-                            track.y = this.ownShip.y + track.initialRange * Math.cos(this.toRadians(track.initialBearing));
-                        } else if (track.x !== undefined && track.y !== undefined) {
-                            const dx = track.x - this.ownShip.x;
-                            const dy = track.y - this.ownShip.y;
-                            track.initialRange = Math.sqrt(dx ** 2 + dy ** 2);
-                            track.initialBearing = (this.toDegrees(Math.atan2(dx, dy)) + 360) % 360;
-                        }
-                        if (!track._controller) {
-                            track._controller = new ContactController(track);
-                            track._sim = this;
-                        }
-                    });
-                }
-                
-                this.tracks.forEach(t => this.calculateAllData(t));
-                this.calculateWindData();
-                
-                this.updateButtonStyles();
-                this.updatePanelsAndRedraw();
-                this.scaleUI();
-                
-                this.lastTimestamp = performance.now();
-                if (this.isSimulationRunning) {
-                    this.startGameLoop();
-                }
-                if (document.fonts && document.fonts.ready) {
-                    document.fonts.ready.then(() => this.scaleUI());
-                }
-            }
-
-            // --- Event Listener Setup ---
-            _attachEventListeners() {
-                // Canvas interaction
-                if (window.PointerEvent) {
-                    this.canvas.addEventListener('pointerdown', this.handlePointerDown);
-                    this.canvas.addEventListener('pointerup', this.handlePointerUp);
-                    this.canvas.addEventListener('pointerleave', this.handlePointerUp);
-                    this.canvas.addEventListener('pointercancel', this.handlePointerUp);
-                    this.canvas.addEventListener('pointermove', this.handlePointerMove);
-                } else if ('ontouchstart' in window) {
-                    const wrap = (handler) => (e) => {
-                        const touch = e.touches[0] || e.changedTouches[0];
-                        if (!touch) return;
-                        handler({ clientX: touch.clientX, clientY: touch.clientY, button: 0 });
-                        e.preventDefault();
-                    };
-                    this.canvas.addEventListener('touchstart', wrap(this.handlePointerDown), { passive: false });
-                    this.canvas.addEventListener('touchmove', wrap(this.handlePointerMove), { passive: false });
-                    this.canvas.addEventListener('touchend', wrap(this.handlePointerUp));
-                    this.canvas.addEventListener('touchcancel', wrap(this.handlePointerUp));
-                } else {
-                    this.canvas.addEventListener('mousedown', this.handlePointerDown);
-                    this.canvas.addEventListener('mouseup', this.handlePointerUp);
-                    this.canvas.addEventListener('mouseleave', this.handlePointerUp);
-                    this.canvas.addEventListener('mousemove', this.handlePointerMove);
-                }
-
-                // Window resize
-                window.addEventListener('resize', this._throttleRAF(() => {
-                    this.scaleUI();
-                }));
-                
-                // Control buttons
-                this.btnVectorTime.addEventListener('click', () => this.toggleVectorTime());
-                this.btnRange.addEventListener('click', () => this.toggleRange());
-                this.btnWind.addEventListener('click', () => this.toggleWeather());
-                this.btnRmv.addEventListener('click', () => this.toggleRelativeMotion());
-                this.btnCpa.addEventListener('click', () => this.toggleCPAInfo());
-                this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
-                this.btnFf.addEventListener('click', () => this.fastForward());
-                this.btnRev.addEventListener('click', () => this.rewind());
-                this.btnAddTrack.addEventListener('click', () => this.addTrack());
-                this.btnDropTrack.addEventListener('click', () => this.dropTrack());
-                this.btnScen.addEventListener('click', () => this.setupRandomScenario());
-                
-                // Help Modal
-                this.btnHelp.addEventListener('click', () => this.showHelpModal());
-                this.helpCloseBtn.addEventListener('click', () => this.hideHelpModal());
-                new ResizeObserver(() => {
-                    const scale = Math.max(0.8, Math.min(1.2, this.helpModal.clientWidth / 500));
-                    this.helpContent.style.fontSize = `${1 * scale}rem`;
-                    this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
-                    this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
-                }).observe(this.helpModal);
-
-                // Editable fields
-                this.dataPane.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('editable')) {
-                        if (this.activeEditField) return; // Prevent new input if one is already active
-                        this.activeEditField = e.target.id;
-                        this.updatePanelsAndRedraw();
-                    }
-                });
-            }
-
-            // --- Animation & Optimizations ---
-            gameLoop(timestamp) {
-                const deltaTime = (timestamp - this.lastTimestamp) || 0;
-                this.lastTimestamp = timestamp;
-
-                this.updatePhysics(deltaTime);
-
-                if (this.isSimulationRunning) {
-                    this.simulationElapsed += (deltaTime / 1000) * Math.abs(this.simulationSpeed);
-                    this.sceneDirty = true;
-                }
-
-                if (this.sceneDirty) {
-                    this.tracks.forEach(t => this.calculateAllData(t));
-                    this.calculateWindData();
-                    this.drawRadar();
-                    this.sceneDirty = false;
-                }
-
-                if (timestamp - this.lastDomUpdate >= this.DOM_UPDATE_INTERVAL) {
-                    this.updateOwnShipPanel();
-                    this.updateDataPanels();
-                    this.updateButtonStyles();
-                    this.updateSimClock();
-                    this.lastDomUpdate = timestamp;
-                }
-
-                if (this.isSimulationRunning || this.sceneDirty) {
-                    requestAnimationFrame(this.gameLoop);
-                } else {
-                    this.gameLoop.running = false;
-                }
-            }
-
-            startGameLoop() {
-                if (!this.gameLoop.running) {
-                    this.gameLoop.running = true;
-                    requestAnimationFrame(this.gameLoop);
-                }
-            }
-
-            markSceneDirty() {
-                this.sceneDirty = true;
-                this.startGameLoop();
-            }
-
-            _throttleRAF(fn) {
-                let running = false;
-                return (...args) => {
-                    if (!running) {
-                        running = true;
-                        requestAnimationFrame(() => {
-                            fn.apply(this, args);
-                            running = false;
-                        });
-                    }
-                };
-            }
-
-            _setText(id, value) {
-                const el = document.getElementById(id);
-                if (el && el.textContent !== value) {
-                    el.textContent = value;
-                }
-            }
-
-            _renderEditableField(id, displayValue, numericValue) {
-                const el = document.getElementById(id);
-                if (!el) return;
-
-                if (this.activeEditField === id) {
-                    if (!el.querySelector('input')) {
-                        el.innerHTML = `<input type="text" value="${parseFloat(numericValue).toFixed(1)}">`;
-                        const input = el.querySelector('input');
-                        const commit = () => {
-                            const newVal = parseFloat(input.value);
-                            this.commitEdit(id, newVal);
-                        };
-                        input.addEventListener('blur', commit, { once: true });
-                        input.addEventListener('keydown', (e) => {
-                            if (e.key === 'Enter') {
-                                input.blur();
-                            } else if (e.key === 'Escape') {
-                                this.activeEditField = null;
-                                this.updatePanelsAndRedraw();
-                            }
-                        });
-                        setTimeout(() => { input.focus(); input.select(); }, 0);
-                    }
-                } else {
-                    if (el.textContent !== displayValue) {
-                        el.textContent = displayValue;
-                    }
-                }
-            }
-
-            commitEdit(id, value) {
-                if (isNaN(value)) {
-                    this.activeEditField = null;
-                    this.updatePanelsAndRedraw();
-                    return;
-                }
-
-                const track = this.tracks.find(t => t.id === this.selectedTrackId);
-
-                if (id === 'ownship-crs') {
-                    this.ownShip.course = Math.max(0, Math.min(359.9, value));
-                } else if (id === 'ownship-spd') {
-                    this.ownShip.speed = value;
-                } else if (track) {
-                    if (id === 'track-brg') {
-                        track.bearing = Math.max(0, Math.min(359.9, value));
-                    } else if (id === 'track-rng') {
-                        track.range = value;
-                    } else if (id === 'track-crs') {
-                        track.course = Math.max(0, Math.min(359.9, value));
-                    } else if (id === 'track-spd') {
-                        track.speed = value;
-                    }
-
-                    if (id === 'track-brg' || id === 'track-rng') {
-                        const angleRad = this.toRadians(track.bearing);
-                        track.x = this.ownShip.x + track.range * Math.sin(angleRad);
-                        track.y = this.ownShip.y + track.range * Math.cos(angleRad);
-                    }
-                }
-
-                this.activeEditField = null;
-                this.updatePanelsAndRedraw();
-                this.markSceneDirty();
-            }
-
-            // --- Physics & Calculations ---
-            updatePhysics(deltaTime) {
-                if (!this.isSimulationRunning) return;
-
-                const timeMultiplier = (deltaTime / 3600000) * this.simulationSpeed;
-                const ownShipDist = this.ownShip.speed * timeMultiplier;
-                this.ownShip.x += ownShipDist * Math.sin(this.toRadians(this.ownShip.course));
-                this.ownShip.y += ownShipDist * Math.cos(this.toRadians(this.ownShip.course));
-                
-                this.tracks.forEach(track => {
-                    if (this.draggedItemId === track.id) return;
-			
-                    const dist = track.speed * timeMultiplier;
-                    track.x += dist * Math.sin(this.toRadians(track.course));
-                    track.y += dist * Math.cos(this.toRadians(track.course));
-                    const dtH = (deltaTime/3600000)*Math.abs(this.simulationSpeed);
-                    track._controller?.update(dtH, this.tracks, this.scenarioCfg);
-                });
-            }
-
-            calculateAllData(track) {
-                const dx = track.x - this.ownShip.x;
-                const dy = track.y - this.ownShip.y;
-                track.range = Math.sqrt(dx**2 + dy**2);
-                track.bearing = (this.toDegrees(Math.atan2(dx, dy)) + 360) % 360;
-
-                const ownShipCanvasAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.course));
-                const ownShipVelX = this.ownShip.speed * Math.cos(ownShipCanvasAngle);
-                const ownShipVelY = this.ownShip.speed * Math.sin(ownShipCanvasAngle);
-                
-                const targetCourseCanvasAngle = this.toRadians(this.bearingToCanvasAngle(track.course));
-                const targetVelX = track.speed * Math.cos(targetCourseCanvasAngle);
-                const targetVelY = track.speed * Math.sin(targetCourseCanvasAngle);
-                
-                const relVelX = targetVelX - ownShipVelX;
-                const relVelY = targetVelY - ownShipVelY;
-                const relSpeed = Math.sqrt(relVelX**2 + relVelY**2);
-                const relVectorCanvasAngle = this.toDegrees(Math.atan2(relVelY, relVelX));
-                
-                track.rmVector = { x: relVelX, y: relVelY, speed: relSpeed, bearing: this.canvasAngleToBearing(relVectorCanvasAngle) };
-                
-                const targetPosCanvasAngle = this.toRadians(this.bearingToCanvasAngle(track.bearing));
-                const targetPosX = track.range * Math.cos(targetPosCanvasAngle);
-                const targetPosY = track.range * Math.sin(targetPosCanvasAngle);
-
-                const dotProduct = (targetPosX * relVelX) + (targetPosY * relVelY);
-                if (relSpeed < 0.001) {
-                    track.cpa = { range: '--', time: '--:--:--', brg: '--' };
-                    track.hasPassedCPA = true;
-                } else {
-                    const tcpa = -dotProduct / (relSpeed**2);
-                    track.hasPassedCPA = tcpa < 0;
-                    const cpaX = targetPosX + tcpa * relVelX;
-                    const cpaY = targetPosY + tcpa * relVelY;
-                    track.cpaPosition = { x: cpaX, y: cpaY };
-
-                    if (track.hasPassedCPA) {
-                        track.cpa = { range: '-- NM', time: '--:--:--', brg: '- -' };
-                    } else {
-                        const cpaRange = Math.sqrt(cpaX**2 + cpaY**2);
-                        const cpaCanvasAngle = this.toDegrees(Math.atan2(cpaY, cpaX));
-                        const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
-                        const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
-                        track.cpa = {
-                            range: `${cpaRange.toFixed(1)} NM`,
-                            time: this.formatTime(tcpa),
-                            brg: `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`
-                        };
-                    }
-                }
-                
-                const ownshipBearingFromTarget = (track.bearing + 180) % 360;
-                const targetAngle = (ownshipBearingFromTarget - track.course + 360) % 360;
-                track.rm = {
-                    dir: `${this.formatBearing(track.rmVector.bearing)} T`,
-                    spd: `${relSpeed.toFixed(1)} KTS`,
-                    rate: this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range),
-                    angle: `${this.formatBearing(targetAngle)} DEG`,
-                    aspect: this.getAspect(targetAngle)
-                };
-            }
-
-            calculateWindData() {
-                const trueWindVectorAngle = (this.trueWind.direction + 180) % 360;
-                const trueWindRad = this.toRadians(this.bearingToCanvasAngle(trueWindVectorAngle));
-                const trueWindVelX = this.trueWind.speed * Math.cos(trueWindRad);
-                const trueWindVelY = this.trueWind.speed * Math.sin(trueWindRad);
-
-                const ownShipRad = this.toRadians(this.bearingToCanvasAngle(this.ownShip.course));
-                const ownShipVelX = this.ownShip.speed * Math.cos(ownShipRad);
-                const ownShipVelY = this.ownShip.speed * Math.sin(ownShipRad);
-
-                const relWindVelX = trueWindVelX - ownShipVelX;
-                const relWindVelY = trueWindVelY - ownShipVelY;
-
-                this.relativeWind.speed = Math.sqrt(relWindVelX**2 + relWindVelY**2);
-                const relWindVectorCanvasAngle = this.toDegrees(Math.atan2(relWindVelY, relWindVelX));
-                
-                this.relativeWind.vectorDirection = this.canvasAngleToBearing(relWindVectorCanvasAngle);
-            }
-
-            // --- Drawing ---
-            drawRadar() {
-                const size = this.canvas.width;
-                if (size === 0) return;
-                const center = size / 2;
-                const radius = size / 2 * 0.9;
-                this.ctx.fillStyle = '#000000';
-                this.ctx.fillRect(0, 0, size, size);
-                this.drawRangeRings(center, radius);
-                this.drawRangeLabels(center, radius);
-                
-                if (this.showWeather) {
-                    this.drawWeatherInfo(center, radius);
-                }
-                this.drawOwnShipIcon(center, radius);
-                this.tracks.forEach(track => {
-                    this.drawTarget(center, radius, track);
-                    if(this.showRelativeMotion) {
-                        this.drawRelativeMotionVector(center, radius, track);
-                    }
-                });
-                if(this.showCPAInfo && this.selectedTrackId !== null) {
-                    this.drawCPAIndicator(center, radius);
-                }
-                if (this.selectedTrackId !== null) {
-                    const track = this.tracks.find(t => t.id === this.selectedTrackId);
-                    if (track) this.drawBearingLine(center, radius, track);
-                    this.drawSelectionIndicator(center, radius, this.selectedTrackId, this.radarWhite, 1.5);
-                }
-                if (this.hoveredTrackId !== null && this.hoveredTrackId !== this.selectedTrackId) {
-                    this.drawSelectionIndicator(center, radius, this.hoveredTrackId, this.radarFaintWhite, 1);
-                }
-            }
-
-            drawRangeRings(center, radius) { this.ctx.strokeStyle = this.radarFaintGreen; this.ctx.lineWidth = 0.9; this.ctx.beginPath(); this.ctx.arc(center, center, radius, 0, 2 * Math.PI); this.ctx.stroke(); for (let i = 1; i < 3; i++) { this.ctx.beginPath(); this.ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI); this.ctx.stroke(); } }
-            drawRangeLabels(center, radius) { this.ctx.fillStyle = this.radarGreen; this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`; this.ctx.textAlign = 'left'; this.ctx.textBaseline = 'middle'; for (let i = 1; i <= 3; i++) { const ringRadius = radius * (i / 3); const range = this.maxRange * (i / 3); this.ctx.fillText(range.toFixed(1), center + ringRadius + 5, center); } }
-            
-            drawOwnShipIcon(center, radius) {
-                this.ctx.strokeStyle = this.radarGreen;
-                this.ctx.lineWidth = 1.4;
-                const iconRadius = this.canvas.width * 0.014;
-                this.ctx.beginPath();
-                this.ctx.arc(center, center, iconRadius, 0, 2 * Math.PI);
-                this.ctx.stroke();
-                const timeInHours = this.vectorTimeInMinutes / 60;
-                const pixelsPerNm = radius / this.maxRange;
-                const vectorDistPixels = this.ownShip.speed * timeInHours * pixelsPerNm;
-                const courseAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.course));
-                const endX = center + vectorDistPixels * Math.cos(courseAngle);
-                const endY = center - vectorDistPixels * Math.sin(courseAngle); 
-                this.ownShip.vectorEndpoint = { x: endX, y: endY };
-                this.ctx.beginPath();
-                this.ctx.moveTo(center, center);
-                this.ctx.lineTo(endX, endY);
-                this.ctx.stroke();
-            }
-
-            getTargetCoords(center, radius, track) { 
-                const angleRad = this.toRadians(this.bearingToCanvasAngle(track.bearing)); 
-                const distOnCanvas = (track.range / this.maxRange) * radius; 
-                const x = center + distOnCanvas * Math.cos(angleRad); 
-                const y = center - distOnCanvas * Math.sin(angleRad);
-                return { x, y }; 
-            }
-
-            drawTarget(center, radius, track) {
-                const { x, y } = this.getTargetCoords(center, radius, track);
-                const targetSize = Math.max(11, radius * 0.038);
-                this.ctx.strokeStyle = this.radarGreen;
-                this.ctx.lineWidth = 1.8;
-                this.ctx.strokeRect(x - targetSize / 2, y - targetSize / 2, targetSize, targetSize);
-                const timeInHours = this.vectorTimeInMinutes / 60;
-                const pixelsPerNm = radius / this.maxRange;
-                const vectorDistPixels = track.speed * timeInHours * pixelsPerNm;
-                const courseAngle = this.toRadians(this.bearingToCanvasAngle(track.course));
-                const endX = x + vectorDistPixels * Math.cos(courseAngle);
-                const endY = y - vectorDistPixels * Math.sin(courseAngle); 
-                track.vectorEndpoint = { x: endX, y: endY };
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, y);
-                this.ctx.lineTo(endX, endY);
-                this.ctx.stroke();
-                this.ctx.fillStyle = this.radarGreen;
-                this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
-                this.ctx.textAlign = 'left';
-                this.ctx.textBaseline = 'top';
-                this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
-            }
-
-            drawRelativeMotionVector(center, radius, track) { 
-                if (!track.rmVector) return; 
-                const { x: startX, y: startY } = this.getTargetCoords(center, radius, track); 
-                const timeInHours = this.vectorTimeInMinutes / 60; 
-                const pixelsPerNm = radius / this.maxRange; 
-                const vectorDistPixels = track.rmVector.speed * timeInHours * pixelsPerNm; 
-                const vectorAngleRad = this.toRadians(this.bearingToCanvasAngle(track.rmVector.bearing)); 
-                const endX = startX + vectorDistPixels * Math.cos(vectorAngleRad); 
-                const endY = startY - vectorDistPixels * Math.sin(vectorAngleRad);
-                this.ctx.save(); 
-                this.ctx.strokeStyle = this.radarGreen; 
-                this.ctx.lineWidth = 1.8; 
-                this.ctx.setLineDash([5, 5]); 
-                this.ctx.beginPath(); 
-                this.ctx.moveTo(startX, startY); 
-                this.ctx.lineTo(endX, endY); 
-                this.ctx.stroke(); 
-                this.ctx.restore(); 
-            }
-
-            drawCPAIndicator(center, radius) {
-                const track = this.tracks.find(t => t.id === this.selectedTrackId);
-                if (!track || track.hasPassedCPA || !track.cpaPosition) return;
-                const pixelsPerNm = radius / this.maxRange;
-                
-                const cpaBearing = (this.toDegrees(Math.atan2(track.cpaPosition.x, track.cpaPosition.y)) + 360) % 360;
-                const cpaCanvasAngle = this.toRadians(this.bearingToCanvasAngle(cpaBearing));
-                const cpaRange = Math.sqrt(track.cpaPosition.x**2 + track.cpaPosition.y**2);
-                const cpaDistCanvas = cpaRange * pixelsPerNm;
-                const cpaX = center + cpaDistCanvas * Math.cos(cpaCanvasAngle);
-                const cpaY = center - cpaDistCanvas * Math.sin(cpaCanvasAngle); 
-                
-                this.ctx.beginPath();
-                this.ctx.arc(cpaX, cpaY, 4, 0, 2 * Math.PI);
-                this.ctx.fillStyle = this.radarGreen;
-                this.ctx.fill();
-                this.ctx.save();
-                this.ctx.strokeStyle = this.radarFaintGreen;
-                this.ctx.lineWidth = 1;
-                this.ctx.setLineDash([2, 3]);
-                this.ctx.beginPath();
-                this.ctx.moveTo(center, center);
-                this.ctx.lineTo(cpaX, cpaY);
-                this.ctx.stroke();
-                this.ctx.restore();
-            }
-
-            drawBearingLine(center, radius, track) {
-                const { x, y } = this.getTargetCoords(center, radius, track);
-                this.ctx.save();
-                this.ctx.strokeStyle = this.radarWhite;
-                this.ctx.lineWidth = 1;
-                this.ctx.setLineDash([2, 4]);
-                this.ctx.beginPath();
-                this.ctx.moveTo(center, center);
-                this.ctx.lineTo(x, y);
-                this.ctx.stroke();
-                this.ctx.restore();
-            }
-
-            drawSelectionIndicator(center, radius, trackId, color, lineWidth) { const track = this.tracks.find(t => t.id === trackId); if (!track) return; const { x, y } = this.getTargetCoords(center, radius, track); const targetSize = Math.max(11, radius * 0.038); const indicatorRadius = targetSize * 1.2; this.ctx.strokeStyle = color; this.ctx.lineWidth = lineWidth; this.ctx.beginPath(); this.ctx.arc(x, y, indicatorRadius, 0, 2 * Math.PI); this.ctx.stroke(); }
-
-            drawWeatherInfo(center, radius) {
-                const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
-                const pixelsPerKnot = 4;
-                const arrowLength = this.trueWind.speed * pixelsPerKnot;
-
-                const wX = center + Math.cos(windFromAngle) * radius;
-                const wY = center - Math.sin(windFromAngle) * radius;
-                this.trueWind.wPos = {x: wX, y: wY}; 
-
-                const startX = wX;
-                const startY = wY;
-                const endX = startX - Math.cos(windFromAngle) * arrowLength;
-                const endY = startY + Math.sin(windFromAngle) * arrowLength;
-                this.trueWind.arrowEndpoint = {x: endX, y: endY}; 
-                
-                this.ctx.save();
-                this.ctx.strokeStyle = this.radarFaintGreen;
-                this.ctx.fillStyle   = this.radarFaintGreen;
-                this.ctx.font        = `${Math.max(12, radius * 0.08)}px 'Share Tech Mono', monospace`;
-                this.ctx.textAlign   = 'center';
-                this.ctx.textBaseline = 'middle';
-                this.ctx.fillText('W', wX, wY);
-                this.ctx.lineWidth = 2;
-                this.ctx.beginPath();
-                this.ctx.moveTo(startX, startY);
-                this.ctx.lineTo(endX, endY);
-                this.ctx.stroke();
-                const arrowAngle = Math.atan2(endY - startY, endX - startX);
-                this.ctx.beginPath();
-                this.ctx.moveTo(endX, endY);
-                this.ctx.lineTo(endX - 15 * Math.cos(arrowAngle - Math.PI / 6), endY - 15 * Math.sin(arrowAngle - Math.PI / 6));
-                this.ctx.lineTo(endX - 15 * Math.cos(arrowAngle + Math.PI / 6), endY - 15 * Math.sin(arrowAngle + Math.PI / 6));
-                this.ctx.closePath();
-                this.ctx.fill();
-                this.ctx.restore();
-                
-                if (this.showRelativeMotion) {
-                    const pixelsPerNm = radius / this.maxRange;
-                    const timeInHours = this.vectorTimeInMinutes / 60;
-                    const vectorDistPixels = this.relativeWind.speed * timeInHours * pixelsPerNm;
-                    const relWindCanvasAngle = this.toRadians(this.bearingToCanvasAngle(this.relativeWind.vectorDirection));
-                    
-                    const vecEndX = center + vectorDistPixels * Math.cos(relWindCanvasAngle);
-                    const vecEndY = center - vectorDistPixels * Math.sin(relWindCanvasAngle);
-
-                    this.ctx.save();
-                    this.ctx.strokeStyle = this.radarFaintGreen;
-                    this.ctx.lineWidth = 1.8;
-                    this.ctx.setLineDash([5, 5]);
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(center, center);
-                    this.ctx.lineTo(vecEndX, vecEndY);
-                    this.ctx.stroke();
-                    this.ctx.restore();
-                }
-            }
-
-            // --- UI Updates ---
-            updatePanelsAndRedraw() {
-                this.updateOwnShipPanel();
-                this.updateDataPanels();
-                this.drawRadar();
-            }
-
-            updateOwnShipPanel() {
-                this._renderEditableField('ownship-crs', `${this.formatBearing(this.ownShip.course)} T`, this.ownShip.course);
-                this._renderEditableField('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`, this.ownShip.speed);
-            }
-
-            updateDataPanels() {
-                const selectedTrack = this.tracks.find(t => t.id === this.selectedTrackId);
-                
-                this._setText('track-id', selectedTrack ? selectedTrack.id : '--');
-
-                if (selectedTrack) {
-                    this._renderEditableField('track-brg', `${this.formatBearing(selectedTrack.bearing)} T`, selectedTrack.bearing);
-                    this._renderEditableField('track-rng', `${selectedTrack.range.toFixed(1)} NM`, selectedTrack.range);
-                    this._renderEditableField('track-crs', `${this.formatBearing(selectedTrack.course)} T`, selectedTrack.course);
-                    this._renderEditableField('track-spd', `${selectedTrack.speed.toFixed(1)} KTS`, selectedTrack.speed);
-                } else {
-                    this._setText('track-brg', '--');
-                    this._setText('track-rng', '--');
-                    this._setText('track-crs', '--');
-                    this._setText('track-spd', '--');
-                }
-
-                const showRM = selectedTrack && this.showRelativeMotion;
-                this._setText('rm-dir', showRM ? selectedTrack.rm.dir : '--');
-                this._setText('rm-spd', showRM ? selectedTrack.rm.spd : '--');
-                this._setText('rm-rate', showRM ? selectedTrack.rm.rate : '--');
-                this._setText('rm-angle', showRM ? selectedTrack.rm.angle : '--');
-                this._setText('rm-aspect', showRM ? selectedTrack.rm.aspect : '--');
-                
-                const showCPA = selectedTrack && this.showCPAInfo && !selectedTrack.hasPassedCPA;
-                this._setText('cpa-brg', showCPA ? selectedTrack.cpa.brg : '--');
-                this._setText('cpa-rng', showCPA ? selectedTrack.cpa.range : '--');
-                this._setText('cpa-time', showCPA ? selectedTrack.cpa.time : '--');
-                
-                const showTrueWind = this.showWeather;
-                const showRelWind = this.showWeather && this.showRelativeMotion;
-                const relWindBearing = (this.relativeWind.vectorDirection - this.ownShip.course + 360) % 360;
-                this._setText('wind-true', showTrueWind ? `${this.formatBearing(this.trueWind.direction)} T  ${this.trueWind.speed.toFixed(1)} kts` : '--');
-                this._setText('wind-rel', showRelWind ? `${this.formatBearing(relWindBearing)} R  ${this.relativeWind.speed.toFixed(1)} kts` : '--');
-
-                this.applyDataPanelFontSizes();
-            }
-            
-            updateButtonStyles() {
-                this.btnWind.className = `control-btn ${this.showWeather ? 'selected' : 'unselected'}`;
-                this.btnRmv.className = `control-btn ${this.showRelativeMotion ? 'selected' : 'unselected'}`;
-                this.btnCpa.className = `control-btn ${this.showCPAInfo ? 'selected' : 'unselected'}`;
-                                        
-                this.btnPlayPause.className = `control-btn p-2 ${this.isSimulationRunning ? 'selected' : 'unselected'}`;
-                this.iconPlay.classList.toggle('d-none', this.isSimulationRunning);
-                this.iconPause.classList.toggle('d-none', !this.isSimulationRunning);
-
-                this.btnFf.className = `control-btn p-2 ${this.simulationSpeed > 1 ? 'selected' : 'unselected'}`;
-                this.btnRev.className = `control-btn p-2 ${this.simulationSpeed < 0 ? 'selected' : 'unselected'}`;
-            }
-
-            updateSpeedIndicator() {
-                this.ffSpeedIndicator.classList.add('d-none');
-                this.revSpeedIndicator.classList.add('d-none');
-
-                if (this.simulationSpeed > 1) {
-                    const label = this.simulationSpeed === 25 ? '25x'
-                                  : this.simulationSpeed === 50 ? '50x'
-                                  : `${this.simulationSpeed}x`;
-                    this.ffSpeedIndicator.textContent = label;
-                    this.ffSpeedIndicator.classList.remove('d-none');
-                } else if (this.simulationSpeed < 0) {
-                    const absSpeed = Math.abs(this.simulationSpeed);
-                    const label = absSpeed === 25 ? '25x'
-                                  : absSpeed === 50 ? '50x'
-                                  : `${absSpeed}x`;
-                    this.revSpeedIndicator.textContent = label;
-                    this.revSpeedIndicator.classList.remove('d-none');
-                }
-            }
-		
-            updateSimClock() {
-                this._setText('sim-clock', this.formatTime(this.simulationElapsed / 3600));
-            }
-		
-            scaleUI() {
-                const BASE = 900;
-                const containerHeight = this.mainContainer.clientHeight;
-                const wrapperWidth = this.radarWrapper.clientWidth;
-                const dim = Math.min(wrapperWidth, containerHeight);
-                const scale = Math.max(0.7, Math.min(1.5, dim / BASE));
-
-                document.documentElement.style.setProperty('--ui-scale', scale);
-                this.uiScaleFactor = scale;
-                
-                // Canvas resolution depends on its current size in the DOM, which is now controlled by CSS.
-                const canvasRect = this.canvas.getBoundingClientRect();
-                const size = canvasRect.width; 
-                
-                if (size > 0) {
-                    this.canvas.width  = size * this.DPR;
-                    this.canvas.height = size * this.DPR;
-                }
-
-                this.prepareStaticStyles();
-                this.applyDataPanelFontSizes();
-
-                this.markSceneDirty();
-            }
-
-            applyDataPanelFontSizes() {
-                const titleSize = 1.25 * this.uiScaleFactor;
-                const largeValueSize = 1.4 * this.uiScaleFactor;
-                const mediumValueSize = 1.3 * this.uiScaleFactor;
-
-                document.querySelectorAll('.data-title').forEach(el => el.style.fontSize = `${titleSize}rem`);
-                document.querySelectorAll('.data-label').forEach(el => el.style.fontSize = `${mediumValueSize}rem`);
-
-                document.querySelectorAll('#ownship-crs, #ownship-spd, #track-data-container .data-value').forEach(el => {
-                    if (el) el.style.fontSize = `${largeValueSize}rem`;
-                });
-
-                document.querySelectorAll('#rm-data-container .data-value, #cpa-data-container .data-value, #wind-data-container .data-value').forEach(el => {
-                    if (el) el.style.fontSize = `${mediumValueSize}rem`;
-                });
-            }
-
-            // --- Interaction Handlers ---
-            updateDragTooltip(e) {
-                if (!this.draggedItemId) {
-                    this.dragTooltip.style.display = 'none';
-                    return;
-                }
-
-                let tooltipText = '';
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = (e.clientX - rect.left) * this.DPR;
-                const mouseY = (e.clientY - rect.top) * this.DPR;
-                const center = this.canvas.width / 2;
-                const pixelsPerNm = (center * 0.9) / this.maxRange;
-
-                if (this.dragType === 'icon') {
-                    const dx = mouseX - center;
-                    const dy = -(mouseY - center);
-                    const newRange = Math.hypot(dx, dy) / pixelsPerNm;
-                    const newCanvasAngleRad = Math.atan2(dy, dx);
-                    const newBearing = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-
-                    tooltipText = `Brg: ${this.formatBearing(newBearing)} T\nRng: ${newRange.toFixed(1)} nm`;
-                } else if (this.dragType === 'vector') {
-                    const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
-                    if (vessel) {
-                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
-                        const dx = mouseX - startPoint.x;
-                        const dy = -(mouseY - startPoint.y);
-                        const newCanvasAngleRad = Math.atan2(dy, dx);
-                        const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                        const distOnCanvas = Math.hypot(dx, dy);
-                        const newSpeed = distOnCanvas / pixelsPerNm / (this.vectorTimeInMinutes / 60);
-                        tooltipText = `Crs: ${this.formatBearing(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
-                    }
-                } else if (this.draggedItemId === 'trueWind') {
-                    if (this.dragType === 'windDirection') {
-                        tooltipText = `Dir: ${this.formatBearing(this.trueWind.direction)} T`;
-                    } else if (this.dragType === 'windSpeed') {
-                        tooltipText = `Spd: ${this.trueWind.speed.toFixed(1)} kts`;
-                    }
-                }
-
-                if (tooltipText) {
-                    this.dragTooltip.innerText = tooltipText;
-                    this.dragTooltip.style.display = 'block';
-                    this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
-                } else {
-                    this.dragTooltip.style.display = 'none';
-                }
-            }
-
-            handlePointerDown(e) {
-                if (e.button !== 0 && e.buttons !== undefined && e.buttons !== 1) return;
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = (e.clientX - rect.left) * this.DPR;
-                const mouseY = (e.clientY - rect.top) * this.DPR;
-                const item = this.getInteractiveItemAt(mouseX, mouseY);
-                this.pointerDownPos = { x: mouseX, y: mouseY };
-                if (item) {
-                    this.canvas.style.cursor = 'grabbing';
-                    this.pendingDragId = item.id;
-                    this.pendingDragType = item.type;
-                    this.lastMousePos = { x: mouseX, y: mouseY };
-                    if (item.id !== 'ownShip' && item.id !== 'trueWind') {
-                        this.selectedTrackId = item.id;
-                    }
-                    this.hoveredTrackId = item.id;
-                    this.markSceneDirty();
-                } else {
-                    this.pendingDragId = null;
-                    this.pendingDragType = null;
-                    this.hoveredTrackId = null;
-                }
-            }
-
-           handlePointerUp() {
-                this.canvas.style.cursor = 'pointer';
-                this.draggedItemId = null;
-                this.dragType = null;
-                this.pendingDragId = null;
-                this.pendingDragType = null;
-                this.dragTooltip.style.display = 'none';
-            }
-
-            handlePointerMove(e) {
-                const rect = this.canvas.getBoundingClientRect();
-                const mouseX = (e.clientX - rect.left) * this.DPR;
-                const mouseY = (e.clientY - rect.top) * this.DPR;
-                
-                if (this.pendingDragId && !this.draggedItemId) {
-                    const dx0 = mouseX - this.pointerDownPos.x;
-                    const dy0 = mouseY - this.pointerDownPos.y;
-                    if (Math.hypot(dx0, dy0) > this.dragThreshold) {
-                        this.draggedItemId = this.pendingDragId;
-                        this.dragType = this.pendingDragType;
-                    }
-                }
-                
-                if (this.draggedItemId) {
-                    this.updateDragTooltip(e);
-                    const center = this.canvas.width / 2;
-                    const pixelsPerNm = (center * 0.9) / this.maxRange;
-                    if (this.draggedItemId === 'trueWind') {
-                        const dx = mouseX - center;
-                        const dy = -(mouseY - center);
-                        const newCanvasAngleRad = Math.atan2(dy, dx);
-                        if (this.dragType === 'windDirection') {
-                            this.trueWind.direction = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                        } else if (this.dragType === 'windSpeed') {
-                            const pixelsPerKnot = 4;
-                            const windFromAngle = this.toRadians(this.bearingToCanvasAngle(this.trueWind.direction));
-                            const radius = center * 0.9;
-                            const mouseVecX = mouseX - center;
-                            const mouseVecY = -(mouseY - center);
-                            const windVecX = Math.cos(windFromAngle);
-                            const windVecY = Math.sin(windFromAngle);
-                            const projectedLength = mouseVecX * windVecX + mouseVecY * windVecY;
-                            const arrowPixelLength = projectedLength - radius;
-                            this.trueWind.speed = Math.max(0, -arrowPixelLength / pixelsPerKnot);
-                        }
-                        this.markSceneDirty();
-                    } else if (this.dragType === 'icon') {
-                        const track = this.tracks.find(t => t.id === this.draggedItemId);
-                        if (track) {
-                            const deltaX_pixels = mouseX - this.lastMousePos.x;
-                            const deltaY_pixels = mouseY - this.lastMousePos.y;
-                            const deltaX_nm = deltaX_pixels / pixelsPerNm;
-                            const deltaY_nm = deltaY_pixels / pixelsPerNm;
-                            track.x += deltaX_nm;
-                            track.y -= deltaY_nm;
-                            this.markSceneDirty();
-                        }
-                    } else if (this.dragType === 'vector') {
-                        const timeInHours = this.vectorTimeInMinutes / 60;
-                        const vessel = (this.draggedItemId === 'ownShip') ? this.ownShip : this.tracks.find(t => t.id === this.draggedItemId);
-                        const startPoint = (vessel.id === 'ownShip') ? { x: center, y: center } : this.getTargetCoords(center, (center * 0.9), vessel);
-                        
-                        const dx = mouseX - startPoint.x;
-                        const dy = -(mouseY - startPoint.y);
-                        
-                        const newCanvasAngleRad = Math.atan2(dy, dx);
-                        let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
-                        const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
-                        const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
-                        
-                        vessel.course = newCourse;
-                        vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
-                        this.markSceneDirty();
-                    }
-                    this.lastMousePos = { x: mouseX, y: mouseY };
-                } else {
-                    let item = null;
-                    if (!this.pendingDragId) {
-                        item = this.getInteractiveItemAt(mouseX, mouseY);
-                        this.canvas.style.cursor = item ? 'pointer' : 'default';
-                    }
-                    const newHoverId = item ? item.id : null;
-                    if (newHoverId !== this.hoveredTrackId) {
-                        this.hoveredTrackId = newHoverId;
-                        this.markSceneDirty();
-                    }
-                }
-            }
-
-            getInteractiveItemAt(mouseX, mouseY) {
-                const center = this.canvas.width / 2;
-                const radius = center * 0.9;
-                const hitTolerance = 15 * this.DPR;
-                const minVecPickDistance = 25 * this.DPR;
-
-                if (this.showWeather) {
-                    const distToW = Math.sqrt((mouseX - this.trueWind.wPos.x)**2 + (mouseY - this.trueWind.wPos.y)**2);
-                    if (distToW < hitTolerance) return { type: 'windDirection', id: 'trueWind' };
-                    const distToArrowhead = Math.sqrt((mouseX - this.trueWind.arrowEndpoint.x)**2 + (mouseY - this.trueWind.arrowEndpoint.y)**2);
-                    if (distToArrowhead < hitTolerance) return { type: 'windSpeed', id: 'trueWind' };
-                }
-
-                for (const track of this.tracks) {
-                    const {x, y} = this.getTargetCoords(center, radius, track);
-                    const size = Math.max(11, radius * 0.038) * 1.5;
-                    if (mouseX > x - size/2 && mouseX < x + size/2 && mouseY > y - size/2 && mouseY < y + size/2) {
-                        return {type: 'icon', id: track.id};
-                    }
-                }
-
-                const allVessels = [this.ownShip, ...this.tracks];
-                for (const vessel of allVessels) {
-                    if (!vessel.vectorEndpoint) continue;
-                    const startPt = (vessel.id === 'ownShip') ? {x: center, y: center} : this.getTargetCoords(center, radius, vessel);
-                    const distFromStart = Math.hypot(mouseX - startPt.x, mouseY - startPt.y);
-                    if (distFromStart < minVecPickDistance) continue;
-                    const endPt = vessel.vectorEndpoint;
-                    const dist = this.distToSegment({x: mouseX, y: mouseY}, startPt, endPt);
-                    if (dist < hitTolerance) return {type: 'vector', id: vessel.id};
-                }
-                return null;
-            }
-
-            // --- Control Button Actions ---
-            toggleVectorTime() {
-                const currentIndex = this.vectorTimes.indexOf(this.vectorTimeInMinutes);
-                this.vectorTimeInMinutes = this.vectorTimes[(currentIndex + 1) % this.vectorTimes.length];
-                this._setText('btn-vector-time', this.vectorTimeInMinutes);
-                this.markSceneDirty();
-            }
-
-            toggleRange() {
-                const currentIndex = this.rangeScales.indexOf(this.maxRange);
-                this.maxRange = this.rangeScales[(currentIndex + 1) % this.rangeScales.length];
-                this._setText('btn-range', this.maxRange.toFixed(1));
-                this.markSceneDirty();
-            }
-
-            toggleWeather() {
-                this.showWeather = !this.showWeather;
-                this.markSceneDirty();
-                this.scaleUI();
-                this.updateDataPanels();
-            }
-
-            toggleRelativeMotion() {
-                this.showRelativeMotion = !this.showRelativeMotion;
-                this.markSceneDirty();
-                this.updatePanelsAndRedraw();
-            }
-
-            toggleCPAInfo() {
-                this.showCPAInfo = !this.showCPAInfo;
-                this.markSceneDirty();
-                this.updatePanelsAndRedraw();
-            }
-
-            togglePlayPause() {
-                this.isSimulationRunning = !this.isSimulationRunning;
-                this.simulationSpeed = 1;
-                this.updateButtonStyles();
-                this.updateSpeedIndicator();
-                this.startGameLoop();
-            }
-
-            fastForward() {
-                const cycle = [1, ...this.ffSpeeds];
-                if (!this.isSimulationRunning || this.simulationSpeed < 0) {
-                    this.simulationSpeed = this.ffSpeeds[0];
-                    this.isSimulationRunning = true;
-                } else {
-                    let idx = cycle.indexOf(this.simulationSpeed);
-                    idx = (idx + 1) % cycle.length;
-                    this.simulationSpeed = cycle[idx];
-                    this.isSimulationRunning = true;
-                }
-                this.updateButtonStyles();
-                this.updateSpeedIndicator();
-                this.startGameLoop();
-            }
-
-            rewind() {
-                const cycle = [1, ...this.revSpeeds];
-                if (!this.isSimulationRunning || this.simulationSpeed > 0) {
-                    this.simulationSpeed = this.revSpeeds[0];
-                    this.isSimulationRunning = true;
-                } else {
-                    let idx = cycle.indexOf(this.simulationSpeed);
-                    idx = (idx + 1) % cycle.length;
-                    this.simulationSpeed = cycle[idx];
-                    this.isSimulationRunning = true;
-                }
-                this.updateButtonStyles();
-                this.updateSpeedIndicator();
-                this.startGameLoop();
-            }
-
-            addTrack() {
-                const existingNums = this.tracks.map(t => parseInt(t.id, 10)).sort((a,b) => a - b);
-                let newNum = 1;
-                while (existingNums.includes(newNum)) newNum++;
-                const newId = String(newNum).padStart(4, '0');
-                const newTrack = {
-                    id: newId,
-                    initialBearing: Math.random() * 360,
-                    initialRange: this.maxRange * (0.1 + Math.random() * 0.8),
-                    course: Math.random() * 360,
-                    speed: 2 + Math.random() * 13
-                };
-                newTrack.x = this.ownShip.x + newTrack.initialRange * Math.sin(this.toRadians(newTrack.initialBearing));
-                newTrack.y = this.ownShip.y + newTrack.initialRange * Math.cos(this.toRadians(newTrack.initialBearing));
-                newTrack._controller = new ContactController(newTrack);
-                newTrack._sim = this;
-                this.tracks.push(newTrack);
-                this.selectedTrackId = newId;
-                this.calculateAllData(newTrack);
-                this.updatePanelsAndRedraw();
-                this.markSceneDirty();
-            }
-
-            dropTrack() {
-                if (this.selectedTrackId === null) return;
-                const trackIndex = this.tracks.findIndex(t => t.id === this.selectedTrackId);
-                if (trackIndex > -1) {
-                    this.tracks.splice(trackIndex, 1);
-                    if (this.tracks.length > 0) {
-                        const newIndex = Math.max(0, trackIndex - 1);
-                        this.selectedTrackId = this.tracks[newIndex].id;
-                    } else {
-                        this.selectedTrackId = null;
-                    }
-                    this.updatePanelsAndRedraw();
-                    this.markSceneDirty();
-                }
-            }
-
-            setupRandomScenario(){
-                const gen = new ScenarioGenerator(this.scenarioCfg);
-                this.tracks = gen.makeScenario(this.ownShip);
-                this.tracks.forEach(t=>{ t._sim=this; t._controller=new ContactController(t); });
-                this.selectedTrackId = this.tracks[0].id;
-                this.isSimulationRunning = true;
-                this.simulationElapsed = 0;
-                this.scaleUI();
-                this.isSimulationRunning = true;
-                this._initialize();
-                this.markSceneDirty();
-            }
-
-            showHelpModal() {
-                this.helpModal.style.display = 'flex';
-                const left = (window.innerWidth  - this.helpModal.offsetWidth)  / 2;
-                const top  = (window.innerHeight - this.helpModal.offsetHeight) / 2;
-                this.helpModal.style.left = `${Math.max(0, left)}px`;
-                this.helpModal.style.top  = `${Math.max(0, top)}px`;
-            }
-
-            hideHelpModal() {
-                this.helpModal.style.display = 'none';
-            }
-
-            // --- Utility & Helper Methods ---
-            toRadians(degrees) { return degrees * Math.PI / 180; }
-            toDegrees(radians) { return (radians * 180 / Math.PI + 360) % 360; }
-            bearingToCanvasAngle(bearing) { return (450 - bearing) % 360; }
-            canvasAngleToBearing(angle) { return (450 - angle) % 360; }
-            formatBearing(num) { return Math.round(num).toString().padStart(3, '0'); }
-            formatTime(hours) {
-                if (hours < 0 || !isFinite(hours)) return '--:--:--';
-                const totalSeconds = hours * 3600;
-                const h = Math.floor(totalSeconds / 3600);
-                const m = Math.floor((totalSeconds % 3600) / 60);
-                const s = Math.floor(totalSeconds % 60);
-                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-            }
-            getRelativeQuarter(cpaBearing, ownShipCourse){
-                const relativeBearing = (cpaBearing - ownShipCourse + 360) % 360;
-                if(relativeBearing >= 0 && relativeBearing < 90) return 'STBD BOW';
-                if(relativeBearing >= 90 && relativeBearing < 180) return 'STBD QTR';
-                if(relativeBearing >= 180 && relativeBearing < 270) return 'PORT QTR';
-                return 'PORT BOW';
-            }
-            getAspect(targetAngle){
-                if(targetAngle >= 337.5 || targetAngle < 22.5) return 'BOW';
-                if(targetAngle >= 22.5 && targetAngle < 67.5) return 'STBD BOW';
-                if(targetAngle >= 67.5 && targetAngle < 112.5) return 'STBD BM';
-                if(targetAngle >= 112.5 && targetAngle < 157.5) return 'STBD QTR';
-                if(targetAngle >= 157.5 && targetAngle < 202.5) return 'STERN';
-                if(targetAngle >= 202.5 && targetAngle < 247.5) return 'PORT QTR';
-                if(targetAngle >= 247.5 && targetAngle < 292.5) return 'PORT BM';
-                if(targetAngle >= 292.5 && targetAngle < 337.5) return 'PORT BOW';
-                return 'N/A';
-            }
-            getBearingRate(relativeVelocity, targetPosition, range){
-                const crossProduct = targetPosition.x * relativeVelocity.y - targetPosition.y * relativeVelocity.x;
-                if(range < 0.01) return '0.00 STEADY';
-                const bearingRateRadPerHour = crossProduct / (range * range);
-                const bearingRateDpm = (bearingRateRadPerHour * 180 / Math.PI) / 60;
-                let direction;
-                if(Math.abs(bearingRateDpm) < 0.01) {
-                    direction = 'STEADY';
-                } else if (bearingRateDpm > 0) {
-                    direction = 'LEFT';
-                } else {
-                    direction = 'RIGHT';
-                }
-                return `${Math.abs(bearingRateDpm).toFixed(2)} ${direction}`;
-            }
-            distToSegment(p, v, w) {
-                const l2 = (v.x - w.x)**2 + (v.y - w.y)**2;
-                if (l2 == 0) return Math.sqrt((p.x - v.x)**2 + (p.y - v.y)**2);
-                let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-                t = Math.max(0, Math.min(1, t));
-                return Math.sqrt((p.x - (v.x + t * (w.x - v.x)))**2 + (p.y - (v.y + t * (w.y - v.y)))**2);
-            }
-            prepareStaticStyles() {
-                this.ctx.strokeStyle = this.radarFaintGreen;
-                this.ctx.fillStyle   = this.radarFaintGreen;
-                this.ctx.font        = `${Math.max(12, this.canvas.width * 0.04)}px 'Share Tech Mono', monospace`;
-            }
-        }
-
         // --- Application Entry Point ---
         document.addEventListener('DOMContentLoaded', () => {
             new Simulator();
