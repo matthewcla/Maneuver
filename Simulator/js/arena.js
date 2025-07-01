@@ -1124,7 +1124,7 @@ class Simulator {
     }
 
     handlePointerUp() {
-        this.canvas.style.cursor = 'pointer';
+        this.canvas.style.cursor = 'grab';
         this.draggedItemId = null;
         this.dragType = null;
         this.pendingDragId = null;
@@ -1202,7 +1202,7 @@ class Simulator {
             let item = null;
             if (!this.pendingDragId) {
                 item = this.getInteractiveItemAt(mouseX, mouseY);
-                this.canvas.style.cursor = item ? 'pointer' : 'default';
+                this.canvas.style.cursor = item ? 'grab' : 'default';
             }
             const newHoverId = item ? item.id : null;
             if (newHoverId !== this.hoveredTrackId) {
