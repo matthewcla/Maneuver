@@ -1216,48 +1216,56 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const relVelY = targetVelY - ownShipVelY;
                 const relSpeed = Math.sqrt(relVelX**2 + relVelY**2);
                 const relVectorCanvasAngle = this.toDegrees(Math.atan2(relVelY, relVelX));
-                
-                track.rmVector = { x: relVelX, y: relVelY, speed: relSpeed, bearing: this.canvasAngleToBearing(relVectorCanvasAngle) };
+
+                if (!track.rmVector) track.rmVector = { x: 0, y: 0, speed: 0, bearing: 0 };
+                track.rmVector.x = relVelX;
+                track.rmVector.y = relVelY;
+                track.rmVector.speed = relSpeed;
+                track.rmVector.bearing = this.canvasAngleToBearing(relVectorCanvasAngle);
                 
                 const targetPosCanvasAngle = this.toRadians(this.bearingToCanvasAngle(track.bearing));
                 const targetPosX = track.range * Math.cos(targetPosCanvasAngle);
                 const targetPosY = track.range * Math.sin(targetPosCanvasAngle);
 
+                
                 const dotProduct = (targetPosX * relVelX) + (targetPosY * relVelY);
+                if (!track.cpa) track.cpa = { range: '--', time: '--:--:--', brg: '--' };
                 if (relSpeed < 0.001) {
-                    track.cpa = { range: '--', time: '--:--:--', brg: '--' };
+                    track.cpa.range = '--';
+                    track.cpa.time = '--:--:--';
+                    track.cpa.brg = '--';
                     track.hasPassedCPA = true;
                 } else {
                     const tcpa = -dotProduct / (relSpeed**2);
                     track.hasPassedCPA = tcpa < 0;
                     const cpaX = targetPosX + tcpa * relVelX;
                     const cpaY = targetPosY + tcpa * relVelY;
-                    track.cpaPosition = { x: cpaX, y: cpaY };
+                    if (!track.cpaPosition) track.cpaPosition = { x: 0, y: 0 };
+                    track.cpaPosition.x = cpaX;
+                    track.cpaPosition.y = cpaY;
 
                     if (track.hasPassedCPA) {
-                        track.cpa = { range: '-- NM', time: '--:--:--', brg: '- -' };
+                        track.cpa.range = '-- NM';
+                        track.cpa.time = '--:--:--';
+                        track.cpa.brg = '--';
                     } else {
                         const cpaRange = Math.sqrt(cpaX**2 + cpaY**2);
                         const cpaCanvasAngle = this.toDegrees(Math.atan2(cpaY, cpaX));
                         const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
                         const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
-                        track.cpa = {
-                            range: `${cpaRange.toFixed(1)} NM`,
-                            time: this.formatTime(tcpa),
-                            brg: `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`
-                        };
+                        track.cpa.range = `${cpaRange.toFixed(1)} NM`;
+                        track.cpa.time = this.formatTime(tcpa);
+                        track.cpa.brg = `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`;
                     }
                 }
-                
                 const ownshipBearingFromTarget = (track.bearing + 180) % 360;
                 const targetAngle = (ownshipBearingFromTarget - track.course + 360) % 360;
-                track.rm = {
-                    dir: `${this.formatBearing(track.rmVector.bearing)} T`,
-                    spd: `${relSpeed.toFixed(1)} KTS`,
-                    rate: this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range),
-                    angle: `${this.formatBearing(targetAngle)} DEG`,
-                    aspect: this.getAspect(targetAngle)
-                };
+                if (!track.rm) track.rm = { dir: '', spd: '', rate: '', angle: '', aspect: '' };
+                track.rm.dir = `${this.formatBearing(track.rmVector.bearing)} T`;
+                track.rm.spd = `${relSpeed.toFixed(1)} KTS`;
+                track.rm.rate = this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range);
+                track.rm.angle = `${this.formatBearing(targetAngle)} DEG`;
+                track.rm.aspect = this.getAspect(targetAngle);
             }
 
             calculateWindData() {
