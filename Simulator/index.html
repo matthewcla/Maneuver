@@ -922,7 +922,12 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.isSimulationRunning = true;
                 this.showWeather = false;
                 this.uiScaleFactor = 1;
-                
+
+                // Pre-rendered radar backdrop
+                this.staticCanvas = document.createElement('canvas');
+                this.staticCtx = this.staticCanvas.getContext('2d');
+                this.staticDirty = true;
+
                 // Bind methods to ensure correct `this` context
                 this.gameLoop = this.gameLoop.bind(this);
                 this.handlePointerDown = this.handlePointerDown.bind(this);
@@ -939,6 +944,10 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const BASE_CANVAS_SIZE = 900;
                 this.canvas.width = BASE_CANVAS_SIZE * this.DPR;
                 this.canvas.height = BASE_CANVAS_SIZE * this.DPR;
+                this.staticCanvas.width = this.canvas.width;
+                this.staticCanvas.height = this.canvas.height;
+                this.drawStaticRadar();
+                this.staticDirty = false;
                 
                 this.simulationElapsed = 0;
                 this.updateSimClock();
@@ -1216,48 +1225,57 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const relVelY = targetVelY - ownShipVelY;
                 const relSpeed = Math.sqrt(relVelX**2 + relVelY**2);
                 const relVectorCanvasAngle = this.toDegrees(Math.atan2(relVelY, relVelX));
-                
-                track.rmVector = { x: relVelX, y: relVelY, speed: relSpeed, bearing: this.canvasAngleToBearing(relVectorCanvasAngle) };
+
+                if (!track.rmVector) track.rmVector = { x: 0, y: 0, speed: 0, bearing: 0 };
+                track.rmVector.x = relVelX;
+                track.rmVector.y = relVelY;
+                track.rmVector.speed = relSpeed;
+                track.rmVector.bearing = this.canvasAngleToBearing(relVectorCanvasAngle);
                 
                 const targetPosCanvasAngle = this.toRadians(this.bearingToCanvasAngle(track.bearing));
                 const targetPosX = track.range * Math.cos(targetPosCanvasAngle);
                 const targetPosY = track.range * Math.sin(targetPosCanvasAngle);
 
+                
                 const dotProduct = (targetPosX * relVelX) + (targetPosY * relVelY);
+                if (!track.cpa) track.cpa = { range: '--', time: '--:--:--', brg: '--' };
                 if (relSpeed < 0.001) {
-                    track.cpa = { range: '--', time: '--:--:--', brg: '--' };
+                    track.cpa.range = '--';
+                    track.cpa.time = '--:--:--';
+                    track.cpa.brg = '--';
                     track.hasPassedCPA = true;
                 } else {
                     const tcpa = -dotProduct / (relSpeed**2);
                     track.hasPassedCPA = tcpa < 0;
                     const cpaX = targetPosX + tcpa * relVelX;
                     const cpaY = targetPosY + tcpa * relVelY;
-                    track.cpaPosition = { x: cpaX, y: cpaY };
+                    if (!track.cpaPosition) track.cpaPosition = { x: 0, y: 0 };
+                    track.cpaPosition.x = cpaX;
+                    track.cpaPosition.y = cpaY;
 
                     if (track.hasPassedCPA) {
-                        track.cpa = { range: '-- NM', time: '--:--:--', brg: '- -' };
+                        track.cpa.range = '-- NM';
+                        track.cpa.time = '--:--:--';
+                        track.cpa.brg = '--';
                     } else {
                         const cpaRange = Math.sqrt(cpaX**2 + cpaY**2);
                         const cpaCanvasAngle = this.toDegrees(Math.atan2(cpaY, cpaX));
                         const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
                         const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
-                        track.cpa = {
-                            range: `${cpaRange.toFixed(1)} NM`,
-                            time: this.formatTime(tcpa),
-                            brg: `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`
-                        };
+                        track.cpa.range = `${cpaRange.toFixed(1)} NM`;
+                        track.cpa.time = this.formatTime(tcpa);
+                        track.cpa.brg = `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`;
                     }
                 }
-                
                 const ownshipBearingFromTarget = (track.bearing + 180) % 360;
                 const targetAngle = (ownshipBearingFromTarget - track.course + 360) % 360;
-                track.rm = {
-                    dir: `${this.formatBearing(track.rmVector.bearing)} T`,
-                    spd: `${relSpeed.toFixed(1)} KTS`,
-                    rate: this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range),
-                    angle: `${this.formatBearing(targetAngle)} DEG`,
-                    aspect: this.getAspect(targetAngle)
-                };
+                if (!track.rm) track.rm = { dir: '', spd: '', rate: '', angle: '', aspect: '' };
+                // TODO: Only format bearing/speed strings for the selected track or when updating the UI, not for every track each frame.
+                track.rm.dir = `${this.formatBearing(track.rmVector.bearing)} T`;
+                track.rm.spd = `${relSpeed.toFixed(1)} KTS`;
+                track.rm.rate = this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range);
+                track.rm.angle = `${this.formatBearing(targetAngle)} DEG`;
+                track.rm.aspect = this.getAspect(targetAngle);
             }
 
             calculateWindData() {
@@ -1285,16 +1303,20 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 if (size === 0) return;
                 const center = size / 2;
                 const radius = size / 2 * 0.9;
-                this.ctx.fillStyle = '#000000';
-                this.ctx.fillRect(0, 0, size, size);
-                this.drawRangeRings(center, radius);
-                this.drawRangeLabels(center, radius);
-                
+                if (this.staticDirty || this.staticCanvas.width !== size) {
+                    this.staticCanvas.width = size;
+                    this.staticCanvas.height = size;
+                    this.drawStaticRadar();
+                    this.staticDirty = false;
+                }
+                this.ctx.drawImage(this.staticCanvas, 0, 0);
+
                 if (this.showWeather) {
                     this.drawWeatherInfo(center, radius);
                 }
                 this.drawOwnShipIcon(center, radius);
                 this.tracks.forEach(track => {
+                    if (track.range > this.maxRange) return;
                     this.drawTarget(center, radius, track);
                     if(this.showRelativeMotion) {
                         this.drawRelativeMotionVector(center, radius, track);
@@ -1310,6 +1332,35 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 }
                 if (this.hoveredTrackId !== null && this.hoveredTrackId !== this.selectedTrackId) {
                     this.drawSelectionIndicator(center, radius, this.hoveredTrackId, this.radarFaintWhite, 1);
+                }
+            }
+
+            drawStaticRadar() {
+                const size = this.staticCanvas.width;
+                if (size === 0) return;
+                const center = size / 2;
+                const radius = size / 2 * 0.9;
+                const ctx = this.staticCtx;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, size, size);
+                ctx.strokeStyle = this.radarFaintGreen;
+                ctx.lineWidth = 0.9;
+                ctx.beginPath();
+                ctx.arc(center, center, radius, 0, 2 * Math.PI);
+                ctx.stroke();
+                for (let i = 1; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+                ctx.fillStyle = this.radarGreen;
+                ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                for (let i = 1; i <= 3; i++) {
+                    const ringRadius = radius * (i / 3);
+                    const range = this.maxRange * (i / 3);
+                    ctx.fillText(range.toFixed(1), center + ringRadius + 5, center);
                 }
             }
 
@@ -1591,6 +1642,9 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 if (size > 0) {
                     this.canvas.width  = size * this.DPR;
                     this.canvas.height = size * this.DPR;
+                    this.staticCanvas.width = this.canvas.width;
+                    this.staticCanvas.height = this.canvas.height;
+                    this.staticDirty = true;
                 }
 
                 this.prepareStaticStyles();
@@ -1826,6 +1880,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const currentIndex = this.rangeScales.indexOf(this.maxRange);
                 this.maxRange = this.rangeScales[(currentIndex + 1) % this.rangeScales.length];
                 this._setText('btn-range', this.maxRange.toFixed(1));
+                this.staticDirty = true;
                 this.markSceneDirty();
             }
 
