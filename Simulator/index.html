@@ -1270,7 +1270,9 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 const ownshipBearingFromTarget = (track.bearing + 180) % 360;
                 const targetAngle = (ownshipBearingFromTarget - track.course + 360) % 360;
                 if (!track.rm) track.rm = { dir: '', spd: '', rate: '', angle: '', aspect: '' };
+
                 // TODO: Only format bearing/speed strings for the selected track or when updating the UI, not for every track each frame.
+
                 track.rm.dir = `${this.formatBearing(track.rmVector.bearing)} T`;
                 track.rm.spd = `${relSpeed.toFixed(1)} KTS`;
                 track.rm.rate = this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range);
