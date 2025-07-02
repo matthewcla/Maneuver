@@ -134,14 +134,6 @@ main {
     border-top:1px solid #333;
     font-size: 1.35rem;
 }
-#trk-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    border-top:1px solid #333;
-    font-size: 1.35rem;
-}
 #sim-clock {
     font-size: 1.8rem;
     padding-bottom: 17px;
@@ -163,11 +155,7 @@ main {
 }
 
 #btn-scen {
-    padding: 10px 0;
-    flex: 0 0 50%;
-}
-#btn-rev, #btn-ff, #btn-drop-trk, #btn-add-trk {
-    flex: 0 0 25%;
+    padding: 10px 0
 }
 #btn-rev, #btn-ff {
     flex: 0 0 25%;
@@ -196,7 +184,7 @@ main {
 }
 .control-btn svg { width: 1em; height: 1em; }
 /* Instant tooltip styling using data-tooltip attribute */
-[data-tooltip]::after {
+.control-btn[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
     top: 10%;
@@ -214,7 +202,7 @@ main {
     opacity: 0;
     transition: opacity 0.1s ease-in-out;
 }
-[data-tooltip]:hover::after {
+.control-btn[data-tooltip]:hover::after {
     opacity: 1;
 }
 .control-btn.unselected {
@@ -310,6 +298,11 @@ main {
     outline: none;
 }
 #data-pane .mt-2 { margin-top: 0.25rem !important; }
+#btn-add-track,
+#btn-drop-track {
+    font-size: 32px;
+    line-height: 1;
+}
 
 /* Let the radar fill the middle, and center its contents
 #radar {
@@ -370,6 +363,19 @@ main {
     z-index: 1000;
     line-height: 1.4;
     white-space: pre; /* To respect newlines and spacing */
+}
+#tooltip {
+    position: fixed;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--radar-green);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    pointer-events: none;
+    z-index: 1000;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 #logo, #logo span {
     font-family: 'Share Tech Mono', monospace;
@@ -475,4 +481,5 @@ details[open] > summary.collapsible-summary::before {
 /* Larger font for selected track ID */
 #track-id {
     font-size: 22px;
+}
 }

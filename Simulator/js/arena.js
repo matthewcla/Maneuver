@@ -222,14 +222,16 @@ class Simulator {
         this.iconPlay = document.getElementById('icon-play');
         this.iconPause = document.getElementById('icon-pause');
         this.btnRange = document.getElementById('btn-range');
-        this.btnAddTrk = document.getElementById('btn-add-trk');
-        this.btnDropTrk = document.getElementById('btn-drop-trk');
+        this.btnAddTrack = document.getElementById('btn-add-track');
+        this.btnDropTrack = document.getElementById('btn-drop-track');
         // this.btnWind = document.getElementById('btn-wind');
         this.btnScen = document.getElementById('btn-scen');
         this.btnFf = document.getElementById('btn-ff');
         this.btnRev = document.getElementById('btn-rev');
         this.ffSpeedIndicator = document.getElementById('ff-speed-indicator');
+        this.tooltip = document.getElementById("tooltip");
         this.revSpeedIndicator = document.getElementById('rev-speed-indicator');
+        this.btnHelp = document.getElementById('btn-help');
         this.helpModal = document.getElementById('help-modal');
         this.helpCloseBtn = document.getElementById('help-close-btn');
         this.helpContent = this.helpModal.querySelector('pre');
@@ -415,11 +417,12 @@ class Simulator {
         this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
         this.btnFf.addEventListener('click', () => this.fastForward());
         this.btnRev.addEventListener('click', () => this.rewind());
-        this.btnAddTrk?.addEventListener('click', () => this.addTrack());
-        this.btnDropTrk?.addEventListener('click', () => this.dropTrack());
+        this.btnAddTrack.addEventListener('click', () => this.addTrack());
+        this.btnDropTrack.addEventListener('click', () => this.dropTrack());
         this.btnScen.addEventListener('click', () => this.setupRandomScenario());
 
         // Help Modal
+        this.btnHelp.addEventListener('click', () => this.showHelpModal());
         this.helpCloseBtn.addEventListener('click', () => this.hideHelpModal());
         new ResizeObserver(() => {
             const scale = Math.max(0.8, Math.min(1.2, this.helpModal.clientWidth / 500));
@@ -445,6 +448,24 @@ class Simulator {
             this._scheduleUIUpdate();
         });
 
+        document.addEventListener("pointerover", e => {
+            const target = e.target.closest("[data-tooltip]");
+            if (target) {
+                this.tooltip.textContent = target.getAttribute("data-tooltip");
+                this.tooltip.style.display = "block";
+                this.tooltip.style.transform = `translate(${e.clientX - this.tooltip.offsetWidth - 10}px, ${e.clientY - this.tooltip.offsetHeight - 10}px)`;
+            }
+        });
+        document.addEventListener("pointermove", e => {
+            if (this.tooltip.style.display === "block") {
+                this.tooltip.style.transform = `translate(${e.clientX - this.tooltip.offsetWidth - 10}px, ${e.clientY - this.tooltip.offsetHeight - 10}px)`;
+            }
+        });
+        document.addEventListener("pointerout", e => {
+            if (!e.relatedTarget || !e.relatedTarget.closest("[data-tooltip]")) {
+                this.tooltip.style.display = "none";
+            }
+        });
         // Editable fields
         this.dataPane.addEventListener('click', (e) => {
             if (e.target.classList.contains('editable')) {
@@ -1364,11 +1385,6 @@ class Simulator {
             this.startGameLoop();
         }
     }
-
-    fastForward() {
-        const cycle = [1, ...this.ffSpeeds];
-        if (!this.isSimulationRunning || this.simulationSpeed < 0) {
-            this.simulationSpeed = this.ffSpeeds[0];
             this.isSimulationRunning = true;
         } else {
             let idx = cycle.indexOf(this.simulationSpeed);
