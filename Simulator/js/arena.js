@@ -303,6 +303,11 @@ class Simulator {
         this.showWeather = true;
         this.uiScaleFactor = 1;
 
+        // Sync data panel visibility with feature toggles
+        this.rmDataContainer.open   = this.showRelativeMotion;
+        this.cpaDataContainer.open  = this.showCPAInfo;
+        this.windDataContainer.open = this.showWeather;
+
         // Pre-rendered radar backdrop
         this.staticCanvas = document.createElement('canvas');
         this.staticCtx = this.staticCanvas.getContext('2d');
@@ -424,6 +429,23 @@ class Simulator {
             this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
             this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
         }).observe(this.helpModal);
+
+        // Data panel expand/collapse toggles radar elements
+        this.rmDataContainer.addEventListener('toggle', () => {
+            this.showRelativeMotion = this.rmDataContainer.open;
+            this.markSceneDirty();
+            this._scheduleUIUpdate();
+        });
+        this.cpaDataContainer.addEventListener('toggle', () => {
+            this.showCPAInfo = this.cpaDataContainer.open;
+            this.markSceneDirty();
+            this._scheduleUIUpdate();
+        });
+        this.windDataContainer.addEventListener('toggle', () => {
+            this.showWeather = this.windDataContainer.open;
+            this.markSceneDirty();
+            this._scheduleUIUpdate();
+        });
 
         // Editable fields
         this.dataPane.addEventListener('click', (e) => {
