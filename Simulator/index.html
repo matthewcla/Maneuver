@@ -934,6 +934,9 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 this.handlePointerUp = this.handlePointerUp.bind(this);
                 this.handlePointerMove = this.handlePointerMove.bind(this);
 
+                // Flag to avoid attaching duplicate event listeners on re-initialization
+                this.listenersAttached = false;
+
                 this._initialize();
             }
 
@@ -987,6 +990,8 @@ Questions?  >>  Aheadflank.ai@gmail.com
 
             // --- Event Listener Setup ---
             _attachEventListeners() {
+                if (this.listenersAttached) return;
+                this.listenersAttached = true;
                 // Canvas interaction
                 if (window.PointerEvent) {
                     this.canvas.addEventListener('pointerdown', this.handlePointerDown);
