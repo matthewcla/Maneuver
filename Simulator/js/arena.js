@@ -207,6 +207,10 @@ class ContactController {
  */
 class Simulator {
     constructor() {
+        // --- Suppress rendering flag for editable fields ---
+        this.suppressEditRender = false;
+        // Flag and helper for debounced UI updates
+        this.uiUpdatePending = false;
         // --- DOM Element References ---
         this.canvas = document.getElementById('radarCanvas');
         this.ctx = this.canvas.getContext('2d');
@@ -363,6 +367,11 @@ class Simulator {
 
     // --- Event Listener Setup ---
     _attachEventListeners() {
+        // Prevent radar-wrapper drag when interacting inside canvas
+        this.canvas.addEventListener('mousedown', e => e.stopPropagation());
+        this.canvas.addEventListener('pointerdown', e => e.stopPropagation());
+        this.canvas.addEventListener('touchstart', e => { e.stopPropagation(); }, { passive: false });
+
         // Canvas interaction
         if (window.PointerEvent) {
             this.canvas.addEventListener('pointerdown', this.handlePointerDown);
@@ -421,7 +430,7 @@ class Simulator {
             if (e.target.classList.contains('editable')) {
                 if (this.activeEditField) return; // Prevent new input if one is already active
                 this.activeEditField = e.target.id;
-                this.updatePanelsAndRedraw();
+                this._scheduleUIUpdate();
             }
         });
     }
@@ -502,12 +511,17 @@ class Simulator {
         if (!el) return;
 
         if (this.activeEditField === id) {
+            if (this.suppressEditRender) return;
             if (!el.querySelector('input')) {
                 el.innerHTML = `<input type="text" value="${parseFloat(numericValue).toFixed(1)}">`;
                 const input = el.querySelector('input');
                 const commit = () => {
                     const newVal = parseFloat(input.value);
+                    this.activeEditField = null;
+                    this.suppressEditRender = true;          // block edit‑field render for the next frame
+                    el.textContent = this._formatDisplayValue(id, newVal); // immediate static text
                     this.commitEdit(id, newVal);
+                    this._scheduleUIUpdate();                // refresh, block lifted inside
                 };
                 input.addEventListener('blur', commit, { once: true });
                 input.addEventListener('keydown', (e) => {
@@ -515,7 +529,7 @@ class Simulator {
                         input.blur();
                     } else if (e.key === 'Escape') {
                         this.activeEditField = null;
-                        this.updatePanelsAndRedraw();
+                        this._scheduleUIUpdate();
                     }
                 });
                 setTimeout(() => { input.focus(); input.select(); }, 0);
@@ -527,10 +541,42 @@ class Simulator {
         }
     }
 
+    /**
+     * Format the numeric value for immediate static display after editing.
+     */
+    _formatDisplayValue(id, num) {
+        if (id === 'ownship-crs' || id === 'track-crs' || id === 'track-brg') {
+            return `${this.formatBearing(num)} T`;
+        }
+        if (id === 'ownship-spd' || id === 'track-spd') {
+            return `${num.toFixed(1)} KTS`;
+        }
+        if (id === 'track-rng') {
+            return `${num.toFixed(1)} NM`;
+        }
+        return String(num);
+    }
+
+    /**
+     * Schedule a single UI refresh on the next animation frame.
+     * Prevents rapid back‑to‑back redraws that cause visual bounce.
+     * Also clears the temporary suppress flag used during input‑blur commits.
+     */
+    _scheduleUIUpdate() {
+        if (this.uiUpdatePending) return;
+        this.uiUpdatePending = true;
+        requestAnimationFrame(() => {
+            this.uiUpdatePending = false;
+            this.suppressEditRender = false;   // lift one‑frame block
+            this.updatePanelsAndRedraw();
+        });
+    }
+
     commitEdit(id, value) {
+        let didUpdate = false;
         if (isNaN(value)) {
             this.activeEditField = null;
-            this.updatePanelsAndRedraw();
+            this._scheduleUIUpdate();
             return;
         }
 
@@ -538,20 +584,26 @@ class Simulator {
 
         if (id === 'ownship-crs') {
             this.ownShip.course = Math.max(0, Math.min(359.9, value));
+            didUpdate = true;
         } else if (id === 'ownship-spd') {
             this.ownShip.speed = value;
+            didUpdate = true;
         } else if (track) {
             if (id === 'track-brg') {
                 track.bearing = Math.max(0, Math.min(359.9, value));
+                didUpdate = true;
             } else if (id === 'track-rng') {
                 track.range = value;
+                didUpdate = true;
             } else if (id === 'track-crs') {
                 track.course = Math.max(0, Math.min(359.9, value));
+                didUpdate = true;
             } else if (id === 'track-spd') {
                 track.speed = value;
+                didUpdate = true;
             }
 
-            if (id === 'track-brg' || id === 'track-rng') {
+            if ((id === 'track-brg' || id === 'track-rng') && track.bearing !== undefined && track.range !== undefined) {
                 const angleRad = this.toRadians(track.bearing);
                 track.x = this.ownShip.x + track.range * Math.sin(angleRad);
                 track.y = this.ownShip.y + track.range * Math.cos(angleRad);
@@ -559,8 +611,10 @@ class Simulator {
         }
 
         this.activeEditField = null;
-        this.updatePanelsAndRedraw();
-        this.markSceneDirty();
+        this._scheduleUIUpdate();
+        if (didUpdate) {
+            this.markSceneDirty();
+        }
     }
 
     // --- Physics & Calculations ---
@@ -1272,13 +1326,13 @@ class Simulator {
     toggleRelativeMotion() {
         this.showRelativeMotion = !this.showRelativeMotion;
         this.markSceneDirty();
-        this.updatePanelsAndRedraw();
+        this._scheduleUIUpdate();
     }
 
     toggleCPAInfo() {
         this.showCPAInfo = !this.showCPAInfo;
         this.markSceneDirty();
-        this.updatePanelsAndRedraw();
+        this._scheduleUIUpdate();
     }
 
     togglePlayPause() {

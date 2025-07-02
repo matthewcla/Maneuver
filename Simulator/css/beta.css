@@ -41,18 +41,23 @@ nav {
 #radar-wrapper {
     flex-direction: column;
     flex-grow:.7;
-    padding: 0 20px;
+    padding: 0 0px 0 0;
     z-index: 1;
 }
 #radar-container {
 
 }
 #right-pane {
-    flex-direction: column;
-    flex-grow:.3;
     min-width: 286px;
     max-width: 286px;
-    padding-top:16px;
+    position: absolute;
+    padding: 32px 32px 0 24px;
+    top: 0;
+    right: 0;
+    z-index: 3;
+    border-left: 1px solid #333;
+    height: 100vh;
+    background: #000;
 }
 
 /*****************/
@@ -176,7 +181,7 @@ main {
 */
 
 #button-bar {
-    padding-top: 48px;
+    padding-top: 46px;
 }
 
 /* (override Bootstrap’s .gap‑2 and internal margins)              */
@@ -211,21 +216,22 @@ main {
     padding-top:40px;
 }
 .data-title {
-    font-size: 20px;
+    font-size: 14px;
     margin-bottom: 8px;
+    color: #999;
 }
 
 .data-label {
     font-size: 16px;
-    line-height: 1.1;
+    line-height: 1.5;
     font-weight: 300;
 }
 .data-value {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 1.1;
 }
 #ownship-crs, #ownship-spd, #track-data-container .data-value {
-    font-size: 28px;
+    font-size: 24px;
 }
 .editable {
     cursor: pointer;
@@ -315,7 +321,7 @@ main {
 }
 #logo {
     color: var(--radar-green);
-    font-size:2rem;
+    font-size:1.6rem;
 }
 
 #logo span {
@@ -324,11 +330,11 @@ main {
 }
 #sim-clock {
     font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     background: #2c2c2c;
     border-radius: 20px;
     padding-top: 2px;
-    opacity:.5;
+    opacity:.75;
 }
 
  .mobile-blocker {

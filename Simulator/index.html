@@ -234,9 +234,6 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 <span>Beta</span>
             </section>
             <nav id="button-bar" class="d-flex flex-column align-items-bottom gap-2 justify-content-end">
-                <!-- Help Button -->
-                <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
-                <span class="w-100 border-top border-secondary"></span>
                 <!-- Simulation Controls -->
                 <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
                     <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -276,12 +273,16 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 <span class="w-100 border-top border-secondary"></span>
                 <!-- Button Group 3 -->
                 <button id="btn-range" class="control-btn selected" data-tooltip="Toggle Radar Range (3, 6, 12, 24 nm)">12.0</button>
+                <!-- Help Button -->
+                <span class="w-100 border-top border-secondary"></span>
+                <button id="btn-help" class="control-btn unselected p-2" data-tooltip="Show Instructions">HELP</button>
+
             </nav>
         </section>
 
 	    <section id="simulator">
             <!-- Center Pane: Radar -->
-            <section id="radar-wrapper" class="flex-grow-1 d-flex align-items-center justify-content-center">
+            <section id="radar-wrapper" class="d-flex align-items-center justify-content-center">
                 <div id="radar-container" class="d-flex align-items-center justify-content-center">
                     <canvas id="radarCanvas"></canvas>
               </div>
@@ -293,7 +294,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     <!-- OwnShip Data -->
                     <div>
                         <p class="font-bold tracking-wide data-title">OwnShip</p>
-                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
                         </div>
@@ -301,7 +302,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     <!-- Data Panels for selected track will be dynamically inserted here -->
                     <div id="track-data-container">
                          <p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
-                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
@@ -310,7 +311,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     </div>
                     <div id="rm-data-container">
                         <p class="font-bold tracking-wide data-title">Rel Motion</p>
-                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
@@ -320,7 +321,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     </div>
                     <div id="cpa-data-container">
                          <p class="font-bold tracking-wide data-title">CPA</p>
-                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
@@ -328,7 +329,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                     </div>
                     <div id="wind-data-container">
                         <p class="font-bold tracking-wide data-title">Wind</p>
-                        <div class="mt-2 ps-2 d-flex flex-column gap-1">
+                        <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
                         </div>
@@ -347,6 +348,38 @@ Questions?  >>  Aheadflank.ai@gmail.com
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
+</script>
+</script>
+<script>
+    (function(){
+        const content = document.getElementById('radar-wrapper');
+        let isDragging = false;
+        const offset = { x: 0, y: 0 };
+        let dragStart = { x: 0, y: 0 };
+
+        content.style.cursor = 'grab';
+        content.style.transform = 'translate(0px, 0px)';
+
+        document.addEventListener('mousedown', e => {
+            if (e.target.closest('#radar-container')) return;
+            isDragging = true;
+            content.style.cursor = 'grabbing';
+            dragStart = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            offset.x = e.clientX - dragStart.x;
+            offset.y = e.clientY - dragStart.y;
+            content.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            content.style.cursor = 'grab';
+        });
+    })();
+</script>
     <script src="/_vercel/insights/script.js"></script>
 </body>
 </html>
