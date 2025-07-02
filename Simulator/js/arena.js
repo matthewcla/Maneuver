@@ -706,7 +706,7 @@ class Simulator {
             track.cpaPosition.y = cpaY;
 
             if (track.hasPassedCPA) {
-                track.cpa.range = '-- NM';
+                track.cpa.range = '-- nm';
                 track.cpa.time = '--:--:--';
                 track.cpa.brg = '--';
             } else {
@@ -714,7 +714,7 @@ class Simulator {
                 const cpaCanvasAngle = this.toDegrees(Math.atan2(cpaY, cpaX));
                 const cpaBearing = this.canvasAngleToBearing(cpaCanvasAngle);
                 const cpaQuarter = this.getRelativeQuarter(cpaBearing, this.ownShip.course);
-                track.cpa.range = `${cpaRange.toFixed(1)} NM`;
+                track.cpa.range = `${cpaRange.toFixed(1)} nm`;
                 track.cpa.time = this.formatTime(tcpa);
                 track.cpa.brg = `${this.formatBearing(cpaBearing)} T / ${cpaQuarter}`;
             }
@@ -726,9 +726,9 @@ class Simulator {
         // TODO: Only format bearing/speed strings for the selected track or when updating the UI, not for every track each frame.
 
         track.rm.dir = `${this.formatBearing(track.rmVector.bearing)} T`;
-        track.rm.spd = `${relSpeed.toFixed(1)} KTS`;
+        track.rm.spd = `${relSpeed.toFixed(1)} kts`;
         track.rm.rate = this.getBearingRate({x: relVelX, y: relVelY}, {x: targetPosX, y: targetPosY}, track.range);
-        track.rm.angle = `${this.formatBearing(targetAngle)} DEG`;
+        track.rm.angle = `${this.formatBearing(targetAngle)} deg`;
         track.rm.aspect = this.getAspect(targetAngle);
     }
 
@@ -1001,7 +1001,7 @@ class Simulator {
 
     updateOwnShipPanel() {
         this._renderEditableField('ownship-crs', `${this.formatBearing(this.ownShip.course)} T`, this.ownShip.course);
-        this._renderEditableField('ownship-spd', `${this.ownShip.speed.toFixed(1)} KTS`, this.ownShip.speed);
+        this._renderEditableField('ownship-spd', `${this.ownShip.speed.toFixed(1)} kts`, this.ownShip.speed);
     }
 
     updateDataPanels() {
@@ -1011,9 +1011,9 @@ class Simulator {
 
         if (selectedTrack) {
             this._renderEditableField('track-brg', `${this.formatBearing(selectedTrack.bearing)} T`, selectedTrack.bearing);
-            this._renderEditableField('track-rng', `${selectedTrack.range.toFixed(1)} NM`, selectedTrack.range);
+            this._renderEditableField('track-rng', `${selectedTrack.range.toFixed(1)} nm`, selectedTrack.range);
             this._renderEditableField('track-crs', `${this.formatBearing(selectedTrack.course)} T`, selectedTrack.course);
-            this._renderEditableField('track-spd', `${selectedTrack.speed.toFixed(1)} KTS`, selectedTrack.speed);
+            this._renderEditableField('track-spd', `${selectedTrack.speed.toFixed(1)} kts`, selectedTrack.speed);
         } else {
             this._setText('track-brg', '--');
             this._setText('track-rng', '--');
