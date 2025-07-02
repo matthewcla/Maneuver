@@ -615,7 +615,7 @@ class Simulator {
                 track.bearing = Math.max(0, Math.min(359.9, value));
                 didUpdate = true;
             } else if (id === 'track-rng') {
-                track.range = value;
+                track.range = Math.max(0, Math.min(359.9, value));
                 didUpdate = true;
             } else if (id === 'track-crs') {
                 track.course = Math.max(0, Math.min(359.9, value));
@@ -662,7 +662,7 @@ class Simulator {
     calculateAllData(track) {
         const dx = track.x - this.ownShip.x;
         const dy = track.y - this.ownShip.y;
-        track.range = Math.sqrt(dx**2 + dy**2);
+        track.range = Math.max(0, Math.min(359.9, Math.sqrt(dx**2 + dy**2)));
         track.bearing = (this.toDegrees(Math.atan2(dx, dy)) + 360) % 360;
 
         const ownShipCanvasAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.course));

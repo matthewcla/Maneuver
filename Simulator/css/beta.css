@@ -464,3 +464,8 @@ summary.collapsible-summary::before {
 details[open] > summary.collapsible-summary::before {
   transform: rotate(90deg);
 }
+
+/* Larger font for selected track ID */
+#track-id {
+    font-size: 28px;
+}
