@@ -1499,8 +1499,3 @@ class Simulator {
         this.ctx.font        = `${Math.max(12, this.canvas.width * 0.04)}px 'Share Tech Mono', monospace`;
     }
 }
-
-// --- Application Entry Point ---
-document.addEventListener('DOMContentLoaded', () => {
-    new Simulator();
-});
