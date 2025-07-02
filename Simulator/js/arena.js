@@ -216,15 +216,15 @@ class Simulator {
         this.ctx = this.canvas.getContext('2d');
         this.dragTooltip = document.getElementById('drag-tooltip');
         this.btnVectorTime = document.getElementById('btn-vector-time');
-        this.btnRmv = document.getElementById('btn-rmv');
-        this.btnCpa = document.getElementById('btn-cpa');
+        // this.btnRmv = document.getElementById('btn-rmv');
+        // this.btnCpa = document.getElementById('btn-cpa');
         this.btnPlayPause = document.getElementById('btn-play-pause');
         this.iconPlay = document.getElementById('icon-play');
         this.iconPause = document.getElementById('icon-pause');
         this.btnRange = document.getElementById('btn-range');
         this.btnAddTrack = document.getElementById('btn-add-track');
         this.btnDropTrack = document.getElementById('btn-drop-track');
-        this.btnWind = document.getElementById('btn-wind');
+        // this.btnWind = document.getElementById('btn-wind');
         this.btnScen = document.getElementById('btn-scen');
         this.btnFf = document.getElementById('btn-ff');
         this.btnRev = document.getElementById('btn-rev');
@@ -300,7 +300,7 @@ class Simulator {
         this.showRelativeMotion = false;
         this.showCPAInfo = false;
         this.isSimulationRunning = true;
-        this.showWeather = false;
+        this.showWeather = true;
         this.uiScaleFactor = 1;
 
         // Pre-rendered radar backdrop
@@ -405,9 +405,9 @@ class Simulator {
         // Control buttons
         this.btnVectorTime.addEventListener('click', () => this.toggleVectorTime());
         this.btnRange.addEventListener('click', () => this.toggleRange());
-        this.btnWind.addEventListener('click', () => this.toggleWeather());
-        this.btnRmv.addEventListener('click', () => this.toggleRelativeMotion());
-        this.btnCpa.addEventListener('click', () => this.toggleCPAInfo());
+        // this.btnWind.addEventListener('click', () => this.toggleWeather());
+        // this.btnRmv.addEventListener('click', () => this.toggleRelativeMotion());
+        // this.btnCpa.addEventListener('click', () => this.toggleCPAInfo());
         this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
         this.btnFf.addEventListener('click', () => this.fastForward());
         this.btnRev.addEventListener('click', () => this.rewind());
@@ -1021,16 +1021,16 @@ class Simulator {
     }
 
     updateButtonStyles() {
-        this.btnWind.className = `control-btn ${this.showWeather ? 'selected' : 'unselected'}`;
-        this.btnRmv.className = `control-btn ${this.showRelativeMotion ? 'selected' : 'unselected'}`;
-        this.btnCpa.className = `control-btn ${this.showCPAInfo ? 'selected' : 'unselected'}`;
+        // this.btnWind.className = `control-btn ${this.showWeather ? 'selected' : 'unselected'}`;
+        // this.btnRmv.className = `control-btn ${this.showRelativeMotion ? 'selected' : 'unselected'}`;
+        // this.btnCpa.className = `control-btn ${this.showCPAInfo ? 'selected' : 'unselected'}`;
 
-        this.btnPlayPause.className = `control-btn p-2 ${this.isSimulationRunning ? 'selected' : 'unselected'}`;
+        this.btnPlayPause.className = `sim-control-btn ${this.isSimulationRunning ? 'selected' : 'unselected'}`;
         this.iconPlay.classList.toggle('d-none', this.isSimulationRunning);
         this.iconPause.classList.toggle('d-none', !this.isSimulationRunning);
 
-        this.btnFf.className = `control-btn p-2 ${this.simulationSpeed > 1 ? 'selected' : 'unselected'}`;
-        this.btnRev.className = `control-btn p-2 ${this.simulationSpeed < 0 ? 'selected' : 'unselected'}`;
+        this.btnFf.className = `sim-control-btn ${this.simulationSpeed > 1 ? 'selected' : 'unselected'}`;
+        this.btnRev.className = `sim-control-btn ${this.simulationSpeed < 0 ? 'selected' : 'unselected'}`;
     }
 
     updateSpeedIndicator() {
@@ -1316,12 +1316,12 @@ class Simulator {
         this.markSceneDirty();
     }
 
-    toggleWeather() {
-        this.showWeather = !this.showWeather;
-        this.markSceneDirty();
-        this.scaleUI();
-        this.updateDataPanels();
-    }
+    // toggleWeather() {
+    //     this.showWeather = !this.showWeather;
+    //     this.markSceneDirty();
+    //     this.scaleUI();
+    //     this.updateDataPanels();
+    // }
 
     toggleRelativeMotion() {
         this.showRelativeMotion = !this.showRelativeMotion;

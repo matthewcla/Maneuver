@@ -234,40 +234,15 @@ Questions?  >>  Aheadflank.ai@gmail.com
                 <span>Beta</span>
             </section>
             <nav id="button-bar" class="d-flex flex-column align-items-bottom gap-2 justify-content-end">
-                <!-- Simulation Controls -->
-                <button id="btn-play-pause" class="control-btn selected p-2" data-tooltip="Play/Pause Simulation">
-                    <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-                <button id="btn-ff" class="control-btn unselected p-2" data-tooltip="Fast Forward: 25x, 50x">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                    <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-                </button>
-                <button id="btn-rev" class="control-btn unselected p-2" data-tooltip="Rewind: 25x, 50x">
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         style="width:1em;height:1em;margin:auto;"
-                         fill="currentColor" viewBox="0 0 24 24">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" transform="translate(24, 24) rotate(180)"/></svg>
-                    </svg>
-                    <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-                </button>
-                <span class="w-100 border-top border-secondary"></span>
-                <!-- New Scenario Button -->
-                <button id="btn-scen" class="control-btn selected p-2" data-tooltip="Generate New Scenario">
-                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                    </svg>
-                </button>
-                <span class="w-100 border-top border-secondary"></span>
                 <!-- Add/Drop Track and Scenario Buttons -->
                 <button id="btn-add-track" class="control-btn selected p-2" data-tooltip="Add New Track">+</button>
                 <button id="btn-drop-track" class="control-btn selected p-2" data-tooltip="Drop Selected Track">-</button>
                 <span class="w-100 border-top border-secondary"></span>
                 <!-- Button Group 1 -->
-                <button id="btn-wind" class="control-btn" data-tooltip="Toggle Wind Display">WIND</button>
+                <!-- <button id="btn-wind" class="control-btn" data-tooltip="Toggle Wind Display">WIND</button>
                 <button id="btn-rmv" class="control-btn" data-tooltip="Toggle Relative Motion Vectors">RM V</button>
                 <button id="btn-cpa" class="control-btn" data-tooltip="Toggle CPA Information">CPA</button>
-                <span class="w-100 border-top border-secondary"></span>
+                <span class="w-100 border-top border-secondary"></span> -->
                 <!-- Button Group 2 -->
                 <button id="btn-vector-time" class="control-btn selected" data-tooltip="Toggle Vector Time (3, 15, 30 min)">15</button>
                 <span class="w-100 border-top border-secondary"></span>
@@ -289,10 +264,38 @@ Questions?  >>  Aheadflank.ai@gmail.com
            </section>
             <!-- Right Pane: Data Panel -->
             <section id="right-pane" class="d-flex flex-column text-radar-green">
-                <div id="sim-clock" class="text-center">00:00:00</div>
+                <section id="sim-panel">
+                    <div id="sim-clock" class="text-center">00:00:00</div>
+                    <span class="w-100 border-top border-secondary"></span>
+                    <div id="sim-controls">
+                        <!-- Simulation Controls -->
+                        <button id="btn-rev" class="sim-control-btn unselected" data-tooltip="Rewind: 25x, 50x">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                style="width:1em;height:1em;margin:auto;"
+                                fill="currentColor" viewBox="0 0 24 24">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" transform="translate(24, 24) rotate(180)"/></svg>
+                            </svg>
+                            <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
+                        </button>
+                        <button id="btn-play-pause" class="sim-control-btn selected" data-tooltip="Play/Pause Simulation">
+                            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <button id="btn-ff" class="control-btn unselected " data-tooltip="Fast Forward: 25x, 50x">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                            <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
+                        </button>
+                    </div>
+                </section>
+                <!-- New Scenario Button -->
+                    <button id="btn-scen" class="sim-control-btn selected" data-tooltip="Generate New Scenario">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                        </svg> New scenario
+                    </button>
                 <div id="data-pane" class="d-flex flex-column" >
                     <!-- OwnShip Data -->
-                    <div>
+                    <div class="data primary" id="ownship-data-container">
                         <p class="font-bold tracking-wide data-title">OwnShip</p>
                         <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
@@ -300,7 +303,7 @@ Questions?  >>  Aheadflank.ai@gmail.com
                         </div>
                     </div>
                     <!-- Data Panels for selected track will be dynamically inserted here -->
-                    <div id="track-data-container">
+                    <div class="data primary" id="track-data-container">
                          <p class="font-bold tracking-wide data-title">TRACK <span id="track-id">--</span></p>
                         <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
@@ -309,7 +312,17 @@ Questions?  >>  Aheadflank.ai@gmail.com
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
                         </div>
                     </div>
-                    <div id="rm-data-container">
+                    <details class="data secondary collapsible-panel" id="rm-data-container">
+                        <summary class="collapsible-summary">Rel Motion</summary>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
+                        </div>
+                    </details>
+                    <!-- <div id="rm-data-container">
                         <p class="font-bold tracking-wide data-title">Rel Motion</p>
                         <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
@@ -318,22 +331,37 @@ Questions?  >>  Aheadflank.ai@gmail.com
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
                         </div>
-                    </div>
-                    <div id="cpa-data-container">
+                    </div> -->
+                    <details class="data secondary collapsible-panel" id="cpa-data-container">
+                        <summary class="collapsible-summary">CPA</summary>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
+                        </div>
+                    </details>
+                    <!-- <div id="cpa-data-container">
                          <p class="font-bold tracking-wide data-title">CPA</p>
                         <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
                         </div>
-                    </div>
-                    <div id="wind-data-container">
+                    </div> -->
+                    <details class="data secondary collapsible-panel" id="wind-data-container">
+                        <summary class="collapsible-summary">Wind</summary>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
+                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
+                        </div>
+                    </details>
+                    <!-- <div id="wind-data-container">
                         <p class="font-bold tracking-wide data-title">Wind</p>
                         <div class="d-flex flex-column gap-1">
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
                             <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </section>
         </section>
