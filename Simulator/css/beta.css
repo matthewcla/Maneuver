@@ -20,9 +20,14 @@ body {
     display: flex;
     flex-direction: column;
     margin-left: 12px;          /* maintain 32px offset with 20px page padding */
-    padding-top: 32px;
-    padding-bottom: 32px;
+    height: 100vh;
     z-index: 2;
+}
+
+#left-inner {
+    display: flex;
+    flex-direction: column;
+    margin-block: auto;
 }
 
 #logo {
@@ -180,7 +185,6 @@ main {
 #button-bar {
     padding-top: 48px;
     width: calc(80px * var(--ui-scale));
-    margin: auto 0;             /* center control stack vertically */
 }
 
 /* (override Bootstrap’s .gap‑2 and internal margins)              */
