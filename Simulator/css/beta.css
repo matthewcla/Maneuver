@@ -364,6 +364,19 @@ main {
     line-height: 1.4;
     white-space: pre; /* To respect newlines and spacing */
 }
+#tooltip {
+    position: fixed;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--radar-green);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+    pointer-events: none;
+    z-index: 1000;
+    line-height: 1.4;
+    white-space: pre;
+}
 #logo, #logo span {
     font-family: 'Share Tech Mono', monospace;
     line-height: .8;
@@ -468,4 +481,5 @@ details[open] > summary.collapsible-summary::before {
 /* Larger font for selected track ID */
 #track-id {
     font-size: 22px;
+}
 }

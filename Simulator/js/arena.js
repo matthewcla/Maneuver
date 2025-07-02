@@ -229,6 +229,7 @@ class Simulator {
         this.btnFf = document.getElementById('btn-ff');
         this.btnRev = document.getElementById('btn-rev');
         this.ffSpeedIndicator = document.getElementById('ff-speed-indicator');
+        this.tooltip = document.getElementById("tooltip");
         this.revSpeedIndicator = document.getElementById('rev-speed-indicator');
         this.btnHelp = document.getElementById('btn-help');
         this.helpModal = document.getElementById('help-modal');
@@ -447,6 +448,24 @@ class Simulator {
             this._scheduleUIUpdate();
         });
 
+        document.addEventListener("pointerover", e => {
+            const target = e.target.closest("[data-tooltip]");
+            if (target) {
+                this.tooltip.textContent = target.getAttribute("data-tooltip");
+                this.tooltip.style.display = "block";
+                this.tooltip.style.transform = `translate(${e.clientX - this.tooltip.offsetWidth}px, ${e.clientY - this.tooltip.offsetHeight - 10}px)`;
+            }
+        });
+        document.addEventListener("pointermove", e => {
+            if (this.tooltip.style.display === "block") {
+                this.tooltip.style.transform = `translate(${e.clientX - this.tooltip.offsetWidth}px, ${e.clientY - this.tooltip.offsetHeight - 10}px)`;
+            }
+        });
+        document.addEventListener("pointerout", e => {
+            if (!e.relatedTarget || !e.relatedTarget.closest("[data-tooltip]")) {
+                this.tooltip.style.display = "none";
+            }
+        });
         // Editable fields
         this.dataPane.addEventListener('click', (e) => {
             if (e.target.classList.contains('editable')) {
@@ -1362,13 +1381,10 @@ class Simulator {
         this.simulationSpeed = 1;
         this.updateButtonStyles();
         this.updateSpeedIndicator();
-        this.startGameLoop();
+        if (this.isSimulationRunning) {
+            this.startGameLoop();
+        }
     }
-
-    fastForward() {
-        const cycle = [1, ...this.ffSpeeds];
-        if (!this.isSimulationRunning || this.simulationSpeed < 0) {
-            this.simulationSpeed = this.ffSpeeds[0];
             this.isSimulationRunning = true;
         } else {
             let idx = cycle.indexOf(this.simulationSpeed);
