@@ -467,5 +467,5 @@ details[open] > summary.collapsible-summary::before {
 
 /* Larger font for selected track ID */
 #track-id {
-    font-size: 16px;
+    font-size: 22px;
 }
