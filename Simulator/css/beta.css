@@ -279,8 +279,22 @@ main {
 #data-pane .mt-2 { margin-top: 0.25rem !important; }
 #btn-add-track,
 #btn-drop-track {
-    font-size: 32px;
-    line-height: 1;
+    width: 20px;
+    height: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    color: var(--radar-faint-green);
+    background: transparent;
+    border: none;
+    line-height: 18px;
+    text-align: center;
+    user-select: none;
+}
+
+#btn-add-track:hover,
+#btn-drop-track:hover {
+    color: var(--radar-green);
+    cursor: pointer;
 }
 
 /* Let the radar fill the middle, and center its contents

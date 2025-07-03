@@ -222,8 +222,8 @@ class Simulator {
         this.iconPlay = document.getElementById('icon-play');
         this.iconPause = document.getElementById('icon-pause');
         // this.btnRange = document.getElementById('btn-range');
-        // this.btnAddTrack = document.getElementById('btn-add-track');
-        // this.btnDropTrack = document.getElementById('btn-drop-track');
+        this.btnAddTrack  = document.getElementById('btn-add-track');
+        this.btnDropTrack = document.getElementById('btn-drop-track');
         // this.btnWind = document.getElementById('btn-wind');
         this.btnScen = document.getElementById('btn-scen');
         this.btnFf = document.getElementById('btn-ff');
@@ -416,8 +416,8 @@ class Simulator {
         this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
         this.btnFf.addEventListener('click', () => this.fastForward());
         this.btnRev.addEventListener('click', () => this.rewind());
-        // this.btnAddTrack?.addEventListener('click', () => this.addTrack());
-        // this.btnDropTrack?.addEventListener('click', () => this.dropTrack());
+        this.btnAddTrack?.addEventListener('click', () => this.addTrack());
+        this.btnDropTrack?.addEventListener('click', () => this.dropTrack());
         this.btnScen.addEventListener('click', () => this.setupRandomScenario());
 
         // Help Modal
