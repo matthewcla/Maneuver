@@ -496,7 +496,24 @@ details[open] > summary.collapsible-summary::before {
     color: var(--radar-faint-green);
 }
 
+#btn-fullscreen {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--radar-faint-green);
+}
+
 #btn-settings:hover {
+    color: var(--radar-green);
+    cursor: pointer;
+}
+
+#btn-fullscreen:hover {
     color: var(--radar-green);
     cursor: pointer;
 }
@@ -506,7 +523,7 @@ details[open] > summary.collapsible-summary::before {
     position: fixed;
     left: 32px;
     bottom: 0;
-    width: 60px;
+    width: 90px;
     background: #000;
     border: 1px solid #333;
     border-bottom: none;

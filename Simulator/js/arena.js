@@ -253,6 +253,7 @@ class Simulator {
         this.simClock = document.getElementById('sim-clock');
         this.mainContainer = document.querySelector('main.main-content');
         this.btnSettings = document.getElementById('btn-settings');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
         this.settingsDrawer = document.getElementById('settings-drawer');
         this.chkPolarPlot = document.getElementById('toggle-polar-plot');
         this.chkTrackIds = document.getElementById('toggle-track-ids');
@@ -496,6 +497,18 @@ class Simulator {
                 this.settingsDrawer.addEventListener('transitionend', () => {
                     this.settingsDrawer.style.display = 'none';
                 }, { once: true });
+            }
+        });
+        this.btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
             }
         });
         this.chkPolarPlot.addEventListener('change', () => this.togglePolarPlot());
