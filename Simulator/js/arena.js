@@ -930,12 +930,20 @@ class Simulator {
                 const isCardinal = CARDINAL_BEARINGS.includes(deg);
                 ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
                 const ang = this.toRadians(deg);
-                const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                const originalRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                const startRadius = isCardinal ? 0 : radius;
+                let endRadius = originalRadius;
+                if (!isCardinal) {
+                    endRadius = radius + 0.8 * (originalRadius - radius);
+                }
                 ctx.beginPath();
-                ctx.moveTo(center, center);
+                ctx.moveTo(
+                    center + startRadius * Math.cos(ang),
+                    center - startRadius * Math.sin(ang)
+                );
                 ctx.lineTo(
-                    center + lineRadius * Math.cos(ang),
-                    center - lineRadius * Math.sin(ang)
+                    center + endRadius * Math.cos(ang),
+                    center - endRadius * Math.sin(ang)
                 );
                 ctx.stroke();
             }
