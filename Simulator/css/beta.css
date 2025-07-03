@@ -484,19 +484,26 @@ details[open] > summary.collapsible-summary::before {
 }
 
 /* Settings gear button */
+
+/* Full screen button */
+#btn-fullscreen,
 #btn-settings {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: fixed;
+    left: 32px;
     width: 30px;
     height: 30px;
     padding: 0;
     background: transparent;
     border: none;
     color: var(--radar-faint-green);
+    z-index: 4;
 }
 
-#btn-settings:hover {
+#btn-fullscreen { bottom: 55px; }
+#btn-settings  { bottom: 15px; }
+
+#btn-settings:hover,
+#btn-fullscreen:hover {
     color: var(--radar-green);
     cursor: pointer;
 }
@@ -505,14 +512,15 @@ details[open] > summary.collapsible-summary::before {
 #settings-drawer {
     position: fixed;
     left: 32px;
-    bottom: 0;
-    width: 60px;
+    bottom: 15px;
+    width: 120px;
     background: #000;
     border: 1px solid #333;
     border-bottom: none;
     display: none;
     flex-direction: column;
-    transform: translateY(100%);
+    transform: translateY(100%) scale(1.3);
+    transform-origin: bottom left;
     transition: transform 0.2s ease;
     font-family: 'Share Tech Mono', monospace;
     color: var(--radar-green);
@@ -521,7 +529,7 @@ details[open] > summary.collapsible-summary::before {
 
 #settings-drawer.open {
     display: flex;
-    transform: translateY(0);
+    transform: translateY(0) scale(1.3);
 }
 
 #settings-drawer .setting-option {
