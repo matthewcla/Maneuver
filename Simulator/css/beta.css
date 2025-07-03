@@ -484,9 +484,11 @@ details[open] > summary.collapsible-summary::before {
 }
 
 /* Settings gear button */
+
+/* Full screen button */
+#btn-fullscreen,
 #btn-settings {
     position: fixed;
-    bottom: 15px;
     left: 32px;
     width: 30px;
     height: 30px;
@@ -497,7 +499,11 @@ details[open] > summary.collapsible-summary::before {
     z-index: 4;
 }
 
-#btn-settings:hover {
+#btn-fullscreen { bottom: 55px; }
+#btn-settings  { bottom: 15px; }
+
+#btn-settings:hover,
+#btn-fullscreen:hover {
     color: var(--radar-green);
     cursor: pointer;
 }
@@ -507,7 +513,7 @@ details[open] > summary.collapsible-summary::before {
     position: fixed;
     left: 32px;
     bottom: 15px;
-    width: 60px;
+    width: 120px;
     background: #000;
     border: 1px solid #333;
     border-bottom: none;
