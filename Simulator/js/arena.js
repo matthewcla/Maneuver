@@ -1231,7 +1231,7 @@ class Simulator {
                 const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
                 const distOnCanvas = Math.hypot(dx, dy);
                 const newSpeed = distOnCanvas / pixelsPerNm / (this.vectorTimeInMinutes / 60);
-                tooltipText = `Crs: ${this.formatBearing(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
+                tooltipText = `Crs: ${this.formatBearing1(newCourse)} T\nSpd: ${newSpeed.toFixed(1)} kts`;
             }
         } else if (this.draggedItemId === 'trueWind') {
             if (this.dragType === 'windDirection') {
@@ -1563,6 +1563,11 @@ class Simulator {
     bearingToCanvasAngle(bearing) { return (450 - bearing) % 360; }
     canvasAngleToBearing(angle) { return (450 - angle) % 360; }
     formatBearing(num) { return Math.round(num).toString().padStart(3, '0'); }
+    formatBearing1(num) {
+        const val = num.toFixed(1);
+        const [intPart, decPart] = val.split('.');
+        return `${intPart.padStart(3, '0')}.${decPart}`;
+    }
     formatTime(hours) {
         if (hours < 0 || !isFinite(hours)) return '--:--:--';
         const totalSeconds = hours * 3600;
