@@ -261,7 +261,9 @@ class Simulator {
             x: 0,
             y: 0,
             orderedCourse: 91,
-            orderedSpeed: 12.7
+            orderedSpeed: 12.7,
+            dragCourse: null,
+            dragSpeed: null
         };
         this.tracks = [
             { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
@@ -888,16 +890,18 @@ class Simulator {
         this.ctx.stroke();
 
         // Draw ordered course/speed vector if still manoeuvring
-        const diffCourse = Math.abs(((this.ownShip.orderedCourse - this.ownShip.course + 540) % 360) - 180);
-        const diffSpeed  = Math.abs(this.ownShip.orderedSpeed - this.ownShip.speed);
+        const orderedCourse = (this.ownShip.dragCourse !== null) ? this.ownShip.dragCourse : this.ownShip.orderedCourse;
+        const orderedSpeed  = (this.ownShip.dragSpeed  !== null) ? this.ownShip.dragSpeed  : this.ownShip.orderedSpeed;
+        const diffCourse = Math.abs(((orderedCourse - this.ownShip.course + 540) % 360) - 180);
+        const diffSpeed  = Math.abs(orderedSpeed - this.ownShip.speed);
         if (diffCourse > 0.5 || diffSpeed > 0.05) {
-            const orderDistPixels = this.ownShip.orderedSpeed * timeInHours * pixelsPerNm;
-            const orderAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.orderedCourse));
+            const orderDistPixels = orderedSpeed * timeInHours * pixelsPerNm;
+            const orderAngle = this.toRadians(this.bearingToCanvasAngle(orderedCourse));
             const oEndX = center + orderDistPixels * Math.cos(orderAngle);
             const oEndY = center - orderDistPixels * Math.sin(orderAngle);
             this.ctx.save();
             this.ctx.strokeStyle = this.radarFaintGreen;
-            this.ctx.lineWidth = 1.4 * 1.2;
+            this.ctx.lineWidth = 1.4 * 1.2 * 2;
             this.ctx.beginPath();
             this.ctx.moveTo(center, center);
             this.ctx.lineTo(oEndX, oEndY);
@@ -1266,11 +1270,20 @@ class Simulator {
 
     handlePointerUp() {
         this.canvas.style.cursor = 'grab';
+        if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+            if (this.ownShip.dragCourse !== null && this.ownShip.dragSpeed !== null) {
+                this.ownShip.orderedCourse = this.ownShip.dragCourse;
+                this.ownShip.orderedSpeed = this.ownShip.dragSpeed;
+            }
+        }
+        this.ownShip.dragCourse = null;
+        this.ownShip.dragSpeed = null;
         this.draggedItemId = null;
         this.dragType = null;
         this.pendingDragId = null;
         this.pendingDragType = null;
         this.dragTooltip.style.display = 'none';
+        this.markSceneDirty();
     }
 
     handlePointerMove(e) {
@@ -1284,6 +1297,10 @@ class Simulator {
             if (Math.hypot(dx0, dy0) > this.dragThreshold) {
                 this.draggedItemId = this.pendingDragId;
                 this.dragType = this.pendingDragType;
+                if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+                    this.ownShip.dragCourse = this.ownShip.orderedCourse;
+                    this.ownShip.dragSpeed = this.ownShip.orderedSpeed;
+                }
             }
         }
 
@@ -1335,8 +1352,8 @@ class Simulator {
                 const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
 
                 if (vessel.id === 'ownShip') {
-                    vessel.orderedCourse = newCourse;
-                    vessel.orderedSpeed = Math.max(0, newSpeed);
+                    this.ownShip.dragCourse = newCourse;
+                    this.ownShip.dragSpeed = Math.max(0, newSpeed);
                 } else {
                     vessel.course = newCourse;
                     vessel.speed = Math.max(2, newSpeed);
