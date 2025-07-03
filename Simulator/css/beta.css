@@ -485,15 +485,16 @@ details[open] > summary.collapsible-summary::before {
 
 /* Settings gear button */
 #btn-settings {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    position: fixed;
+    bottom: 15px;
+    left: 32px;
     width: 30px;
     height: 30px;
     padding: 0;
     background: transparent;
     border: none;
     color: var(--radar-faint-green);
+    z-index: 4;
 }
 
 #btn-settings:hover {
@@ -505,14 +506,15 @@ details[open] > summary.collapsible-summary::before {
 #settings-drawer {
     position: fixed;
     left: 32px;
-    bottom: 0;
+    bottom: 15px;
     width: 60px;
     background: #000;
     border: 1px solid #333;
     border-bottom: none;
     display: none;
     flex-direction: column;
-    transform: translateY(100%);
+    transform: translateY(100%) scale(1.3);
+    transform-origin: bottom left;
     transition: transform 0.2s ease;
     font-family: 'Share Tech Mono', monospace;
     color: var(--radar-green);
@@ -521,7 +523,7 @@ details[open] > summary.collapsible-summary::before {
 
 #settings-drawer.open {
     display: flex;
-    transform: translateY(0);
+    transform: translateY(0) scale(1.3);
 }
 
 #settings-drawer .setting-option {
