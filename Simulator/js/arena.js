@@ -254,7 +254,15 @@ class Simulator {
         this.scenarioCfg = ScenarioConfig;
 
         // --- State Data ---
-        this.ownShip = { course: 91, speed: 12.7, id: 'ownShip', x: 0, y: 0 };
+        this.ownShip = {
+            course: 91,
+            speed: 12.7,
+            id: 'ownShip',
+            x: 0,
+            y: 0,
+            orderedCourse: 91,
+            orderedSpeed: 12.7
+        };
         this.tracks = [
             { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
             { id: '0002', initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
@@ -625,10 +633,10 @@ class Simulator {
         const track = this.tracks.find(t => t.id === this.selectedTrackId);
 
         if (id === 'ownship-crs') {
-            this.ownShip.course = Math.max(0, Math.min(359.9, value));
+            this.ownShip.orderedCourse = Math.max(0, Math.min(359.9, value));
             didUpdate = true;
         } else if (id === 'ownship-spd') {
-            this.ownShip.speed = value;
+            this.ownShip.orderedSpeed = value;
             didUpdate = true;
         } else if (track) {
             if (id === 'track-brg') {
@@ -662,6 +670,25 @@ class Simulator {
     // --- Physics & Calculations ---
     updatePhysics(deltaTime) {
         if (!this.isSimulationRunning) return;
+
+        const dtSec = (deltaTime / 1000) * Math.abs(this.simulationSpeed);
+
+        // Gradually adjust ownship toward ordered values
+        const maxTurn = 3 * dtSec;            // degrees per second
+        let courseDiff = (this.ownShip.orderedCourse - this.ownShip.course + 540) % 360 - 180;
+        if (Math.abs(courseDiff) <= maxTurn) {
+            this.ownShip.course = this.ownShip.orderedCourse;
+        } else {
+            this.ownShip.course = (this.ownShip.course + Math.sign(courseDiff) * maxTurn + 360) % 360;
+        }
+
+        const maxSpdChange = 0.1 * dtSec;     // knots per second
+        const spdDiff = this.ownShip.orderedSpeed - this.ownShip.speed;
+        if (Math.abs(spdDiff) <= maxSpdChange) {
+            this.ownShip.speed = this.ownShip.orderedSpeed;
+        } else {
+            this.ownShip.speed += Math.sign(spdDiff) * maxSpdChange;
+        }
 
         const timeMultiplier = (deltaTime / 3600000) * this.simulationSpeed;
         const ownShipDist = this.ownShip.speed * timeMultiplier;
@@ -859,6 +886,24 @@ class Simulator {
         this.ctx.moveTo(center, center);
         this.ctx.lineTo(endX, endY);
         this.ctx.stroke();
+
+        // Draw ordered course/speed vector if still manoeuvring
+        const diffCourse = Math.abs(((this.ownShip.orderedCourse - this.ownShip.course + 540) % 360) - 180);
+        const diffSpeed  = Math.abs(this.ownShip.orderedSpeed - this.ownShip.speed);
+        if (diffCourse > 0.5 || diffSpeed > 0.05) {
+            const orderDistPixels = this.ownShip.orderedSpeed * timeInHours * pixelsPerNm;
+            const orderAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.orderedCourse));
+            const oEndX = center + orderDistPixels * Math.cos(orderAngle);
+            const oEndY = center - orderDistPixels * Math.sin(orderAngle);
+            this.ctx.save();
+            this.ctx.strokeStyle = this.radarFaintGreen;
+            this.ctx.lineWidth = 1.4 * 1.2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(center, center);
+            this.ctx.lineTo(oEndX, oEndY);
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
     }
 
     getTargetCoords(center, radius, track) {
