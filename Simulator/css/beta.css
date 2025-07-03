@@ -65,6 +65,10 @@ body {
     background-color: #000000;
     color: #ffffff;
     overflow: hidden;
+    -webkit-user-select: none; /* Chrome/Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* Standard */
 }
 /* Define custom colors for easier use in JS and to avoid purging */
 :root {
