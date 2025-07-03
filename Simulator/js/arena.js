@@ -931,7 +931,7 @@ class Simulator {
                 ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
                 const ang = this.toRadians(deg);
                 const originalRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
-                const startRadius = isCardinal ? 0 : radius;
+                const startRadius = radius;
                 let endRadius = originalRadius;
                 if (!isCardinal) {
                     endRadius = radius + 0.8 * (originalRadius - radius);
