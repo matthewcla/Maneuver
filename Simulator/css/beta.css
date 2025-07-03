@@ -295,6 +295,7 @@ main {
 #btn-drop-track:hover {
     color: var(--radar-green);
     cursor: pointer;
+
 }
 
 /* Let the radar fill the middle, and center its contents
