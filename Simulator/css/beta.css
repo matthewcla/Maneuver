@@ -183,28 +183,7 @@ main {
     color: inherit;
 }
 .control-btn svg { width: 1em; height: 1em; }
-/* Instant tooltip styling using data-tooltip attribute */
-.control-btn[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateY(-50%);
-    margin-left: 0.25rem;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: var(--radar-green);
-    padding: 0.125rem 0.25rem;
-    font-size: 0.75rem;
-    border-radius: 0.25rem;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 50;
-    opacity: 0;
-    transition: opacity 0.1s ease-in-out;
-}
-.control-btn[data-tooltip]:hover::after {
-    opacity: 1;
-}
+/* Tooltip visuals handled via shared #drag-tooltip element */
 .control-btn.unselected {
     color: var(--radar-faint-green);
     border-color: var(--radar-faint-green);

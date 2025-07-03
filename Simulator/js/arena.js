@@ -215,22 +215,22 @@ class Simulator {
         this.canvas = document.getElementById('radarCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.dragTooltip = document.getElementById('drag-tooltip');
-        this.btnVectorTime = document.getElementById('btn-vector-time');
+        // this.btnVectorTime = document.getElementById('btn-vector-time');
         // this.btnRmv = document.getElementById('btn-rmv');
         // this.btnCpa = document.getElementById('btn-cpa');
         this.btnPlayPause = document.getElementById('btn-play-pause');
         this.iconPlay = document.getElementById('icon-play');
         this.iconPause = document.getElementById('icon-pause');
-        this.btnRange = document.getElementById('btn-range');
-        this.btnAddTrack = document.getElementById('btn-add-track');
-        this.btnDropTrack = document.getElementById('btn-drop-track');
+        // this.btnRange = document.getElementById('btn-range');
+        // this.btnAddTrack = document.getElementById('btn-add-track');
+        // this.btnDropTrack = document.getElementById('btn-drop-track');
         // this.btnWind = document.getElementById('btn-wind');
         this.btnScen = document.getElementById('btn-scen');
         this.btnFf = document.getElementById('btn-ff');
         this.btnRev = document.getElementById('btn-rev');
         this.ffSpeedIndicator = document.getElementById('ff-speed-indicator');
         this.revSpeedIndicator = document.getElementById('rev-speed-indicator');
-        this.btnHelp = document.getElementById('btn-help');
+        // this.btnHelp = document.getElementById('btn-help');
         this.helpModal = document.getElementById('help-modal');
         this.helpCloseBtn = document.getElementById('help-close-btn');
         this.helpContent = this.helpModal.querySelector('pre');
@@ -408,20 +408,20 @@ class Simulator {
         }));
 
         // Control buttons
-        this.btnVectorTime.addEventListener('click', () => this.toggleVectorTime());
-        this.btnRange.addEventListener('click', () => this.toggleRange());
+        // this.btnVectorTime?.addEventListener('click', () => this.toggleVectorTime());
+        // this.btnRange?.addEventListener('click', () => this.toggleRange());
         // this.btnWind.addEventListener('click', () => this.toggleWeather());
         // this.btnRmv.addEventListener('click', () => this.toggleRelativeMotion());
         // this.btnCpa.addEventListener('click', () => this.toggleCPAInfo());
         this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
         this.btnFf.addEventListener('click', () => this.fastForward());
         this.btnRev.addEventListener('click', () => this.rewind());
-        this.btnAddTrack.addEventListener('click', () => this.addTrack());
-        this.btnDropTrack.addEventListener('click', () => this.dropTrack());
+        // this.btnAddTrack?.addEventListener('click', () => this.addTrack());
+        // this.btnDropTrack?.addEventListener('click', () => this.dropTrack());
         this.btnScen.addEventListener('click', () => this.setupRandomScenario());
 
         // Help Modal
-        this.btnHelp.addEventListener('click', () => this.showHelpModal());
+        // this.btnHelp?.addEventListener('click', () => this.showHelpModal());
         this.helpCloseBtn.addEventListener('click', () => this.hideHelpModal());
         new ResizeObserver(() => {
             const scale = Math.max(0.8, Math.min(1.2, this.helpModal.clientWidth / 500));
@@ -445,6 +445,26 @@ class Simulator {
             this.showWeather = this.windDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
+        });
+
+        // Shared tooltip behavior for elements with data-tooltip
+        document.querySelectorAll('[data-tooltip]').forEach(el => {
+            el.addEventListener('pointerenter', e => {
+                this.dragTooltip.textContent = el.getAttribute('data-tooltip');
+                this.dragTooltip.style.display = 'block';
+                this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
+            });
+            el.addEventListener('pointermove', e => {
+                if (this.dragTooltip.style.display === 'block') {
+                    this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
+                }
+            });
+            el.addEventListener('pointerleave', () => {
+                this.dragTooltip.style.display = 'none';
+            });
+            el.addEventListener('pointerdown', () => {
+                this.dragTooltip.style.display = 'none';
+            });
         });
 
         // Editable fields
@@ -1358,11 +1378,14 @@ class Simulator {
     }
 
     togglePlayPause() {
+        const wasRunning = this.isSimulationRunning;
         this.isSimulationRunning = !this.isSimulationRunning;
         this.simulationSpeed = 1;
         this.updateButtonStyles();
         this.updateSpeedIndicator();
-        this.startGameLoop();
+        if (!wasRunning) {
+            this.startGameLoop();
+        }
     }
 
     fastForward() {
