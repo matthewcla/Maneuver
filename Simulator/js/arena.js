@@ -263,7 +263,8 @@ class Simulator {
             orderedCourse: 91,
             orderedSpeed: 12.7,
             dragCourse: null,
-            dragSpeed: null
+            dragSpeed: null,
+            orderedVectorEndpoint: null
         };
         this.tracks = [
             { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
@@ -905,6 +906,7 @@ class Simulator {
             const orderAngle = this.toRadians(this.bearingToCanvasAngle(orderedCourse));
             const oEndX = center + orderDistPixels * Math.cos(orderAngle);
             const oEndY = center - orderDistPixels * Math.sin(orderAngle);
+            this.ownShip.orderedVectorEndpoint = { x: oEndX, y: oEndY };
             this.ctx.save();
             this.ctx.strokeStyle = this.radarFaintGreen;
             this.ctx.lineWidth = 1.4 * 1.2 * 2;
@@ -913,6 +915,8 @@ class Simulator {
             this.ctx.lineTo(oEndX, oEndY);
             this.ctx.stroke();
             this.ctx.restore();
+        } else {
+            this.ownShip.orderedVectorEndpoint = null;
         }
     }
 
@@ -1262,6 +1266,10 @@ class Simulator {
             this.pendingDragId = item.id;
             this.pendingDragType = item.type;
             this.lastMousePos = { x: mouseX, y: mouseY };
+            if (item.id === 'ownShip' && item.type === 'vector') {
+                this.ownShip.dragCourse = this.ownShip.orderedCourse;
+                this.ownShip.dragSpeed = this.ownShip.orderedSpeed;
+            }
             if (item.id !== 'ownShip' && item.id !== 'trueWind') {
                 this.selectedTrackId = item.id;
             }
@@ -1404,13 +1412,19 @@ class Simulator {
 
         const allVessels = [this.ownShip, ...this.tracks];
         for (const vessel of allVessels) {
-            if (!vessel.vectorEndpoint) continue;
             const startPt = (vessel.id === 'ownShip') ? {x: center, y: center} : this.getTargetCoords(center, radius, vessel);
             const distFromStart = Math.hypot(mouseX - startPt.x, mouseY - startPt.y);
             if (distFromStart < minVecPickDistance) continue;
-            const endPt = vessel.vectorEndpoint;
-            const dist = this.distToSegment({x: mouseX, y: mouseY}, startPt, endPt);
-            if (dist < hitTolerance) return {type: 'vector', id: vessel.id};
+
+            const endpoints = [];
+            if (vessel.vectorEndpoint) endpoints.push(vessel.vectorEndpoint);
+            if (vessel.id === 'ownShip' && this.ownShip.orderedVectorEndpoint) {
+                endpoints.push(this.ownShip.orderedVectorEndpoint);
+            }
+            for (const endPt of endpoints) {
+                const dist = this.distToSegment({x: mouseX, y: mouseY}, startPt, endPt);
+                if (dist < hitTolerance) return {type: 'vector', id: vessel.id};
+            }
         }
         return null;
     }
