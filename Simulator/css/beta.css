@@ -21,6 +21,10 @@ body {
     top: 32px;
     left: 32px;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100vh - 32px);
 }
 
 #logo {
@@ -481,4 +485,46 @@ details[open] > summary.collapsible-summary::before {
 /* Larger font for selected track ID */
 #track-id {
     font-size: 22px;
+}
+
+/* Settings drawer */
+#settings-container {
+    position: relative;
+    width: 30px;
+}
+#settings-icon {
+    fill: var(--radar-faint-green);
+    cursor: pointer;
+}
+#settings-container:hover #settings-icon {
+    fill: var(--radar-green);
+}
+#settings-drawer {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 60px;
+    background: #000;
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+    transform: translateY(100%);
+    transition: transform 0.2s ease;
+    pointer-events: none;
+}
+#settings-container:hover #settings-drawer {
+    transform: translateY(0);
+    pointer-events: auto;
+}
+#settings-drawer label {
+    color: var(--radar-green);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+#settings-drawer input {
+    accent-color: var(--radar-green);
 }

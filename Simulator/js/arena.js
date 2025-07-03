@@ -252,6 +252,8 @@ class Simulator {
         this.windDataContainer = document.getElementById('wind-data-container');
         this.simClock = document.getElementById('sim-clock');
         this.mainContainer = document.querySelector('main.main-content');
+        this.togglePolar       = document.getElementById('toggle-polar');
+        this.toggleTrackNums   = document.getElementById('toggle-track-num');
 
         // --- Configuration ---
         this.radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
@@ -320,6 +322,8 @@ class Simulator {
         this.showCPAInfo = false;
         this.isSimulationRunning = true;
         this.showWeather = true;
+        this.showPolarPlot = true;
+        this.showTrackNumbers = true;
         this.uiScaleFactor = 1;
 
         // Sync data panel visibility with feature toggles
@@ -470,6 +474,17 @@ class Simulator {
             this.showWeather = this.windDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
+        });
+
+        this.togglePolar.addEventListener('change', () => {
+            this.showPolarPlot = this.togglePolar.checked;
+            this.staticDirty = true;
+            this.markSceneDirty();
+        });
+
+        this.toggleTrackNums.addEventListener('change', () => {
+            this.showTrackNumbers = this.toggleTrackNums.checked;
+            this.markSceneDirty();
         });
 
         // Shared tooltip behavior for elements with data-tooltip
@@ -888,18 +903,20 @@ class Simulator {
         }
 
         // --- Radial bearing lines ---
-        for (let deg = 0; deg < 360; deg += 10) {
-            const isCardinal = CARDINAL_BEARINGS.includes(deg);
-            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
-            const ang = this.toRadians(deg);
-            const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
-            ctx.beginPath();
-            ctx.moveTo(center, center);
-            ctx.lineTo(
-                center + lineRadius * Math.cos(ang),
-                center - lineRadius * Math.sin(ang)
-            );
-            ctx.stroke();
+        if (this.showPolarPlot) {
+            for (let deg = 0; deg < 360; deg += 10) {
+                const isCardinal = CARDINAL_BEARINGS.includes(deg);
+                ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+                const ang = this.toRadians(deg);
+                const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(
+                    center + lineRadius * Math.cos(ang),
+                    center - lineRadius * Math.sin(ang)
+                );
+                ctx.stroke();
+            }
         }
         ctx.restore();
     }
@@ -988,7 +1005,9 @@ class Simulator {
         this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'top';
-        this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        if (this.showTrackNumbers) {
+            this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        }
     }
 
     drawRelativeMotionVector(center, radius, track) {
