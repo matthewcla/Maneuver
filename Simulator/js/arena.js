@@ -11,6 +11,12 @@ const ScenarioConfig = {
     constraint_density     : 2,
 };
 
+// --- Polar grid rendering constants ---
+const CARDINAL_BEARINGS   = [0, 90, 180, 270];
+const DASH_PATTERN_NONCAR = [4, 4];      // dashed
+const DASH_PATTERN_SOLID  = [];          // solid
+const LABEL_OFFSET_PX     = 6;           // gap between ring and label
+
 function solveCPA(own, tgt) {
     const rx = tgt.x - own.x;
     const ry = tgt.y - own.y;
@@ -215,6 +221,7 @@ class Simulator {
         this.canvas = document.getElementById('radarCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.dragTooltip = document.getElementById('drag-tooltip');
+        this.orderTooltip = document.getElementById('order-tooltip');
         // this.btnVectorTime = document.getElementById('btn-vector-time');
         // this.btnRmv = document.getElementById('btn-rmv');
         // this.btnCpa = document.getElementById('btn-cpa');
@@ -251,10 +258,22 @@ class Simulator {
         this.radarWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-white').trim();
         this.radarFaintGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-green').trim();
         this.radarFaintWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-white').trim();
+        this.radarDarkOrange = getComputedStyle(document.documentElement).getPropertyValue('--radar-dark-orange').trim();
         this.scenarioCfg = ScenarioConfig;
 
         // --- State Data ---
-        this.ownShip = { course: 91, speed: 12.7, id: 'ownShip', x: 0, y: 0 };
+        this.ownShip = {
+            course: 91,
+            speed: 12.7,
+            id: 'ownShip',
+            x: 0,
+            y: 0,
+            orderedCourse: 91,
+            orderedSpeed: 12.7,
+            dragCourse: null,
+            dragSpeed: null,
+            orderedVectorEndpoint: null
+        };
         this.tracks = [
             { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
             { id: '0002', initialBearing: 345, initialRange: 6.5, course: 250, speed: 7.2 },
@@ -388,7 +407,13 @@ class Simulator {
             const wrap = (handler) => (e) => {
                 const touch = e.touches[0] || e.changedTouches[0];
                 if (!touch) return;
-                handler({ clientX: touch.clientX, clientY: touch.clientY, button: 0 });
+                handler({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0,
+                    buttons: 1,
+                    pointerType: 'touch'
+                });
                 e.preventDefault();
             };
             this.canvas.addEventListener('touchstart', wrap(this.handlePointerDown), { passive: false });
@@ -625,10 +650,10 @@ class Simulator {
         const track = this.tracks.find(t => t.id === this.selectedTrackId);
 
         if (id === 'ownship-crs') {
-            this.ownShip.course = Math.max(0, Math.min(359.9, value));
+            this.ownShip.orderedCourse = Math.max(0, Math.min(359.9, value));
             didUpdate = true;
         } else if (id === 'ownship-spd') {
-            this.ownShip.speed = value;
+            this.ownShip.orderedSpeed = value;
             didUpdate = true;
         } else if (track) {
             if (id === 'track-brg') {
@@ -662,6 +687,25 @@ class Simulator {
     // --- Physics & Calculations ---
     updatePhysics(deltaTime) {
         if (!this.isSimulationRunning) return;
+
+        const dtSec = (deltaTime / 1000) * Math.abs(this.simulationSpeed);
+
+        // Gradually adjust ownship toward ordered values
+        const maxTurn = 3 * dtSec;            // degrees per second
+        let courseDiff = (this.ownShip.orderedCourse - this.ownShip.course + 540) % 360 - 180;
+        if (Math.abs(courseDiff) <= maxTurn) {
+            this.ownShip.course = this.ownShip.orderedCourse;
+        } else {
+            this.ownShip.course = (this.ownShip.course + Math.sign(courseDiff) * maxTurn + 360) % 360;
+        }
+
+        const maxSpdChange = 0.1 * dtSec;     // knots per second
+        const spdDiff = this.ownShip.orderedSpeed - this.ownShip.speed;
+        if (Math.abs(spdDiff) <= maxSpdChange) {
+            this.ownShip.speed = this.ownShip.orderedSpeed;
+        } else {
+            this.ownShip.speed += Math.sign(spdDiff) * maxSpdChange;
+        }
 
         const timeMultiplier = (deltaTime / 3600000) * this.simulationSpeed;
         const ownShipDist = this.ownShip.speed * timeMultiplier;
@@ -815,31 +859,53 @@ class Simulator {
         const center = size / 2;
         const radius = size / 2 * 0.9;
         const ctx = this.staticCtx;
+        ctx.save();
+        // --- Outer and inner range rings ---
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, size, size);
         ctx.strokeStyle = this.radarFaintGreen;
         ctx.lineWidth = 0.9;
+
         ctx.beginPath();
         ctx.arc(center, center, radius, 0, 2 * Math.PI);
         ctx.stroke();
+
         for (let i = 1; i < 3; i++) {
             ctx.beginPath();
             ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI);
             ctx.stroke();
         }
-        ctx.fillStyle = this.radarGreen;
+
+        // --- Range ring labels ---
+        ctx.fillStyle = this.radarFaintGreen;
         ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         for (let i = 1; i <= 3; i++) {
             const ringRadius = radius * (i / 3);
             const range = this.maxRange * (i / 3);
-            ctx.fillText(range.toFixed(1), center + ringRadius + 5, center);
+            ctx.fillText(range.toFixed(1), center + ringRadius + LABEL_OFFSET_PX, center);
         }
+
+        // --- Radial bearing lines ---
+        for (let deg = 0; deg < 360; deg += 10) {
+            const isCardinal = CARDINAL_BEARINGS.includes(deg);
+            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+            const ang = this.toRadians(deg);
+            const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+            ctx.beginPath();
+            ctx.moveTo(center, center);
+            ctx.lineTo(
+                center + lineRadius * Math.cos(ang),
+                center - lineRadius * Math.sin(ang)
+            );
+            ctx.stroke();
+        }
+        ctx.restore();
     }
 
     drawRangeRings(center, radius) { this.ctx.strokeStyle = this.radarFaintGreen; this.ctx.lineWidth = 0.9; this.ctx.beginPath(); this.ctx.arc(center, center, radius, 0, 2 * Math.PI); this.ctx.stroke(); for (let i = 1; i < 3; i++) { this.ctx.beginPath(); this.ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI); this.ctx.stroke(); } }
-    drawRangeLabels(center, radius) { this.ctx.fillStyle = this.radarGreen; this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`; this.ctx.textAlign = 'left'; this.ctx.textBaseline = 'middle'; for (let i = 1; i <= 3; i++) { const ringRadius = radius * (i / 3); const range = this.maxRange * (i / 3); this.ctx.fillText(range.toFixed(1), center + ringRadius + 5, center); } }
+    drawRangeLabels(center, radius) { this.ctx.fillStyle = this.radarFaintGreen; this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`; this.ctx.textAlign = 'left'; this.ctx.textBaseline = 'middle'; for (let i = 1; i <= 3; i++) { const ringRadius = radius * (i / 3); const range = this.maxRange * (i / 3); this.ctx.fillText(range.toFixed(1), center + ringRadius + LABEL_OFFSET_PX, center); } }
 
     drawOwnShipIcon(center, radius) {
         this.ctx.strokeStyle = this.radarGreen;
@@ -859,6 +925,38 @@ class Simulator {
         this.ctx.moveTo(center, center);
         this.ctx.lineTo(endX, endY);
         this.ctx.stroke();
+
+        // Draw ordered course/speed vector if still manoeuvring
+        const orderedCourse = (this.ownShip.dragCourse !== null) ? this.ownShip.dragCourse : this.ownShip.orderedCourse;
+        const orderedSpeed  = (this.ownShip.dragSpeed  !== null) ? this.ownShip.dragSpeed  : this.ownShip.orderedSpeed;
+        const diffCourse = Math.abs(((orderedCourse - this.ownShip.course + 540) % 360) - 180);
+        const diffSpeed  = Math.abs(orderedSpeed - this.ownShip.speed);
+        if (diffCourse > 0.5 || diffSpeed > 0.05) {
+            const orderDistPixels = orderedSpeed * timeInHours * pixelsPerNm;
+            const orderAngle = this.toRadians(this.bearingToCanvasAngle(orderedCourse));
+            const oEndX = center + orderDistPixels * Math.cos(orderAngle);
+            const oEndY = center - orderDistPixels * Math.sin(orderAngle);
+            this.ownShip.orderedVectorEndpoint = { x: oEndX, y: oEndY };
+            this.ctx.save();
+            this.ctx.strokeStyle = this.radarDarkOrange;
+            this.ctx.lineWidth = 1.4 * 1.2 * 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(center, center);
+            this.ctx.lineTo(oEndX, oEndY);
+            this.ctx.stroke();
+            this.ctx.restore();
+
+            const rect = this.canvas.getBoundingClientRect();
+            const tipX = rect.left + (oEndX / this.DPR);
+            const tipY = rect.top + (oEndY / this.DPR);
+            const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+            this.orderTooltip.innerText = txt;
+            this.orderTooltip.style.display = 'block';
+            this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
+        } else {
+            this.orderTooltip.style.display = 'none';
+            this.ownShip.orderedVectorEndpoint = null;
+        }
     }
 
     getTargetCoords(center, radius, track) {
@@ -1221,11 +1319,21 @@ class Simulator {
 
     handlePointerUp() {
         this.canvas.style.cursor = 'grab';
+        if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+            if (this.ownShip.dragCourse !== null && this.ownShip.dragSpeed !== null) {
+                this.ownShip.orderedCourse = this.ownShip.dragCourse;
+                this.ownShip.orderedSpeed = this.ownShip.dragSpeed;
+            }
+        }
+        this.ownShip.dragCourse = null;
+        this.ownShip.dragSpeed = null;
         this.draggedItemId = null;
         this.dragType = null;
         this.pendingDragId = null;
         this.pendingDragType = null;
         this.dragTooltip.style.display = 'none';
+        this.orderTooltip.style.display = 'none';
+        this.markSceneDirty();
     }
 
     handlePointerMove(e) {
@@ -1239,6 +1347,10 @@ class Simulator {
             if (Math.hypot(dx0, dy0) > this.dragThreshold) {
                 this.draggedItemId = this.pendingDragId;
                 this.dragType = this.pendingDragType;
+                if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+                    this.ownShip.dragCourse = this.ownShip.orderedCourse;
+                    this.ownShip.dragSpeed = this.ownShip.orderedSpeed;
+                }
             }
         }
 
@@ -1285,12 +1397,17 @@ class Simulator {
                 const dy = -(mouseY - startPoint.y);
 
                 const newCanvasAngleRad = Math.atan2(dy, dx);
-                let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
                 const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
                 const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
 
-                vessel.course = newCourse;
-                vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
+                if (vessel.id === 'ownShip') {
+                    this.ownShip.dragCourse = newCourse;
+                    this.ownShip.dragSpeed = Math.max(0, newSpeed);
+                } else {
+                    vessel.course = newCourse;
+                    vessel.speed = Math.max(2, newSpeed);
+                }
                 this.markSceneDirty();
             }
             this.lastMousePos = { x: mouseX, y: mouseY };
