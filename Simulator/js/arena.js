@@ -252,6 +252,7 @@ class Simulator {
         this.windDataContainer = document.getElementById('wind-data-container');
         this.simClock = document.getElementById('sim-clock');
         this.mainContainer = document.querySelector('main.main-content');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
         this.btnSettings = document.getElementById('btn-settings');
         this.settingsDrawer = document.getElementById('settings-drawer');
         this.chkPolarPlot = document.getElementById('toggle-polar-plot');
@@ -488,6 +489,13 @@ class Simulator {
             } else {
                 this.settingsDrawer.style.display = 'flex';
                 requestAnimationFrame(() => this.settingsDrawer.classList.add('open'));
+            }
+        });
+        // Fullscreen toggle
+        this.btnFullscreen.addEventListener('click', () => this.toggleFullScreen());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
             }
         });
         this.settingsDrawer.addEventListener('mouseleave', () => {
@@ -1618,6 +1626,14 @@ class Simulator {
     toggleTrackIds() {
         this.showTrackIds = !this.showTrackIds;
         this.markSceneDirty();
+    }
+
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
+        }
     }
 
     setupRandomScenario(){
