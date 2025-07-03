@@ -279,14 +279,14 @@ main {
 #data-pane .mt-2 { margin-top: 0.25rem !important; }
 #btn-add-track,
 #btn-drop-track {
-    width: 20px;
-    height: 20px;
+    width: 32px;
+    height: 32px;
     font-family: 'Share Tech Mono', monospace;
-    font-size: 18px;
+    font-size: 28px;
     color: var(--radar-faint-green);
     background: transparent;
     border: none;
-    line-height: 18px;
+    line-height: 28px;
     text-align: center;
     user-select: none;
 }
