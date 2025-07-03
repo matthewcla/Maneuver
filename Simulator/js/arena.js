@@ -398,7 +398,13 @@ class Simulator {
             const wrap = (handler) => (e) => {
                 const touch = e.touches[0] || e.changedTouches[0];
                 if (!touch) return;
-                handler({ clientX: touch.clientX, clientY: touch.clientY, button: 0 });
+                handler({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0,
+                    buttons: 1,
+                    pointerType: 'touch'
+                });
                 e.preventDefault();
             };
             this.canvas.addEventListener('touchstart', wrap(this.handlePointerDown), { passive: false });
