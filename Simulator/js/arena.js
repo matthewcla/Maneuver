@@ -1330,12 +1330,17 @@ class Simulator {
                 const dy = -(mouseY - startPoint.y);
 
                 const newCanvasAngleRad = Math.atan2(dy, dx);
-                let newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
+                const newCourse = this.canvasAngleToBearing(this.toDegrees(newCanvasAngleRad));
                 const distOnCanvas = Math.sqrt(dx * dx + dy * dy);
                 const newSpeed = distOnCanvas / pixelsPerNm / timeInHours;
 
-                vessel.course = newCourse;
-                vessel.speed = Math.max((vessel.id === 'ownShip' ? 0 : 2), newSpeed);
+                if (vessel.id === 'ownShip') {
+                    vessel.orderedCourse = newCourse;
+                    vessel.orderedSpeed = Math.max(0, newSpeed);
+                } else {
+                    vessel.course = newCourse;
+                    vessel.speed = Math.max(2, newSpeed);
+                }
                 this.markSceneDirty();
             }
             this.lastMousePos = { x: mouseX, y: mouseY };
