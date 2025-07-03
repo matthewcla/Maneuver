@@ -14,3 +14,10 @@ This software is **not** a certified navigational tool. It is meant purely for e
 
 ## Contact
 Questions or feedback? Email: `AheadFlank.ai@gmail.com`
+
+## Numeric Input UX
+Mobile browsers sometimes ignore the `inputmode` hint when `type="number"` is
+used. To guarantee the decimal keypad appears across phones and tablets, the
+simulator injects a text input with `inputmode="decimal"` when editing numeric
+fields. This keeps the interface focused on digits and a single decimal point,
+improving touch‑screen usability.

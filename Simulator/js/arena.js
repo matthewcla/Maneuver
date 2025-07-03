@@ -571,8 +571,16 @@ class Simulator {
         if (this.activeEditField === id) {
             if (this.suppressEditRender) return;
             if (!el.querySelector('input')) {
-                el.innerHTML = `<input type="number" step="0.1" inputmode="decimal" value="${parseFloat(numericValue).toFixed(1)}">`;
+                el.innerHTML = `
+        <input
+             type="text"
+             inputmode="decimal"
+             pattern="\\d+(\\.\\d)?"
+             value="${parseFloat(numericValue).toFixed(1)}"
+             aria-label="Edit numeric value to one decimal place">`;
                 const input = el.querySelector('input');
+                input.focus();
+                input.select();
                 const commit = () => {
                     const newVal = parseFloat(input.value);
                     this.activeEditField = null;
@@ -590,7 +598,6 @@ class Simulator {
                         this._scheduleUIUpdate();
                     }
                 });
-                setTimeout(() => { input.focus(); input.select(); }, 0);
             }
         } else {
             if (el.textContent !== displayValue) {
