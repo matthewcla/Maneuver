@@ -246,6 +246,10 @@ class Simulator {
         this.radarContainer = document.getElementById('radar-container');
         this.rightPane = document.getElementById('right-pane');
         this.dataPane = document.getElementById('data-pane');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.settingsDrawer = document.getElementById('settings-drawer');
+        this.togglePolar = document.getElementById('toggle-polar');
+        this.toggleTrackNum = document.getElementById('toggle-tracknum');
         this.trackDataContainer = document.getElementById('track-data-container');
         this.rmDataContainer = document.getElementById('rm-data-container');
         this.cpaDataContainer = document.getElementById('cpa-data-container');
@@ -318,6 +322,8 @@ class Simulator {
         this.revSpeeds = [-25, -50];
         this.showRelativeMotion = false;
         this.showCPAInfo = false;
+        this.showPolarPlot = true;
+        this.showTrackNumbers = true;
         this.isSimulationRunning = true;
         this.showWeather = true;
         this.uiScaleFactor = 1;
@@ -470,6 +476,22 @@ class Simulator {
             this.showWeather = this.windDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
+        });
+
+        this.btnSettings.addEventListener('click', () => {
+            this.settingsDrawer.style.display = 'flex';
+        });
+        this.settingsDrawer.addEventListener('mouseleave', () => {
+            this.settingsDrawer.style.display = 'none';
+        });
+        this.togglePolar.addEventListener('change', (e) => {
+            this.showPolarPlot = e.target.checked;
+            this.staticDirty = true;
+            this.markSceneDirty();
+        });
+        this.toggleTrackNum.addEventListener('change', (e) => {
+            this.showTrackNumbers = e.target.checked;
+            this.markSceneDirty();
         });
 
         // Shared tooltip behavior for elements with data-tooltip
@@ -888,18 +910,20 @@ class Simulator {
         }
 
         // --- Radial bearing lines ---
-        for (let deg = 0; deg < 360; deg += 10) {
-            const isCardinal = CARDINAL_BEARINGS.includes(deg);
-            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
-            const ang = this.toRadians(deg);
-            const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
-            ctx.beginPath();
-            ctx.moveTo(center, center);
-            ctx.lineTo(
-                center + lineRadius * Math.cos(ang),
-                center - lineRadius * Math.sin(ang)
-            );
-            ctx.stroke();
+        if (this.showPolarPlot) {
+            for (let deg = 0; deg < 360; deg += 10) {
+                const isCardinal = CARDINAL_BEARINGS.includes(deg);
+                ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+                const ang = this.toRadians(deg);
+                const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(
+                    center + lineRadius * Math.cos(ang),
+                    center - lineRadius * Math.sin(ang)
+                );
+                ctx.stroke();
+            }
         }
         ctx.restore();
     }
@@ -984,11 +1008,13 @@ class Simulator {
         this.ctx.moveTo(x, y);
         this.ctx.lineTo(endX, endY);
         this.ctx.stroke();
-        this.ctx.fillStyle = this.radarGreen;
-        this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
-        this.ctx.textAlign = 'left';
-        this.ctx.textBaseline = 'top';
-        this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        if (this.showTrackNumbers) {
+            this.ctx.fillStyle = this.radarGreen;
+            this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'top';
+            this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        }
     }
 
     drawRelativeMotionVector(center, radius, track) {
