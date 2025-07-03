@@ -215,6 +215,7 @@ class Simulator {
         this.canvas = document.getElementById('radarCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.dragTooltip = document.getElementById('drag-tooltip');
+        this.orderTooltip = document.getElementById('order-tooltip');
         // this.btnVectorTime = document.getElementById('btn-vector-time');
         // this.btnRmv = document.getElementById('btn-rmv');
         // this.btnCpa = document.getElementById('btn-cpa');
@@ -251,6 +252,7 @@ class Simulator {
         this.radarWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-white').trim();
         this.radarFaintGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-green').trim();
         this.radarFaintWhite = getComputedStyle(document.documentElement).getPropertyValue('--radar-faint-white').trim();
+        this.radarDarkOrange = getComputedStyle(document.documentElement).getPropertyValue('--radar-dark-orange').trim();
         this.scenarioCfg = ScenarioConfig;
 
         // --- State Data ---
@@ -263,7 +265,8 @@ class Simulator {
             orderedCourse: 91,
             orderedSpeed: 12.7,
             dragCourse: null,
-            dragSpeed: null
+            dragSpeed: null,
+            orderedVectorEndpoint: null
         };
         this.tracks = [
             { id: '0001', initialBearing: 327, initialRange: 7.9, course: 255, speed: 6.1 },
@@ -905,14 +908,26 @@ class Simulator {
             const orderAngle = this.toRadians(this.bearingToCanvasAngle(orderedCourse));
             const oEndX = center + orderDistPixels * Math.cos(orderAngle);
             const oEndY = center - orderDistPixels * Math.sin(orderAngle);
+            this.ownShip.orderedVectorEndpoint = { x: oEndX, y: oEndY };
             this.ctx.save();
-            this.ctx.strokeStyle = this.radarFaintGreen;
+            this.ctx.strokeStyle = this.radarDarkOrange;
             this.ctx.lineWidth = 1.4 * 1.2 * 2;
             this.ctx.beginPath();
             this.ctx.moveTo(center, center);
             this.ctx.lineTo(oEndX, oEndY);
             this.ctx.stroke();
             this.ctx.restore();
+
+            const rect = this.canvas.getBoundingClientRect();
+            const tipX = rect.left + (oEndX / this.DPR);
+            const tipY = rect.top + (oEndY / this.DPR);
+            const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+            this.orderTooltip.innerText = txt;
+            this.orderTooltip.style.display = 'block';
+            this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
+        } else {
+            this.orderTooltip.style.display = 'none';
+            this.ownShip.orderedVectorEndpoint = null;
         }
     }
 
@@ -1289,6 +1304,7 @@ class Simulator {
         this.pendingDragId = null;
         this.pendingDragType = null;
         this.dragTooltip.style.display = 'none';
+        this.orderTooltip.style.display = 'none';
         this.markSceneDirty();
     }
 
