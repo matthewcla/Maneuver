@@ -828,6 +828,7 @@ class Simulator {
             this.staticDirty = false;
         }
         this.ctx.drawImage(this.staticCanvas, 0, 0);
+        this.drawRangeLabels(center, radius);
 
         if (this.showWeather) {
             this.drawWeatherInfo(center, radius);
@@ -879,19 +880,19 @@ class Simulator {
         // --- Radial bearing lines and cardinal labels ---
         for (let deg = 0; deg < 360; deg += 10) {
             const isCardinal = CARDINAL_BEARINGS.includes(deg);
-            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+            ctx.setLineDash(DASH_PATTERN_SOLID);
             const ang = this.toRadians(deg);
             ctx.beginPath();
             ctx.moveTo(center, center);
             ctx.lineTo(
-                center + radius * Math.cos(ang),
-                center - radius * Math.sin(ang)
+                center + (size / 2) * Math.cos(ang),
+                center - (size / 2) * Math.sin(ang)
             );
             ctx.stroke();
 
             if (isCardinal) {
                 const labelMap = {0: 'N', 90: 'E', 180: 'S', 270: 'W'};
-                ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
+                ctx.font = `${Math.max(11, radius * 0.038) * 2}px 'Share Tech Mono', monospace`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = this.radarFaintGreen;
@@ -905,8 +906,30 @@ class Simulator {
         ctx.restore();
     }
 
-    drawRangeRings(center, radius) { this.ctx.strokeStyle = this.radarFaintGreen; this.ctx.lineWidth = 0.9; this.ctx.beginPath(); this.ctx.arc(center, center, radius, 0, 2 * Math.PI); this.ctx.stroke(); for (let i = 1; i < 3; i++) { this.ctx.beginPath(); this.ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI); this.ctx.stroke(); } }
-    drawRangeLabels(center, radius) { this.ctx.fillStyle = this.radarGreen; this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono',monospace`; this.ctx.textAlign = 'left'; this.ctx.textBaseline = 'middle'; for (let i = 1; i <= 3; i++) { const ringRadius = radius * (i / 3); const range = this.maxRange * (i / 3); this.ctx.fillText(range.toFixed(1), center + ringRadius + 5, center); } }
+    drawRangeRings(center, radius) {
+        this.ctx.strokeStyle = this.radarFaintGreen;
+        this.ctx.lineWidth = 0.9;
+        this.ctx.beginPath();
+        this.ctx.arc(center, center, radius, 0, 2 * Math.PI);
+        this.ctx.stroke();
+        for (let i = 1; i < 3; i++) {
+            this.ctx.beginPath();
+            this.ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI);
+            this.ctx.stroke();
+        }
+    }
+
+    drawRangeLabels(center, radius) {
+        this.ctx.fillStyle = this.radarFaintGreen;
+        this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'middle';
+        for (let i = 1; i <= 3; i++) {
+            const ringRadius = radius * (i / 3);
+            const range = this.maxRange * (i / 3);
+            this.ctx.fillText(range.toFixed(1), center + ringRadius + 5, center);
+        }
+    }
 
     drawOwnShipIcon(center, radius) {
         this.ctx.strokeStyle = this.radarGreen;
