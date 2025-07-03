@@ -571,7 +571,7 @@ class Simulator {
         if (this.activeEditField === id) {
             if (this.suppressEditRender) return;
             if (!el.querySelector('input')) {
-                el.innerHTML = `<input type="text" value="${parseFloat(numericValue).toFixed(1)}">`;
+                el.innerHTML = `<input type="number" step="0.1" value="${parseFloat(numericValue).toFixed(1)}">`;
                 const input = el.querySelector('input');
                 const commit = () => {
                     const newVal = parseFloat(input.value);

@@ -273,6 +273,7 @@ main {
     color: var(--radar-green);
     border: none;
     text-align: right;
+    cursor: text;
     font-size: inherit;
     font-family: inherit;
     width: 100%;
