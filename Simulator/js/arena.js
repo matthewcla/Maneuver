@@ -11,6 +11,12 @@ const ScenarioConfig = {
     constraint_density     : 2,
 };
 
+// --- Polar grid rendering constants ---
+const CARDINAL_BEARINGS   = [0, 90, 180, 270];
+const DASH_PATTERN_NONCAR = [4, 4];      // dashed
+const DASH_PATTERN_SOLID  = [];          // solid
+const LABEL_OFFSET_PX     = 6;           // gap between ring and label
+
 function solveCPA(own, tgt) {
     const rx = tgt.x - own.x;
     const ry = tgt.y - own.y;
@@ -853,27 +859,50 @@ class Simulator {
         const center = size / 2;
         const radius = size / 2 * 0.9;
         const ctx = this.staticCtx;
+        ctx.save();
+        // --- Outer and inner range rings ---
         ctx.fillStyle = '#000000';
         ctx.fillRect(0, 0, size, size);
         ctx.strokeStyle = this.radarFaintGreen;
         ctx.lineWidth = 0.9;
+
         ctx.beginPath();
         ctx.arc(center, center, radius, 0, 2 * Math.PI);
         ctx.stroke();
+
         for (let i = 1; i < 3; i++) {
             ctx.beginPath();
             ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI);
             ctx.stroke();
         }
-        ctx.fillStyle = this.radarGreen;
-        ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        for (let i = 1; i <= 3; i++) {
-            const ringRadius = radius * (i / 3);
-            const range = this.maxRange * (i / 3);
-            ctx.fillText(range.toFixed(1), center + ringRadius + 5, center);
+
+        // --- Radial bearing lines and cardinal labels ---
+        for (let deg = 0; deg < 360; deg += 10) {
+            const isCardinal = CARDINAL_BEARINGS.includes(deg);
+            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+            const ang = this.toRadians(deg);
+            ctx.beginPath();
+            ctx.moveTo(center, center);
+            ctx.lineTo(
+                center + radius * Math.cos(ang),
+                center - radius * Math.sin(ang)
+            );
+            ctx.stroke();
+
+            if (isCardinal) {
+                const labelMap = {0: 'N', 90: 'E', 180: 'S', 270: 'W'};
+                ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = this.radarFaintGreen;
+                ctx.fillText(
+                    labelMap[deg],
+                    center + (radius + LABEL_OFFSET_PX) * Math.cos(ang),
+                    center - (radius + LABEL_OFFSET_PX) * Math.sin(ang)
+                );
+            }
         }
+        ctx.restore();
     }
 
     drawRangeRings(center, radius) { this.ctx.strokeStyle = this.radarFaintGreen; this.ctx.lineWidth = 0.9; this.ctx.beginPath(); this.ctx.arc(center, center, radius, 0, 2 * Math.PI); this.ctx.stroke(); for (let i = 1; i < 3; i++) { this.ctx.beginPath(); this.ctx.arc(center, center, radius * (i / 3), 0, 2 * Math.PI); this.ctx.stroke(); } }
