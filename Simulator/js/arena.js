@@ -252,6 +252,10 @@ class Simulator {
         this.windDataContainer = document.getElementById('wind-data-container');
         this.simClock = document.getElementById('sim-clock');
         this.mainContainer = document.querySelector('main.main-content');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.settingsDrawer = document.getElementById('settings-drawer');
+        this.chkPolarPlot = document.getElementById('toggle-polar-plot');
+        this.chkTrackIds = document.getElementById('toggle-track-ids');
 
         // --- Configuration ---
         this.radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
@@ -320,6 +324,8 @@ class Simulator {
         this.showCPAInfo = false;
         this.isSimulationRunning = true;
         this.showWeather = true;
+        this.showPolarPlot = true;
+        this.showTrackIds = true;
         this.uiScaleFactor = 1;
 
         // Sync data panel visibility with feature toggles
@@ -471,6 +477,29 @@ class Simulator {
             this.markSceneDirty();
             this._scheduleUIUpdate();
         });
+
+        // Settings drawer interactions
+        this.btnSettings.addEventListener('click', () => {
+            if (this.settingsDrawer.classList.contains('open')) {
+                this.settingsDrawer.classList.remove('open');
+                this.settingsDrawer.addEventListener('transitionend', () => {
+                    this.settingsDrawer.style.display = 'none';
+                }, { once: true });
+            } else {
+                this.settingsDrawer.style.display = 'flex';
+                requestAnimationFrame(() => this.settingsDrawer.classList.add('open'));
+            }
+        });
+        this.settingsDrawer.addEventListener('mouseleave', () => {
+            if (this.settingsDrawer.classList.contains('open')) {
+                this.settingsDrawer.classList.remove('open');
+                this.settingsDrawer.addEventListener('transitionend', () => {
+                    this.settingsDrawer.style.display = 'none';
+                }, { once: true });
+            }
+        });
+        this.chkPolarPlot.addEventListener('change', () => this.togglePolarPlot());
+        this.chkTrackIds.addEventListener('change', () => this.toggleTrackIds());
 
         // Shared tooltip behavior for elements with data-tooltip
         document.querySelectorAll('[data-tooltip]').forEach(el => {
@@ -888,18 +917,20 @@ class Simulator {
         }
 
         // --- Radial bearing lines ---
-        for (let deg = 0; deg < 360; deg += 10) {
-            const isCardinal = CARDINAL_BEARINGS.includes(deg);
-            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
-            const ang = this.toRadians(deg);
-            const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
-            ctx.beginPath();
-            ctx.moveTo(center, center);
-            ctx.lineTo(
-                center + lineRadius * Math.cos(ang),
-                center - lineRadius * Math.sin(ang)
-            );
-            ctx.stroke();
+        if (this.showPolarPlot) {
+            for (let deg = 0; deg < 360; deg += 10) {
+                const isCardinal = CARDINAL_BEARINGS.includes(deg);
+                ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+                const ang = this.toRadians(deg);
+                const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.lineTo(
+                    center + lineRadius * Math.cos(ang),
+                    center - lineRadius * Math.sin(ang)
+                );
+                ctx.stroke();
+            }
         }
         ctx.restore();
     }
@@ -988,7 +1019,9 @@ class Simulator {
         this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'top';
-        this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        if (this.showTrackIds) {
+            this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        }
     }
 
     drawRelativeMotionVector(center, radius, track) {
@@ -1574,6 +1607,17 @@ class Simulator {
             this.updatePanelsAndRedraw();
             this.markSceneDirty();
         }
+    }
+
+    togglePolarPlot() {
+        this.showPolarPlot = !this.showPolarPlot;
+        this.staticDirty = true;
+        this.markSceneDirty();
+    }
+
+    toggleTrackIds() {
+        this.showTrackIds = !this.showTrackIds;
+        this.markSceneDirty();
     }
 
     setupRandomScenario(){
