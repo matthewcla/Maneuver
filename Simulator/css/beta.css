@@ -47,6 +47,10 @@ body {
     background-color: #000000;
     color: #ffffff;
     overflow: hidden;
+    -webkit-user-select: none; /* Chrome/Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* IE/Edge */
+    user-select: none;         /* Standard */
 }
 /* Define custom colors for easier use in JS and to avoid purging */
 :root {
@@ -54,6 +58,8 @@ body {
     --radar-white: #FFFFFF;
     --radar-faint-green: rgba(0, 255, 0, 0.5);
     --radar-faint-white: rgba(255, 255, 255, 0.5);
+    --radar-dark-orange: #FF8C00;
+    --radar-faint-orange: rgba(255, 140, 0, 0.5);
     /* fallback for dynamic 100vh calculation */
     --vh: 1vh;
     /* global UI scale set by JavaScript */
@@ -263,8 +269,23 @@ main {
 #data-pane .mt-2 { margin-top: 0.25rem !important; }
 #btn-add-track,
 #btn-drop-track {
-    font-size: 32px;
-    line-height: 1;
+    width: 32px;
+    height: 32px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 28px;
+    color: var(--radar-faint-green);
+    background: transparent;
+    border: none;
+    line-height: 28px;
+    text-align: center;
+    user-select: none;
+}
+
+#btn-add-track:hover,
+#btn-drop-track:hover {
+    color: var(--radar-green);
+    cursor: pointer;
+
 }
 
 /* Let the radar fill the middle, and center its contents
@@ -326,6 +347,19 @@ main {
     z-index: 1000;
     line-height: 1.4;
     white-space: pre; /* To respect newlines and spacing */
+}
+#order-tooltip {
+    position: fixed;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--radar-dark-orange);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 0.25rem;
+    pointer-events: none;
+    z-index: 1000;
+    line-height: 1.4;
+    white-space: pre;
 }
 #logo, #logo span {
     font-family: 'Share Tech Mono', monospace;
@@ -432,4 +466,65 @@ details[open] > summary.collapsible-summary::before {
 /* Larger font for selected track ID */
 #track-id {
     font-size: 22px;
+}
+
+/* Settings gear button */
+
+/* Full screen button */
+#btn-fullscreen,
+#btn-settings {
+    position: fixed;
+    left: 32px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--radar-faint-green);
+    z-index: 4;
+}
+
+#btn-fullscreen { bottom: 55px; }
+#btn-settings  { bottom: 15px; }
+
+#btn-settings:hover,
+#btn-fullscreen:hover {
+    color: var(--radar-green);
+    cursor: pointer;
+}
+
+/* Settings drawer */
+#settings-drawer {
+    position: fixed;
+    left: 32px;
+    bottom: 15px;
+    width: 120px;
+    background: #000;
+    border: 1px solid #333;
+    border-bottom: none;
+    display: none;
+    flex-direction: column;
+    transform: translateY(100%) scale(1.3);
+    transform-origin: bottom left;
+    transition: transform 0.2s ease;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--radar-green);
+    z-index: 5;
+}
+
+#settings-drawer.open {
+    display: flex;
+    transform: translateY(0) scale(1.3);
+}
+
+#settings-drawer .setting-option {
+    padding: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+#settings-drawer input[type="checkbox"] {
+    accent-color: var(--radar-green);
 }
