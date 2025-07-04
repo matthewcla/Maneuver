@@ -513,6 +513,7 @@ class Simulator {
         document.querySelectorAll('[data-tooltip]').forEach(el => {
             el.addEventListener('pointerenter', e => {
                 this.dragTooltip.textContent = el.getAttribute('data-tooltip');
+                this.dragTooltip.style.color = this.radarGreen;
                 this.dragTooltip.style.display = 'block';
                 this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
             });
@@ -974,8 +975,8 @@ class Simulator {
         this.ctx.stroke();
 
         // Draw ordered course/speed vector if still manoeuvring
-        const orderedCourse = (this.ownShip.dragCourse !== null) ? this.ownShip.dragCourse : this.ownShip.orderedCourse;
-        const orderedSpeed  = (this.ownShip.dragSpeed  !== null) ? this.ownShip.dragSpeed  : this.ownShip.orderedSpeed;
+        const orderedCourse = this.ownShip.orderedCourse;
+        const orderedSpeed  = this.ownShip.orderedSpeed;
         const diffCourse = Math.abs(((orderedCourse - this.ownShip.course + 540) % 360) - 180);
         const diffSpeed  = Math.abs(orderedSpeed - this.ownShip.speed);
         if (diffCourse > 0.5 || diffSpeed > 0.05) {
@@ -997,12 +998,29 @@ class Simulator {
             const tipX = rect.left + (oEndX / this.DPR);
             const tipY = rect.top + (oEndY / this.DPR);
             const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+            this.orderTooltip.style.color = this.radarDarkOrange;
             this.orderTooltip.innerText = txt;
             this.orderTooltip.style.display = 'block';
             this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
         } else {
             this.orderTooltip.style.display = 'none';
             this.ownShip.orderedVectorEndpoint = null;
+        }
+
+        const dragging = this.draggedItemId === 'ownShip' && this.dragType === 'vector';
+        if (dragging && this.ownShip.dragCourse !== null && this.ownShip.dragSpeed !== null) {
+            const dragDistPixels = this.ownShip.dragSpeed * timeInHours * pixelsPerNm;
+            const dragAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.dragCourse));
+            const dEndX = center + dragDistPixels * Math.cos(dragAngle);
+            const dEndY = center - dragDistPixels * Math.sin(dragAngle);
+            this.ctx.save();
+            this.ctx.strokeStyle = this.radarWhite;
+            this.ctx.lineWidth = 1.4 * 1.2 * 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(center, center);
+            this.ctx.lineTo(dEndX, dEndY);
+            this.ctx.stroke();
+            this.ctx.restore();
         }
     }
 
@@ -1334,6 +1352,11 @@ class Simulator {
         }
 
         if (tooltipText) {
+            if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+                this.dragTooltip.style.color = this.radarWhite;
+            } else {
+                this.dragTooltip.style.color = this.radarGreen;
+            }
             this.dragTooltip.innerText = tooltipText;
             this.dragTooltip.style.display = 'block';
             this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
