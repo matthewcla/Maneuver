@@ -211,27 +211,6 @@ class ContactController {
  * @class Simulator
  * Encapsulates the entire state and logic for the ship maneuvering simulator.
  */
-const fsApi = {
-  request(el = document.documentElement) {
-    return  el.requestFullscreen?.()     ||
-            el.webkitRequestFullscreen?.()||
-            el.mozRequestFullScreen?.()  ||
-            el.msRequestFullscreen?.();
-  },
-  exit() {
-    return  document.exitFullscreen?.()   ||
-            document.webkitExitFullscreen?.()||
-            document.mozCancelFullScreen?.() ||
-            document.msExitFullscreen?.();
-  },
-  isActive() {
-    return document.fullscreenElement     ||
-           document.webkitFullscreenElement||
-           document.mozFullScreenElement   ||
-           document.msFullscreenElement;
-  }
-};
-
 class Simulator {
     constructor() {
         // --- Suppress rendering flag for editable fields ---
@@ -365,11 +344,6 @@ class Simulator {
         this.handlePointerDown = this.handlePointerDown.bind(this);
         this.handlePointerUp = this.handlePointerUp.bind(this);
         this.handlePointerMove = this.handlePointerMove.bind(this);
-
-        // Update icon/text when FS changes
-        ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange']
-          .forEach(evt => document.addEventListener(evt, () => this._syncFullscreenUI()));
-        this._syncFullscreenUI();   // set initial state
 
         this._initialize();
     }
@@ -525,8 +499,8 @@ class Simulator {
         // Fullscreen toggle
         this.btnFullscreen?.addEventListener('click', () => this.toggleFullScreen());
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && fsApi.isActive()) {
-                fsApi.exit();
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
             }
         });
 
@@ -1701,23 +1675,12 @@ class Simulator {
         this.markSceneDirty();
     }
 
-    async toggleFullScreen() {
-        try {
-            if (!fsApi.isActive()) {
-                await fsApi.request();
-            } else {
-                await fsApi.exit();
-            }
-        } catch (err) {
-            console.error('Fullscreen error', err);
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
         }
-    }
-
-    _syncFullscreenUI() {
-        const entering = !!fsApi.isActive();
-        this.btnFullscreen.setAttribute('data-state', entering ? 'exit' : 'enter');
-        this.btnFullscreen.title     = entering ? 'Exit full screen' : 'Enter full screen';
-        this.btnFullscreen.ariaLabel = this.btnFullscreen.title;
     }
 
     setupRandomScenario(){
