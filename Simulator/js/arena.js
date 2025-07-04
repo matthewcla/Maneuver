@@ -244,7 +244,7 @@ class Simulator {
         this.cpaDataContainer = document.getElementById('cpa-data-container');
         this.windDataContainer = document.getElementById('wind-data-container');
         this.simClock = document.getElementById('sim-clock');
-        this.mainContainer = document.querySelector('main.main-content');
+        this.mainContainer = document.querySelector('main.sim-radar');
 
         // --- Configuration ---
         this.radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
@@ -372,11 +372,6 @@ class Simulator {
 
     // --- Event Listener Setup ---
     _attachEventListeners() {
-        // Prevent radar-wrapper drag when interacting inside canvas
-        this.canvas.addEventListener('mousedown', e => e.stopPropagation());
-        this.canvas.addEventListener('pointerdown', e => e.stopPropagation());
-        this.canvas.addEventListener('touchstart', e => { e.stopPropagation(); }, { passive: false });
-
         // Canvas interaction
         if (window.PointerEvent) {
             this.canvas.addEventListener('pointerdown', this.handlePointerDown);

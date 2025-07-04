@@ -10,48 +10,30 @@ html, body {
     height: 100%;
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-#left-pane {
+#header {
     position: absolute;
     top: 32px;
     left: 32px;
     z-index: 2;
 }
 
-#logo {
-    flex-direction: column;
-}
-
 main {
     display: flex;
-    flex: 1; /* Fills remaining space */
 }
-nav {
-    width: 64px;
-}
+
 #simulator {
-    display: flex;
-    flex: 1;
-}
-#radar-wrapper {
     flex-direction: column;
-    flex-grow:.7;
-    padding: 0 0px 0 0;
-    z-index: 1;
+    flex: 1;
+    overflow: hidden;
+}
+
+#radar-wrapper {
+    height: 100vh;;
 }
 
 #right-pane {
-    width: 286px;
-    position: absolute;
-    /* padding: 32px 32px 0 24px; */
-    top: 0;
-    right: 0;
-    z-index: 3;
+    width: 286px;    
+    flex-direction: column;
     border-left: 1px solid #333;
     height: 100vh;
     background: #000;
@@ -94,7 +76,7 @@ main {
     flex-direction: row;
 }
 /* Ensure the main content area fills the viewport height */
-.main-content {
+.sim-radar {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -106,10 +88,6 @@ main {
     box-sizing: border-box;
 }
 
-@media (min-width: 1600px) {
-   
-}
-
 #data-pane,
 #data-pane > div,
 #track-data-container,
@@ -118,14 +96,14 @@ main {
 #wind-data-container {
     width: 100%;
 }
+
 #sim-panel {
-    /* background: #2c2c2c; */
-    border-radius: 4px;
     padding-top: 22px;
     font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
     z-index: 10;
     border-bottom: 1px solid #333;
 }
+
 #sim-controls {
     display: flex;
     align-items: center;
@@ -134,10 +112,12 @@ main {
     border-top:1px solid #333;
     font-size: 1.35rem;
 }
+
 #sim-clock {
     font-size: 1.8rem;
     padding-bottom: 17px;
 }
+
 .sim-control-btn {
     flex-direction: column;
     text-align: center;
@@ -147,7 +127,11 @@ main {
     color: inherit;
     position: relative;
     border-right: 1px solid #333;
-    padding: 8px 0;
+    padding: 6px 0 8px;
+}
+
+.sim-control-btn:last-child, .sim-control-btn.new {
+    border-right: none;
 }
 
 .sim-control-btn:hover {
@@ -412,6 +396,7 @@ main {
     font-family: 'Share Tech Mono', monospace;
     resize: both;
 }
+
 .help-modal-text {
     white-space: pre-wrap;
     max-width: 100ch;

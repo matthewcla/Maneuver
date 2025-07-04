@@ -180,29 +180,30 @@ Questions?  >>  Aheadflank.ai@gmail.com
 <script>
 	/* ✧✧✧ 2️⃣  DEVICE-GUARD SCRIPT ✧✧✧ */
 	(function () {
-	  const PHONE_MAX_WIDTH = 768;      // px – treat ≤ 768 px CSS width as “phone”
-	  const blocker    = document.getElementById('mobile-blocker');
-	  const root       = document.documentElement;   // <html> – your whole app
+	  const PHONE_MAX_WIDTH = 768;
+	  const blocker = document.getElementById('mobile-blocker');
+	  const root = document.documentElement;
 
-	  function isPhoneSized () {
+	  function isPhoneSized() {
 	    return window.innerWidth <= PHONE_MAX_WIDTH;
 	  }
 
-          function isPhoneUserAgent () {
-            const ua = navigator.userAgent;
-            const isTablet = /iPad|Tablet/i.test(ua);
-            if (isTablet) return false;
-            return /Android.*Mobile|iPhone|iPod|IEMobile|BlackBerry/i.test(ua);
-          }
-
-	  function updateBlocker () {
-	    const phone = isPhoneSized() || isPhoneUserAgent();
-	    blocker.style.display = phone ? 'flex' : 'none';
-	    root.style.overflow   = phone ? 'hidden' : '';   // stop scroll underneath
+	  function isPhoneUserAgent() {
+	    const ua = navigator.userAgent;
+	    const isTablet = /iPad|Tablet/i.test(ua);
+	    if (isTablet) return false;
+	    return /Android.*Mobile|iPhone|iPod|IEMobile|BlackBerry/i.test(ua);
 	  }
 
-	  updateBlocker();              // on first load  window.addEventListener('resize', updateBlocker);
-        })();
+	  function updateBlocker() {
+	    const phone = isPhoneSized() || isPhoneUserAgent();
+	    blocker.style.display = phone ? 'flex' : 'none';
+	    root.style.overflow = phone ? 'hidden' : '';
+	  }
+
+	  updateBlocker();
+	  window.addEventListener('resize', updateBlocker);
+	})();
 </script>
 
 <script>
@@ -226,161 +227,143 @@ Questions?  >>  Aheadflank.ai@gmail.com
     });
   })();
 </script>
-    <main class="d-flex align-items-start main-content position-relative">
-        <!-- Left Pane: Vertical Button Bar -->
-        <section id="left-pane">
-            <section id="logo">
-                Maneuver <br/>
-                <span>Beta</span>
-            </section>
-            <nav id="button-bar" class="d-flex flex-column align-items-bottom gap-2 justify-content-end"></nav>
-        </section>
-
+    <main class="sim-radar">
 	    <section id="simulator">
+            <section id="header">
+                <section id="logo">
+                    Maneuver<br/>
+                    <span>Beta</span>
+                </section>
+            </section>
             <!-- Center Pane: Radar -->
             <section id="radar-wrapper" class="d-flex align-items-center justify-content-center">
                 <div id="radar-container" class="d-flex align-items-center justify-content-center">
                     <canvas id="radarCanvas"></canvas>
-              </div>
+                </div>
            </section>
-            <!-- Right Pane: Data Panel -->
-            <section id="right-pane" class="d-flex flex-column text-radar-green">
-                <section id="sim-panel">
-                    <div id="sim-clock" class="text-center">00:00:00</div>
-                    <span class="w-100 border-top border-secondary"></span>
-                    <div id="sim-controls">
-                        <!-- Simulation Controls -->
-                        <button id="btn-rev" class="sim-control-btn unselected" data-tooltip="Rewind: 25x, 50x">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                style="width:1em;height:1em;margin:auto;"
-                                fill="currentColor" viewBox="0 0 24 24">
-                                <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" transform="translate(24, 24) rotate(180)"/></svg>
-                            </svg>
-                            <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-                        </button>
-                        <button id="btn-play-pause" class="sim-control-btn selected" data-tooltip="Play/Pause Simulation">
-                            <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        </button>
-                        <button id="btn-ff" class="control-btn unselected " data-tooltip="Fast Forward: 25x, 50x">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                            <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
-                        </button>
-                    </div>
-                </section>
-                <!-- New Scenario Button -->
-                    <button id="btn-scen" class="sim-control-btn selected" data-tooltip="Generate New Scenario">
-                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-                        </svg> New scene
+        </section>
+        <!-- Right Pane: Data Panel -->
+        <section id="right-pane" class="d-flex flex-column text-radar-green">
+            <section id="sim-panel">
+                <div id="sim-clock" class="text-center">00:00:00</div>
+                <span class="w-100 border-top border-secondary"></span>
+                <div id="sim-controls">
+                    <!-- Simulation Controls -->
+                    <button id="btn-rev" class="sim-control-btn unselected" data-tooltip="Rewind: 25x, 50x">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            style="width:1em;height:1em;margin:auto;"
+                            fill="currentColor" viewBox="0 0 24 24">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" transform="translate(24, 24) rotate(180)"/></svg>
+                        </svg>
+                        <span id="rev-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
                     </button>
-                <div id="data-pane" class="d-flex flex-column" >
-                    <!-- OwnShip Data -->
-                    <div class="data primary" id="ownship-data-container">
-                        <p class="font-bold tracking-wide data-title">OwnShip</p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
-                        </div>
-                    </div>
-                    <!-- Data Panels for selected track will be dynamically inserted here -->
-                    <div class="data primary" id="track-data-container">
-                         <p class="font-bold tracking-wide data-title">Track <span id="track-id">--</span></p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
-                        </div>
-                    </div>
-                    <details class="data secondary collapsible-panel" id="cpa-data-container">
-                        <summary class="collapsible-summary" data-tooltip="Show/Hide CPA Data&#10;&amp; Radar Elements">CPA</summary>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
-                        </div>
-                    </details>
-                    <!-- <div id="cpa-data-container">
-                         <p class="font-bold tracking-wide data-title">CPA</p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
-                        </div>
-                    </div> -->
-                    <details class="data secondary collapsible-panel" id="rm-data-container">
-                        <summary class="collapsible-summary" data-tooltip="Show/Hide RM Data&#10;&amp; Radar Elements">Rel Motion</summary>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
-                        </div>
-                    </details>
-                    <!-- <div id="rm-data-container">
-                        <p class="font-bold tracking-wide data-title">Rel Motion</p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
-                        </div>
-                    </div> -->
-                    <details class="data secondary collapsible-panel" id="wind-data-container">
-                        <summary class="collapsible-summary" data-tooltip="Show/Hide Wind Data&#10;&amp; Radar Elements">Wind</summary>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
-                        </div>
-                    </details>
-                    <!-- <div id="wind-data-container">
-                        <p class="font-bold tracking-wide data-title">Wind</p>
-                        <div class="d-flex flex-column gap-1">
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
-                            <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
-                        </div>
-                    </div> -->
+                    <button id="btn-play-pause" class="sim-control-btn selected" data-tooltip="Play/Pause Simulation">
+                        <svg id="icon-play" xmlns="http://www.w3.org/2000/svg" class="d-none" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="icon-pause" xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <button id="btn-ff" class="control-btn unselected " data-tooltip="Fast Forward: 25x, 50x">
+                        <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                        <span id="ff-speed-indicator" class="position-absolute d-none" style="bottom:0; right:0.25rem; font-size:0.75rem;"></span>
+                    </button>
                 </div>
             </section>
+            <!-- New Scenario Button -->
+                <button id="btn-scen" class="sim-control-btn new unselected" data-tooltip="Generate New Scenario">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:1em;height:1em;margin:auto;" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg> New scene
+                </button>
+            <div id="data-pane" class="d-flex flex-column" >
+                <!-- OwnShip Data -->
+                <div class="data primary" id="ownship-data-container">
+                    <p class="font-bold tracking-wide data-title">OwnShip</p>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="ownship-crs" class="data-value editable"></span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="ownship-spd" class="data-value editable"></span></div>
+                    </div>
+                </div>
+                <!-- Data Panels for selected track will be dynamically inserted here -->
+                <div class="data primary" id="track-data-container">
+                        <p class="font-bold tracking-wide data-title">Track <span id="track-id">--</span></p>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="track-brg" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="track-rng" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Crs</span><span id="track-crs" class="data-value editable">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd</span><span id="track-spd" class="data-value editable">--</span></div>
+                    </div>
+                </div>
+                <details class="data secondary collapsible-panel" id="cpa-data-container">
+                    <summary class="collapsible-summary" data-tooltip="Show/Hide CPA Data&#10;&amp; Radar Elements">CPA</summary>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg</span><span id="cpa-brg" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rng</span><span id="cpa-rng" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Time</span><span id="cpa-time" class="data-value text-end">--</span></div>
+                    </div>
+                </details>
+                <details class="data secondary collapsible-panel" id="rm-data-container">
+                    <summary class="collapsible-summary" data-tooltip="Show/Hide RM Data&#10;&amp; Radar Elements">Rel Motion</summary>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Direction RM</span><span id="rm-dir" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Spd RM</span><span id="rm-spd" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Brg Rate</span><span id="rm-rate" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Tgt Angle</span><span id="rm-angle" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Aspect</span><span id="rm-aspect" class="data-value text-end">--</span></div>
+                    </div>
+                </details>
+                <details class="data secondary collapsible-panel" id="wind-data-container">
+                    <summary class="collapsible-summary" data-tooltip="Show/Hide Wind Data&#10;&amp; Radar Elements">Wind</summary>
+                    <div class="d-flex flex-column gap-1">
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">True</span><span id="wind-true" class="data-value text-end">--</span></div>
+                        <div class="d-flex justify-content-between align-items-baseline"><span class="data-label">Rel</span><span id="wind-rel" class="data-value text-end">--</span></div>
+                    </div>
+                </details>
+            </div>
+        
         </section>
     </main>
     <script src="./js/arena.js"></script>
     <script>
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
-<script>
-    (function(){
-        const content = document.getElementById('radar-wrapper');
-        let isDragging = false;
-        const offset = { x: 0, y: 0 };
-        let dragStart = { x: 0, y: 0 };
 
-        content.style.cursor = 'grab';
-        content.style.transform = 'translate(0px, 0px)';
-
-        document.addEventListener('mousedown', e => {
-            if (e.target.closest('#radar-container')) return;
-            isDragging = true;
-            content.style.cursor = 'grabbing';
-            dragStart = { x: e.clientX - offset.x, y: e.clientY - offset.y };
-        });
-
-        document.addEventListener('mousemove', e => {
-            if (!isDragging) return;
-            offset.x = e.clientX - dragStart.x;
-            offset.y = e.clientY - dragStart.y;
-            content.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-            content.style.cursor = 'grab';
-        });
-    })();
-</script>
+<!-- Radar-wrapper drag logic moved to just before </body> -->
     <script src="/_vercel/insights/script.js"></script>
 </body>
 </html>
+
+<script>
+(function () {
+  const wrapper = document.getElementById('radar-wrapper');
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let currentY = 0;
+
+  wrapper.style.cursor = 'grab';
+  wrapper.style.transform = 'translate(0px, 0px)';
+
+  wrapper.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#radar-container canvas')) return; // only skip drag if clicking directly on the canvas
+    isDragging = true;
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+    wrapper.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      wrapper.style.cursor = 'grab';
+    }
+  });
+})();
+</script>
