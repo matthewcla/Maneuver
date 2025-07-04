@@ -513,6 +513,7 @@ class Simulator {
         document.querySelectorAll('[data-tooltip]').forEach(el => {
             el.addEventListener('pointerenter', e => {
                 this.dragTooltip.textContent = el.getAttribute('data-tooltip');
+                this.dragTooltip.style.color = this.radarGreen;
                 this.dragTooltip.style.display = 'block';
                 this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
             });
@@ -984,8 +985,9 @@ class Simulator {
             const oEndX = center + orderDistPixels * Math.cos(orderAngle);
             const oEndY = center - orderDistPixels * Math.sin(orderAngle);
             this.ownShip.orderedVectorEndpoint = { x: oEndX, y: oEndY };
+            const dragging = this.draggedItemId === 'ownShip' && this.dragType === 'vector';
             this.ctx.save();
-            this.ctx.strokeStyle = this.radarDarkOrange;
+            this.ctx.strokeStyle = dragging ? this.radarWhite : this.radarDarkOrange;
             this.ctx.lineWidth = 1.4 * 1.2 * 2;
             this.ctx.beginPath();
             this.ctx.moveTo(center, center);
@@ -993,13 +995,17 @@ class Simulator {
             this.ctx.stroke();
             this.ctx.restore();
 
-            const rect = this.canvas.getBoundingClientRect();
-            const tipX = rect.left + (oEndX / this.DPR);
-            const tipY = rect.top + (oEndY / this.DPR);
-            const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
-            this.orderTooltip.innerText = txt;
-            this.orderTooltip.style.display = 'block';
-            this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
+            if (!dragging) {
+                const rect = this.canvas.getBoundingClientRect();
+                const tipX = rect.left + (oEndX / this.DPR);
+                const tipY = rect.top + (oEndY / this.DPR);
+                const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+                this.orderTooltip.innerText = txt;
+                this.orderTooltip.style.display = 'block';
+                this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
+            } else {
+                this.orderTooltip.style.display = 'none';
+            }
         } else {
             this.orderTooltip.style.display = 'none';
             this.ownShip.orderedVectorEndpoint = null;
@@ -1334,6 +1340,11 @@ class Simulator {
         }
 
         if (tooltipText) {
+            if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+                this.dragTooltip.style.color = this.radarWhite;
+            } else {
+                this.dragTooltip.style.color = this.radarGreen;
+            }
             this.dragTooltip.innerText = tooltipText;
             this.dragTooltip.style.display = 'block';
             this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
