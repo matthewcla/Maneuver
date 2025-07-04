@@ -222,22 +222,19 @@ class Simulator {
         this.ctx = this.canvas.getContext('2d');
         this.dragTooltip = document.getElementById('drag-tooltip');
         this.orderTooltip = document.getElementById('order-tooltip');
-        // this.btnVectorTime = document.getElementById('btn-vector-time');
-        // this.btnRmv = document.getElementById('btn-rmv');
-        // this.btnCpa = document.getElementById('btn-cpa');
+        this.btnVectorTime = document.getElementById('btn-vector-time');
         this.btnPlayPause = document.getElementById('btn-play-pause');
         this.iconPlay = document.getElementById('icon-play');
         this.iconPause = document.getElementById('icon-pause');
-        // this.btnRange = document.getElementById('btn-range');
+        this.btnRange = document.getElementById('btn-range');
         this.btnAddTrack  = document.getElementById('btn-add-track');
         this.btnDropTrack = document.getElementById('btn-drop-track');
-        // this.btnWind = document.getElementById('btn-wind');
         this.btnScen = document.getElementById('btn-scen');
         this.btnFf = document.getElementById('btn-ff');
         this.btnRev = document.getElementById('btn-rev');
         this.ffSpeedIndicator = document.getElementById('ff-speed-indicator');
         this.revSpeedIndicator = document.getElementById('rev-speed-indicator');
-        // this.btnHelp = document.getElementById('btn-help');
+        this.btnHelp = document.getElementById('btn-help');
         this.helpModal = document.getElementById('help-modal');
         this.helpCloseBtn = document.getElementById('help-close-btn');
         this.helpContent = this.helpModal.querySelector('pre');
@@ -318,6 +315,9 @@ class Simulator {
         this.rangeScales = [3.0, 6.0, 12.0, 24.0];
         this.vectorTimeInMinutes = 15;
         this.vectorTimes = [3, 15, 30];
+        // Indexes for cycling vector time and range (ensure label updates immediately)
+        this.vectorTimeIndex = this.vectorTimes.indexOf(this.vectorTimeInMinutes);
+        this.rangeIndex = this.rangeScales.indexOf(this.maxRange);
         this.simulationSpeed = 1;
         this.ffSpeeds = [25, 50];
         this.revSpeeds = [-25, -50];
@@ -400,11 +400,11 @@ class Simulator {
     _attachEventListeners() {
         // Canvas interaction
         if (window.PointerEvent) {
-            this.canvas.addEventListener('pointerdown', this.handlePointerDown);
-            this.canvas.addEventListener('pointerup', this.handlePointerUp);
-            this.canvas.addEventListener('pointerleave', this.handlePointerUp);
-            this.canvas.addEventListener('pointercancel', this.handlePointerUp);
-            this.canvas.addEventListener('pointermove', this.handlePointerMove);
+            this.canvas?.addEventListener('pointerdown', this.handlePointerDown);
+            this.canvas?.addEventListener('pointerup', this.handlePointerUp);
+            this.canvas?.addEventListener('pointerleave', this.handlePointerUp);
+            this.canvas?.addEventListener('pointercancel', this.handlePointerUp);
+            this.canvas?.addEventListener('pointermove', this.handlePointerMove);
         } else if ('ontouchstart' in window) {
             const wrap = (handler) => (e) => {
                 const touch = e.touches[0] || e.changedTouches[0];
@@ -418,15 +418,15 @@ class Simulator {
                 });
                 e.preventDefault();
             };
-            this.canvas.addEventListener('touchstart', wrap(this.handlePointerDown), { passive: false });
-            this.canvas.addEventListener('touchmove', wrap(this.handlePointerMove), { passive: false });
-            this.canvas.addEventListener('touchend', wrap(this.handlePointerUp));
-            this.canvas.addEventListener('touchcancel', wrap(this.handlePointerUp));
+            this.canvas?.addEventListener('touchstart', wrap(this.handlePointerDown), { passive: false });
+            this.canvas?.addEventListener('touchmove', wrap(this.handlePointerMove), { passive: false });
+            this.canvas?.addEventListener('touchend', wrap(this.handlePointerUp));
+            this.canvas?.addEventListener('touchcancel', wrap(this.handlePointerUp));
         } else {
-            this.canvas.addEventListener('mousedown', this.handlePointerDown);
-            this.canvas.addEventListener('mouseup', this.handlePointerUp);
-            this.canvas.addEventListener('mouseleave', this.handlePointerUp);
-            this.canvas.addEventListener('mousemove', this.handlePointerMove);
+            this.canvas?.addEventListener('mousedown', this.handlePointerDown);
+            this.canvas?.addEventListener('mouseup', this.handlePointerUp);
+            this.canvas?.addEventListener('mouseleave', this.handlePointerUp);
+            this.canvas?.addEventListener('mousemove', this.handlePointerMove);
         }
 
         // Window resize
@@ -435,74 +435,78 @@ class Simulator {
         }));
 
         // Control buttons
-        // this.btnVectorTime?.addEventListener('click', () => this.toggleVectorTime());
-        // this.btnRange?.addEventListener('click', () => this.toggleRange());
-        // this.btnWind.addEventListener('click', () => this.toggleWeather());
-        // this.btnRmv.addEventListener('click', () => this.toggleRelativeMotion());
-        // this.btnCpa.addEventListener('click', () => this.toggleCPAInfo());
-        this.btnPlayPause.addEventListener('click', () => this.togglePlayPause());
-        this.btnFf.addEventListener('click', () => this.fastForward());
-        this.btnRev.addEventListener('click', () => this.rewind());
+        this.btnVectorTime?.addEventListener('click', () => this.toggleVectorTime());
+        this.btnRange?.addEventListener('click', () => this.toggleRange());
+        this.btnPlayPause?.addEventListener('click', () => this.togglePlayPause());
+        this.btnFf?.addEventListener('click', () => this.fastForward());
+        this.btnRev?.addEventListener('click', () => this.rewind());
         this.btnAddTrack?.addEventListener('click', () => this.addTrack());
         this.btnDropTrack?.addEventListener('click', () => this.dropTrack());
-        this.btnScen.addEventListener('click', () => this.setupRandomScenario());
+        this.btnScen?.addEventListener('click', () => this.setupRandomScenario());
 
         // Help Modal
         // this.btnHelp?.addEventListener('click', () => this.showHelpModal());
-        this.helpCloseBtn.addEventListener('click', () => this.hideHelpModal());
-        new ResizeObserver(() => {
-            const scale = Math.max(0.8, Math.min(1.2, this.helpModal.clientWidth / 500));
-            this.helpContent.style.fontSize = `${1 * scale}rem`;
-            this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
-            this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
-        }).observe(this.helpModal);
+        this.helpCloseBtn?.addEventListener('click', () => this.hideHelpModal());
+        if (this.helpModal && this.helpContent && this.helpCloseBtn) {
+            new ResizeObserver(() => {
+                const scale = Math.max(0.8, Math.min(1.2, this.helpModal.clientWidth / 500));
+                this.helpContent.style.fontSize = `${1 * scale}rem`;
+                this.helpCloseBtn.style.fontSize = `${0.9 * scale}rem`;
+                this.helpCloseBtn.style.padding = `${0.5 * scale}rem`;
+            }).observe(this.helpModal);
+        }
 
         // Data panel expand/collapse toggles radar elements
-        this.rmDataContainer.addEventListener('toggle', () => {
+        this.rmDataContainer?.addEventListener('toggle', () => {
             this.showRelativeMotion = this.rmDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
         });
-        this.cpaDataContainer.addEventListener('toggle', () => {
+        this.cpaDataContainer?.addEventListener('toggle', () => {
             this.showCPAInfo = this.cpaDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
         });
-        this.windDataContainer.addEventListener('toggle', () => {
+        this.windDataContainer?.addEventListener('toggle', () => {
             this.showWeather = this.windDataContainer.open;
             this.markSceneDirty();
             this._scheduleUIUpdate();
         });
 
         // Settings drawer interactions
-        this.btnSettings.addEventListener('click', () => {
-            if (this.settingsDrawer.classList.contains('open')) {
-                this.settingsDrawer.classList.remove('open');
-                this.settingsDrawer.addEventListener('transitionend', () => {
-                    this.settingsDrawer.style.display = 'none';
-                }, { once: true });
-            } else {
-                this.settingsDrawer.style.display = 'flex';
-                requestAnimationFrame(() => this.settingsDrawer.classList.add('open'));
-            }
-        });
+        if (this.btnSettings && this.settingsDrawer) {
+            this.btnSettings.addEventListener('click', () => {
+                if (this.settingsDrawer.classList.contains('open')) {
+                    this.settingsDrawer.classList.remove('open');
+                    this.settingsDrawer.addEventListener('transitionend', () => {
+                        this.settingsDrawer.style.display = 'none';
+                    }, { once: true });
+                } else {
+                    this.settingsDrawer.style.display = 'flex';
+                    requestAnimationFrame(() => this.settingsDrawer.classList.add('open'));
+                }
+            });
+
+            this.settingsDrawer.addEventListener('mouseleave', () => {
+                if (this.settingsDrawer.classList.contains('open')) {
+                    this.settingsDrawer.classList.remove('open');
+                    this.settingsDrawer.addEventListener('transitionend', () => {
+                        this.settingsDrawer.style.display = 'none';
+                    }, { once: true });
+                }
+            });
+        }
         // Fullscreen toggle
-        this.btnFullscreen.addEventListener('click', () => this.toggleFullScreen());
+        this.btnFullscreen?.addEventListener('click', () => this.toggleFullScreen());
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.fullscreenElement) {
                 document.exitFullscreen();
             }
         });
-        this.settingsDrawer.addEventListener('mouseleave', () => {
-            if (this.settingsDrawer.classList.contains('open')) {
-                this.settingsDrawer.classList.remove('open');
-                this.settingsDrawer.addEventListener('transitionend', () => {
-                    this.settingsDrawer.style.display = 'none';
-                }, { once: true });
-            }
-        });
-        this.chkPolarPlot.addEventListener('change', () => this.togglePolarPlot());
-        this.chkTrackIds.addEventListener('change', () => this.toggleTrackIds());
+
+        // Settings toggles for polar plot and track IDs
+        this.chkPolarPlot?.addEventListener('change', () => this.togglePolarPlot());
+        this.chkTrackIds?.addEventListener('change', () => this.toggleTrackIds());
 
         // Shared tooltip behavior for elements with data-tooltip
         document.querySelectorAll('[data-tooltip]').forEach(el => {
@@ -526,13 +530,30 @@ class Simulator {
         });
 
         // Editable fields
-        this.dataPane.addEventListener('click', (e) => {
+        this.dataPane?.addEventListener('click', (e) => {
             if (e.target.classList.contains('editable')) {
                 if (this.activeEditField) return; // Prevent new input if one is already active
                 this.activeEditField = e.target.id;
                 this._scheduleUIUpdate();
             }
         });
+    }
+
+    // --- Vector Time Toggle ---
+    toggleVectorTime() {
+        this.vectorTimeIndex = (this.vectorTimeIndex + 1) % this.vectorTimes.length;
+        this.vectorTimeInMinutes = this.vectorTimes[this.vectorTimeIndex];
+        this.btnVectorTime.textContent = `${this.vectorTimeInMinutes} min`;
+        this.markSceneDirty();
+    }
+
+    // --- Range Toggle ---
+    toggleRange() {
+        this.rangeIndex = (this.rangeIndex + 1) % this.rangeScales.length;
+        this.maxRange = this.rangeScales[this.rangeIndex];
+        this.btnRange.textContent = `${this.maxRange.toFixed(1)} nm`;
+        this.staticDirty = true;
+        this.markSceneDirty();
     }
 
     // TODO: Optimize the simulation loop to handle ~50-100 tracks smoothly.
@@ -1530,14 +1551,14 @@ class Simulator {
     toggleVectorTime() {
         const currentIndex = this.vectorTimes.indexOf(this.vectorTimeInMinutes);
         this.vectorTimeInMinutes = this.vectorTimes[(currentIndex + 1) % this.vectorTimes.length];
-        this._setText('btn-vector-time', this.vectorTimeInMinutes);
+        this._setText('btn-vector-time', this.vectorTimeInMinutes+' min');
         this.markSceneDirty();
     }
 
     toggleRange() {
         const currentIndex = this.rangeScales.indexOf(this.maxRange);
         this.maxRange = this.rangeScales[(currentIndex + 1) % this.rangeScales.length];
-        this._setText('btn-range', this.maxRange.toFixed(1));
+        this._setText('btn-range', this.maxRange.toFixed(1)+' nm');
         this.staticDirty = true;
         this.markSceneDirty();
     }

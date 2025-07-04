@@ -10,12 +10,6 @@ html, body {
     height: 100%;
 }
 
-#header {
-    position: absolute;
-    top: 32px;
-    left: 32px;
-    z-index: 2;
-}
 
 main {
     display: flex;
@@ -78,9 +72,7 @@ canvas {
 .tracking-wide {
     letter-spacing: 0.05em;
 }
-main {
-    flex-direction: row;
-}
+
 /* Ensure the main content area fills the viewport height */
 .sim-radar {
     display: flex;
@@ -88,8 +80,6 @@ main {
     justify-content: space-between;
     align-items: center;
     height: 100vh;
-    gap: 20px;
-    padding: 20px;
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -148,11 +138,11 @@ main {
     padding: 10px 0
 }
 #btn-rev, #btn-ff {
-    flex: 0 0 25%;
+    flex: 0 0 27.6%;
 }
 
 #btn-play-pause {
-    flex: 0 0 50%;
+    flex: 0 0 44.7%;
 }
 /* Button Styling */
 .control-btn {
@@ -303,7 +293,6 @@ main {
 
 #radar-container {
     max-width: 100vh;
-    /*max-height: 90%;*/
     min-height: 0;
     width: 100%;
     border-radius: 50%;
@@ -361,13 +350,25 @@ main {
     line-height: 1.4;
     white-space: pre;
 }
+
+#header {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    width: calc(100vw - 286px);
+    padding: 24px 24px 0;
+}
+
+
 #logo, #logo span {
     font-family: 'Share Tech Mono', monospace;
-    line-height: .8;
+    line-height: 1;
 }
 #logo {
     color: var(--radar-green);
     font-size:1.7rem;
+    display: flex;
+    flex-direction: column;
 }
 
 #logo span {
@@ -375,6 +376,27 @@ main {
     font-size: 1rem;
 }
 
+#controls {
+    display: flex;
+    align-items: top;
+    gap: 16px;
+    font-size: 1.2rem;
+    flex: 1;
+    justify-content: right;
+    flex-direction: row;
+}
+
+#controls button {
+    all: unset;
+    flex-direction: row;
+    display: flex;
+    color: var(--radar-green);
+    background: #000;
+    box-shadow: none;
+    padding: 0;
+    font-size: 16px;
+    cursor: pointer;
+}
 
  .mobile-blocker {
      position: fixed;
@@ -480,7 +502,7 @@ details[open] > summary.collapsible-summary::before {
     padding: 0;
     background: transparent;
     border: none;
-    color: var(--radar-faint-green);
+    color: var(--radar-green);
     z-index: 4;
 }
 
