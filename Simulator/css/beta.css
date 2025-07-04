@@ -550,3 +550,20 @@ details[open] > summary.collapsible-summary::before {
 #settings-drawer input[type="checkbox"] {
     accent-color: var(--radar-green);
 }
+
+/* Prevent pull-to-refresh & rubber-band while allowing the OS escape swipe */
+html, body {
+  margin: 0;
+  height: 100%;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: contain;
+}
+
+/* Canvas already has touch-action:none; declare shared draggable class too */
+.draggable, canvas {
+  touch-action: none;
+}
+
+/* Optional visual cue when in full-screen */
+:fullscreen #btn-fullscreen svg { transform: rotate(45deg); }
+:-webkit-full-screen #btn-fullscreen svg { transform: rotate(45deg); }
