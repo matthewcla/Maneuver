@@ -975,8 +975,8 @@ class Simulator {
         this.ctx.stroke();
 
         // Draw ordered course/speed vector if still manoeuvring
-        const orderedCourse = (this.ownShip.dragCourse !== null) ? this.ownShip.dragCourse : this.ownShip.orderedCourse;
-        const orderedSpeed  = (this.ownShip.dragSpeed  !== null) ? this.ownShip.dragSpeed  : this.ownShip.orderedSpeed;
+        const orderedCourse = this.ownShip.orderedCourse;
+        const orderedSpeed  = this.ownShip.orderedSpeed;
         const diffCourse = Math.abs(((orderedCourse - this.ownShip.course + 540) % 360) - 180);
         const diffSpeed  = Math.abs(orderedSpeed - this.ownShip.speed);
         if (diffCourse > 0.5 || diffSpeed > 0.05) {
@@ -985,9 +985,8 @@ class Simulator {
             const oEndX = center + orderDistPixels * Math.cos(orderAngle);
             const oEndY = center - orderDistPixels * Math.sin(orderAngle);
             this.ownShip.orderedVectorEndpoint = { x: oEndX, y: oEndY };
-            const dragging = this.draggedItemId === 'ownShip' && this.dragType === 'vector';
             this.ctx.save();
-            this.ctx.strokeStyle = dragging ? this.radarWhite : this.radarDarkOrange;
+            this.ctx.strokeStyle = this.radarDarkOrange;
             this.ctx.lineWidth = 1.4 * 1.2 * 2;
             this.ctx.beginPath();
             this.ctx.moveTo(center, center);
@@ -995,20 +994,33 @@ class Simulator {
             this.ctx.stroke();
             this.ctx.restore();
 
-            if (!dragging) {
-                const rect = this.canvas.getBoundingClientRect();
-                const tipX = rect.left + (oEndX / this.DPR);
-                const tipY = rect.top + (oEndY / this.DPR);
-                const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
-                this.orderTooltip.innerText = txt;
-                this.orderTooltip.style.display = 'block';
-                this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
-            } else {
-                this.orderTooltip.style.display = 'none';
-            }
+            const rect = this.canvas.getBoundingClientRect();
+            const tipX = rect.left + (oEndX / this.DPR);
+            const tipY = rect.top + (oEndY / this.DPR);
+            const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+            this.orderTooltip.style.color = this.radarDarkOrange;
+            this.orderTooltip.innerText = txt;
+            this.orderTooltip.style.display = 'block';
+            this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
         } else {
             this.orderTooltip.style.display = 'none';
             this.ownShip.orderedVectorEndpoint = null;
+        }
+
+        const dragging = this.draggedItemId === 'ownShip' && this.dragType === 'vector';
+        if (dragging && this.ownShip.dragCourse !== null && this.ownShip.dragSpeed !== null) {
+            const dragDistPixels = this.ownShip.dragSpeed * timeInHours * pixelsPerNm;
+            const dragAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.dragCourse));
+            const dEndX = center + dragDistPixels * Math.cos(dragAngle);
+            const dEndY = center - dragDistPixels * Math.sin(dragAngle);
+            this.ctx.save();
+            this.ctx.strokeStyle = this.radarWhite;
+            this.ctx.lineWidth = 1.4 * 1.2 * 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(center, center);
+            this.ctx.lineTo(dEndX, dEndY);
+            this.ctx.stroke();
+            this.ctx.restore();
         }
     }
 
