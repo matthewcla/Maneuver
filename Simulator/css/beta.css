@@ -482,3 +482,64 @@ details[open] > summary.collapsible-summary::before {
 #track-id {
     font-size: 22px;
 }
+
+/* Settings gear button */
+
+/* Full screen button */
+#btn-fullscreen,
+#btn-settings {
+    position: fixed;
+    left: 32px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--radar-faint-green);
+    z-index: 4;
+}
+
+#btn-fullscreen { bottom: 55px; }
+#btn-settings  { bottom: 15px; }
+
+#btn-settings:hover,
+#btn-fullscreen:hover {
+    color: var(--radar-green);
+    cursor: pointer;
+}
+
+/* Settings drawer */
+#settings-drawer {
+    position: fixed;
+    left: 32px;
+    bottom: 15px;
+    width: 120px;
+    background: #000;
+    border: 1px solid #333;
+    border-bottom: none;
+    display: none;
+    flex-direction: column;
+    transform: translateY(100%) scale(1.3);
+    transform-origin: bottom left;
+    transition: transform 0.2s ease;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--radar-green);
+    z-index: 5;
+}
+
+#settings-drawer.open {
+    display: flex;
+    transform: translateY(0) scale(1.3);
+}
+
+#settings-drawer .setting-option {
+    padding: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+#settings-drawer input[type="checkbox"] {
+    accent-color: var(--radar-green);
+}

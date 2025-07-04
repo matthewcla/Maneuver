@@ -252,6 +252,11 @@ class Simulator {
         this.windDataContainer = document.getElementById('wind-data-container');
         this.simClock = document.getElementById('sim-clock');
         this.mainContainer = document.querySelector('main.main-content');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
+        this.btnSettings = document.getElementById('btn-settings');
+        this.settingsDrawer = document.getElementById('settings-drawer');
+        this.chkPolarPlot = document.getElementById('toggle-polar-plot');
+        this.chkTrackIds = document.getElementById('toggle-track-ids');
 
         // --- Configuration ---
         this.radarGreen = getComputedStyle(document.documentElement).getPropertyValue('--radar-green').trim();
@@ -320,6 +325,8 @@ class Simulator {
         this.showCPAInfo = false;
         this.isSimulationRunning = true;
         this.showWeather = true;
+        this.showPolarPlot = true;
+        this.showTrackIds = true;
         this.uiScaleFactor = 1;
 
         // Sync data panel visibility with feature toggles
@@ -472,10 +479,41 @@ class Simulator {
             this._scheduleUIUpdate();
         });
 
+        // Settings drawer interactions
+        this.btnSettings.addEventListener('click', () => {
+            if (this.settingsDrawer.classList.contains('open')) {
+                this.settingsDrawer.classList.remove('open');
+                this.settingsDrawer.addEventListener('transitionend', () => {
+                    this.settingsDrawer.style.display = 'none';
+                }, { once: true });
+            } else {
+                this.settingsDrawer.style.display = 'flex';
+                requestAnimationFrame(() => this.settingsDrawer.classList.add('open'));
+            }
+        });
+        // Fullscreen toggle
+        this.btnFullscreen.addEventListener('click', () => this.toggleFullScreen());
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.fullscreenElement) {
+                document.exitFullscreen();
+            }
+        });
+        this.settingsDrawer.addEventListener('mouseleave', () => {
+            if (this.settingsDrawer.classList.contains('open')) {
+                this.settingsDrawer.classList.remove('open');
+                this.settingsDrawer.addEventListener('transitionend', () => {
+                    this.settingsDrawer.style.display = 'none';
+                }, { once: true });
+            }
+        });
+        this.chkPolarPlot.addEventListener('change', () => this.togglePolarPlot());
+        this.chkTrackIds.addEventListener('change', () => this.toggleTrackIds());
+
         // Shared tooltip behavior for elements with data-tooltip
         document.querySelectorAll('[data-tooltip]').forEach(el => {
             el.addEventListener('pointerenter', e => {
                 this.dragTooltip.textContent = el.getAttribute('data-tooltip');
+                this.dragTooltip.style.color = this.radarGreen;
                 this.dragTooltip.style.display = 'block';
                 this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
             });
@@ -888,18 +926,28 @@ class Simulator {
         }
 
         // --- Radial bearing lines ---
-        for (let deg = 0; deg < 360; deg += 10) {
-            const isCardinal = CARDINAL_BEARINGS.includes(deg);
-            ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
-            const ang = this.toRadians(deg);
-            const lineRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
-            ctx.beginPath();
-            ctx.moveTo(center, center);
-            ctx.lineTo(
-                center + lineRadius * Math.cos(ang),
-                center - lineRadius * Math.sin(ang)
-            );
-            ctx.stroke();
+        if (this.showPolarPlot) {
+            for (let deg = 0; deg < 360; deg += 10) {
+                const isCardinal = CARDINAL_BEARINGS.includes(deg);
+                ctx.setLineDash(isCardinal ? DASH_PATTERN_SOLID : DASH_PATTERN_NONCAR);
+                const ang = this.toRadians(deg);
+                const originalRadius = isCardinal ? (size / 2) : radius + (size / 2 - radius) / 2;
+                const startRadius = radius;
+                let endRadius = originalRadius;
+                if (!isCardinal) {
+                    endRadius = radius + 0.8 * (originalRadius - radius);
+                }
+                ctx.beginPath();
+                ctx.moveTo(
+                    center + startRadius * Math.cos(ang),
+                    center - startRadius * Math.sin(ang)
+                );
+                ctx.lineTo(
+                    center + endRadius * Math.cos(ang),
+                    center - endRadius * Math.sin(ang)
+                );
+                ctx.stroke();
+            }
         }
         ctx.restore();
     }
@@ -927,8 +975,8 @@ class Simulator {
         this.ctx.stroke();
 
         // Draw ordered course/speed vector if still manoeuvring
-        const orderedCourse = (this.ownShip.dragCourse !== null) ? this.ownShip.dragCourse : this.ownShip.orderedCourse;
-        const orderedSpeed  = (this.ownShip.dragSpeed  !== null) ? this.ownShip.dragSpeed  : this.ownShip.orderedSpeed;
+        const orderedCourse = this.ownShip.orderedCourse;
+        const orderedSpeed  = this.ownShip.orderedSpeed;
         const diffCourse = Math.abs(((orderedCourse - this.ownShip.course + 540) % 360) - 180);
         const diffSpeed  = Math.abs(orderedSpeed - this.ownShip.speed);
         if (diffCourse > 0.5 || diffSpeed > 0.05) {
@@ -950,12 +998,29 @@ class Simulator {
             const tipX = rect.left + (oEndX / this.DPR);
             const tipY = rect.top + (oEndY / this.DPR);
             const txt = `Crs: ${orderedCourse.toFixed(1)} T\nSpd: ${orderedSpeed.toFixed(1)} kts`;
+            this.orderTooltip.style.color = this.radarDarkOrange;
             this.orderTooltip.innerText = txt;
             this.orderTooltip.style.display = 'block';
             this.orderTooltip.style.transform = `translate(${tipX - this.orderTooltip.offsetWidth - 10}px, ${tipY - this.orderTooltip.offsetHeight - 10}px)`;
         } else {
             this.orderTooltip.style.display = 'none';
             this.ownShip.orderedVectorEndpoint = null;
+        }
+
+        const dragging = this.draggedItemId === 'ownShip' && this.dragType === 'vector';
+        if (dragging && this.ownShip.dragCourse !== null && this.ownShip.dragSpeed !== null) {
+            const dragDistPixels = this.ownShip.dragSpeed * timeInHours * pixelsPerNm;
+            const dragAngle = this.toRadians(this.bearingToCanvasAngle(this.ownShip.dragCourse));
+            const dEndX = center + dragDistPixels * Math.cos(dragAngle);
+            const dEndY = center - dragDistPixels * Math.sin(dragAngle);
+            this.ctx.save();
+            this.ctx.strokeStyle = this.radarWhite;
+            this.ctx.lineWidth = 1.4 * 1.2 * 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(center, center);
+            this.ctx.lineTo(dEndX, dEndY);
+            this.ctx.stroke();
+            this.ctx.restore();
         }
     }
 
@@ -988,7 +1053,9 @@ class Simulator {
         this.ctx.font = `${Math.max(11, radius * 0.038)}px 'Share Tech Mono', monospace`;
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'top';
-        this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        if (this.showTrackIds) {
+            this.ctx.fillText(track.id, x + targetSize / 2 + 3, y + targetSize / 2 + 3);
+        }
     }
 
     drawRelativeMotionVector(center, radius, track) {
@@ -1285,6 +1352,11 @@ class Simulator {
         }
 
         if (tooltipText) {
+            if (this.draggedItemId === 'ownShip' && this.dragType === 'vector') {
+                this.dragTooltip.style.color = this.radarWhite;
+            } else {
+                this.dragTooltip.style.color = this.radarGreen;
+            }
             this.dragTooltip.innerText = tooltipText;
             this.dragTooltip.style.display = 'block';
             this.dragTooltip.style.transform = `translate(${e.clientX - this.dragTooltip.offsetWidth - 10}px, ${e.clientY - this.dragTooltip.offsetHeight - 10}px)`;
@@ -1573,6 +1645,25 @@ class Simulator {
             }
             this.updatePanelsAndRedraw();
             this.markSceneDirty();
+        }
+    }
+
+    togglePolarPlot() {
+        this.showPolarPlot = !this.showPolarPlot;
+        this.staticDirty = true;
+        this.markSceneDirty();
+    }
+
+    toggleTrackIds() {
+        this.showTrackIds = !this.showTrackIds;
+        this.markSceneDirty();
+    }
+
+    toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen?.();
+        } else {
+            document.exitFullscreen?.();
         }
     }
 
