@@ -10,48 +10,24 @@ html, body {
     height: 100%;
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-#left-pane {
-    position: absolute;
-    top: 32px;
-    left: 32px;
-    z-index: 2;
-}
-
-#logo {
-    flex-direction: column;
-}
 
 main {
     display: flex;
-    flex: 1; /* Fills remaining space */
 }
-nav {
-    width: 64px;
-}
+
 #simulator {
-    display: flex;
-    flex: 1;
-}
-#radar-wrapper {
     flex-direction: column;
-    flex-grow:.7;
-    padding: 0 0px 0 0;
-    z-index: 1;
+    flex: 1;
+    overflow: hidden;
+}
+
+#radar-wrapper {
+    height: 100vh;;
 }
 
 #right-pane {
-    width: 286px;
-    position: absolute;
-    /* padding: 32px 32px 0 24px; */
-    top: 0;
-    right: 0;
-    z-index: 3;
+    width: 286px;    
+    flex-direction: column;
     border-left: 1px solid #333;
     height: 100vh;
     background: #000;
@@ -96,24 +72,16 @@ canvas {
 .tracking-wide {
     letter-spacing: 0.05em;
 }
-main {
-    flex-direction: row;
-}
+
 /* Ensure the main content area fills the viewport height */
-.main-content {
+.sim-radar {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     height: 100vh;
-    gap: 20px;
-    padding: 20px;
     overflow: hidden;
     box-sizing: border-box;
-}
-
-@media (min-width: 1600px) {
-   
 }
 
 #data-pane,
@@ -124,14 +92,14 @@ main {
 #wind-data-container {
     width: 100%;
 }
+
 #sim-panel {
-    /* background: #2c2c2c; */
-    border-radius: 4px;
     padding-top: 22px;
     font-family: 'Digital-7 Mono', 'Share Tech Mono', monospace;
     z-index: 10;
     border-bottom: 1px solid #333;
 }
+
 #sim-controls {
     display: flex;
     align-items: center;
@@ -140,10 +108,12 @@ main {
     border-top:1px solid #333;
     font-size: 1.35rem;
 }
+
 #sim-clock {
     font-size: 1.8rem;
     padding-bottom: 17px;
 }
+
 .sim-control-btn {
     flex-direction: column;
     text-align: center;
@@ -153,7 +123,11 @@ main {
     color: inherit;
     position: relative;
     border-right: 1px solid #333;
-    padding: 8px 0;
+    padding: 6px 0 8px;
+}
+
+.sim-control-btn:last-child, .sim-control-btn.new {
+    border-right: none;
 }
 
 .sim-control-btn:hover {
@@ -164,11 +138,11 @@ main {
     padding: 10px 0
 }
 #btn-rev, #btn-ff {
-    flex: 0 0 25%;
+    flex: 0 0 27.6%;
 }
 
 #btn-play-pause {
-    flex: 0 0 50%;
+    flex: 0 0 44.7%;
 }
 /* Button Styling */
 .control-btn {
@@ -319,7 +293,6 @@ main {
 
 #radar-container {
     max-width: 100vh;
-    /*max-height: 90%;*/
     min-height: 0;
     width: 100%;
     border-radius: 50%;
@@ -377,13 +350,25 @@ main {
     line-height: 1.4;
     white-space: pre;
 }
+
+#header {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    width: calc(100vw - 286px);
+    padding: 24px 24px 0;
+}
+
+
 #logo, #logo span {
     font-family: 'Share Tech Mono', monospace;
-    line-height: .8;
+    line-height: 1;
 }
 #logo {
     color: var(--radar-green);
     font-size:1.7rem;
+    display: flex;
+    flex-direction: column;
 }
 
 #logo span {
@@ -391,6 +376,27 @@ main {
     font-size: 1rem;
 }
 
+#controls {
+    display: flex;
+    align-items: top;
+    gap: 16px;
+    font-size: 1.2rem;
+    flex: 1;
+    justify-content: right;
+    flex-direction: row;
+}
+
+#controls button {
+    all: unset;
+    flex-direction: row;
+    display: flex;
+    color: var(--radar-green);
+    background: #000;
+    box-shadow: none;
+    padding: 0;
+    font-size: 16px;
+    cursor: pointer;
+}
 
  .mobile-blocker {
      position: fixed;
@@ -446,6 +452,7 @@ main {
     font-family: 'Share Tech Mono', monospace;
     resize: both;
 }
+
 .help-modal-text {
     white-space: pre-wrap;
     max-width: 100ch;
@@ -495,7 +502,7 @@ details[open] > summary.collapsible-summary::before {
     padding: 0;
     background: transparent;
     border: none;
-    color: var(--radar-faint-green);
+    color: var(--radar-green);
     z-index: 4;
 }
 
@@ -543,20 +550,3 @@ details[open] > summary.collapsible-summary::before {
 #settings-drawer input[type="checkbox"] {
     accent-color: var(--radar-green);
 }
-
-/* Prevent pull-to-refresh & rubber-band while allowing the OS escape swipe */
-html, body {
-  margin: 0;
-  height: 100%;
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: contain;
-}
-
-/* Canvas already has touch-action:none; declare shared draggable class too */
-.draggable, canvas {
-  touch-action: none;
-}
-
-/* Optional visual cue when in full-screen */
-:fullscreen #btn-fullscreen svg { transform: rotate(45deg); }
-:-webkit-full-screen #btn-fullscreen svg { transform: rotate(45deg); }
