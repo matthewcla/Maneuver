@@ -502,7 +502,7 @@ details[open] > summary.collapsible-summary::before {
     padding: 0;
     background: transparent;
     border: none;
-    color: var(--radar-green);
+    color: var(--radar-faint-green);
     z-index: 4;
 }
 
